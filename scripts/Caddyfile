@@ -1,0 +1,46 @@
+{
+    auto_https off
+    admin off
+}
+
+:8080 {
+    root * /srv
+    file_server
+
+    # Security headers
+    header {
+        # Content Security Policy
+        Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://fonts.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self';"
+        # HSTS
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        # XSS Protection
+        X-XSS-Protection "0"
+        # Content Type
+        X-Content-Type-Options "nosniff"
+        # Frame protection
+        X-Frame-Options "DENY"
+        # Referrer
+        Referrer-Policy "strict-origin-when-cross-origin"
+        # Permissions
+        Permissions-Policy "camera=(), microphone=(), geolocation=()"
+    }
+
+    # Cache WASM and assets forever
+    @static path *.wasm *.js *.css *.png *.jpg *.webp *.svg *.woff2
+    header @static Cache-Control "public, max-age=31536000, immutable"
+
+    # No cache for HTML
+    @html path /*.html /
+    header @html Cache-Control "no-cache, no-store, must-revalidate"
+
+    # Compression
+    encode gzip zstd
+
+    # Try files with HTML extension
+    try_files {path} {path}.html /index.html
+
+    log {
+        output stdout
+        format json
+    }
+}

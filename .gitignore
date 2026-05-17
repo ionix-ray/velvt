@@ -1,0 +1,12 @@
+/target
+**/*.rs.bk
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+dist/
+.idea/
+.vscode/launch.json
+*.wasm
+*.d
