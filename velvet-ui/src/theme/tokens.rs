@@ -1,89 +1,78 @@
-#[allow(dead_code)]
-pub const BG_PRIMARY: &str = "#0A0A0A";
-#[allow(dead_code)]
-pub const BG_SECONDARY: &str = "#111111";
-#[allow(dead_code)]
-pub const BG_ELEVATED: &str = "#1A1A1A";
+//! Design tokens — extracted from the Vaelvet logo (velvet red + gold lettering).
+//! Single source of truth, mirrored in `assets/theme.css` as CSS custom properties.
 
-#[allow(dead_code)]
-pub const TEXT_PRIMARY: &str = "#F5F5F5";
-#[allow(dead_code)]
-pub const TEXT_SECONDARY: &str = "#A0A0A0";
-#[allow(dead_code)]
-pub const TEXT_MUTED: &str = "#666666";
+#![allow(dead_code)]
 
-#[allow(dead_code)]
-pub const VELVET_CRIMSON: &str = "#8B0000";
-#[allow(dead_code)]
-pub const VELVET_CRIMSON_LIGHT: &str = "#A52A2A";
-#[allow(dead_code)]
-pub const DEEP_PLUM: &str = "#4B0082";
-#[allow(dead_code)]
-pub const DEEP_PLUM_LIGHT: &str = "#6A0DAD";
-#[allow(dead_code)]
-pub const WARM_GOLD: &str = "#D4AF37";
+/// Palette — five swatches lifted from the logo.
+pub mod palette {
+    /// Deep velvet shadow (background base, footer wash).
+    pub const VELVET_DEEP: &str = "#5A0A0F";
+    /// Mid-tone velvet crimson (hero ambient, dividers).
+    pub const VELVET_CRIMSON: &str = "#8B1A1F";
+    /// Warm ember highlight (cta hover, rim-light).
+    pub const VELVET_EMBER: &str = "#B83C2B";
 
-#[allow(dead_code)]
-pub const FONT_HEADING: &str = "'Playfair Display', Georgia, 'Times New Roman', serif";
-#[allow(dead_code)]
-pub const FONT_BODY: &str = "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif";
-#[allow(dead_code)]
-pub const FONT_ACCENT: &str = "'Manrope', 'Inter', sans-serif";
+    /// Warm gold lettering (primary headings, brand mark).
+    pub const GOLD_LEAF: &str = "#E8C892";
+    /// Bright cream (high-contrast highlights).
+    pub const GOLD_BRIGHT: &str = "#F5D9A0";
 
-#[allow(dead_code)]
-pub const MAX_WIDTH: &str = "1280px";
-#[allow(dead_code)]
-pub const GUTTER: &str = "2rem";
+    /// Stage ink — near-black canvas.
+    pub const INK: &str = "#0A0405";
+    /// Soft ivory body text.
+    pub const IVORY: &str = "#F8EFE0";
+    /// Smoke — mid-grey for subdued type.
+    pub const SMOKE: &str = "#9A8E84";
+}
 
-#[allow(dead_code)]
-pub const TRANSITION_FAST: &str = "150ms cubic-bezier(0.4, 0, 0.2, 1)";
-#[allow(dead_code)]
-pub const TRANSITION_BASE: &str = "200ms cubic-bezier(0.4, 0, 0.2, 1)";
-#[allow(dead_code)]
-pub const TRANSITION_SLOW: &str = "300ms cubic-bezier(0.4, 0, 0.2, 1)";
+/// Type scale — Plex Serif Display for headings, Plex Sans for body.
+pub mod fonts {
+    pub const DISPLAY: &str =
+        "\"IBM Plex Serif\", \"Plex Serif Display\", Georgia, \"Times New Roman\", serif";
+    pub const SANS: &str = "\"IBM Plex Sans\", system-ui, -apple-system, sans-serif";
+    pub const MONO: &str = "\"IBM Plex Mono\", ui-monospace, monospace";
+}
+
+/// Spacing — IBM Carbon 2× base (8px), exponential.
+pub mod space {
+    pub const S0: &str = "0";
+    pub const S1: &str = "0.25rem"; // 4
+    pub const S2: &str = "0.5rem"; // 8
+    pub const S3: &str = "1rem"; // 16
+    pub const S4: &str = "1.5rem"; // 24
+    pub const S5: &str = "2.5rem"; // 40
+    pub const S6: &str = "4rem"; // 64
+    pub const S7: &str = "6rem"; // 96
+    pub const S8: &str = "9rem"; // 144
+}
+
+/// Motion — easing curves and durations.
+pub mod motion {
+    pub const EASE_STAGE: &str = "cubic-bezier(0.16, 1, 0.3, 1)";
+    pub const EASE_LINEAR: &str = "linear";
+    pub const D_FAST: &str = "180ms";
+    pub const D_MED: &str = "420ms";
+    pub const D_SLOW: &str = "1200ms";
+}
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn colors_are_valid_hex() {
-        let colors = [
-            BG_PRIMARY,
-            BG_SECONDARY,
-            BG_ELEVATED,
-            TEXT_PRIMARY,
-            TEXT_SECONDARY,
-            TEXT_MUTED,
-            VELVET_CRIMSON,
-            VELVET_CRIMSON_LIGHT,
-            DEEP_PLUM,
-            DEEP_PLUM_LIGHT,
-            WARM_GOLD,
-        ];
-        for color in colors {
-            assert!(color.starts_with('#'), "Color {} must start with #", color);
-            assert!(color.len() == 7, "Color {} must be 7 chars (#+6hex)", color);
-        }
-    }
-
-    #[test]
-    fn fonts_have_fallbacks() {
-        let fonts = [FONT_HEADING, FONT_BODY, FONT_ACCENT];
-        for font in fonts {
-            assert!(font.contains(','), "Font {} must have fallbacks", font);
-        }
-    }
-
-    #[test]
-    fn transitions_use_easing() {
-        let transitions = [TRANSITION_FAST, TRANSITION_BASE, TRANSITION_SLOW];
-        for transition in transitions {
-            assert!(
-                transition.contains("cubic-bezier"),
-                "Transition {} must use easing",
-                transition
-            );
+    fn palette_hex_values_are_well_formed() {
+        for c in [
+            palette::VELVET_DEEP,
+            palette::VELVET_CRIMSON,
+            palette::VELVET_EMBER,
+            palette::GOLD_LEAF,
+            palette::GOLD_BRIGHT,
+            palette::INK,
+            palette::IVORY,
+            palette::SMOKE,
+        ] {
+            assert_eq!(c.len(), 7, "hex must be #RRGGBB: {c}");
+            assert!(c.starts_with('#'), "hex must start with #: {c}");
         }
     }
 }

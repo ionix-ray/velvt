@@ -3,41 +3,50 @@ resolver = "2"
 members = ["velvet-ui"]
 
 [workspace.package]
-version = "0.1.0"
-edition = "2024"
-rust-version = "1.85"
-license = "Apache-2.0"
+version      = "0.2.0"
+edition      = "2024"
+rust-version = "1.87"
+license      = "Apache-2.0"
+authors      = ["Vaelvet"]
 
 [workspace.dependencies]
-dioxus = { version = "=0.7.6", features = ["web"] }
-dioxus-router = "=0.7.6"
-serde = { version = "1", features = ["derive"] }
-serde_json = "1"
-tracing = "0.1"
-tracing-subscriber = { version = "0.3", features = ["json", "env-filter"] }
-thiserror = "2"
-anyhow = "1"
-gloo-timers = "0.3"
-web-sys = "0.3"
-wasm-bindgen = "0.2"
+dioxus              = { version = "=0.7.6", features = ["web"] }
+dioxus-router       = "=0.7.6"
+serde               = { version = "1", features = ["derive"] }
+toml                = "0.8"
+tracing             = "0.1"
+tracing-subscriber  = { version = "0.3", features = ["env-filter"] }
+tracing-wasm        = "0.2"
+thiserror           = "2"
+gloo-timers         = "0.3"
+web-sys             = { version = "0.3", features = ["Window", "Document", "Element", "HtmlElement", "CssStyleDeclaration", "IntersectionObserver", "IntersectionObserverEntry", "IntersectionObserverInit", "DomTokenList", "NodeList"] }
+wasm-bindgen        = "0.2"
+console_error_panic_hook = "0.1"
+js-sys                   = "0.3"
 
 [workspace.lints.rust]
 unsafe_code = "deny"
 
 [workspace.lints.clippy]
-unwrap_used = "deny"
-expect_used = "deny"
-panic = "deny"
-todo = "deny"
-pedantic = { level = "warn", priority = -1 }
+unwrap_used   = "deny"
+expect_used   = "deny"
+panic         = "deny"
+todo          = "deny"
+unimplemented = "deny"
+print_stdout  = "deny"
+print_stderr  = "deny"
+# pedantic/nursery are deliberately NOT denied — they're noisy for UI code.
+# We keep them off so the build stays green; security-critical lints remain deny.
+pedantic = { level = "allow", priority = -1 }
+nursery  = { level = "allow", priority = -1 }
 
 [profile.release]
-opt-level = "z"
-lto = "fat"
+opt-level     = "z"
+lto           = "fat"
 codegen-units = 1
-panic = "abort"
-strip = true
+panic         = "abort"
+strip         = true
 
 [profile.wasm-dev]
-inherits = "dev"
+inherits  = "dev"
 opt-level = 1

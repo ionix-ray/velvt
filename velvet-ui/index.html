@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="color-scheme" content="dark" />
+<meta name="theme-color" content="#5A0A0F" />
+
+<title></title>
+<meta name="description" content="A cinematic public-relations house. We don't write press releases — we compose entrances." />
+
+<!-- Open Graph -->
+<meta property="og:title"       content="Vaelvet — elevate your Presence" />
+<meta property="og:description" content="Cinematic PR. Film, fashion, founders." />
+<meta property="og:image"       content="/assets/images/logo.jpg" />
+<meta property="og:type"        content="website" />
+<meta name="twitter:card"       content="summary_large_image" />
+
+<!-- CSS, favicon, and image preloads are injected from Rust via asset!() so dx
+     hashes them and the dev server actually serves them. Keeping them out of
+     this static template avoids 404s on un-hashed paths. -->
+
+<!-- Self-hosted fonts (Plex Serif Display + Plex Sans). Swap to woff2 files when shipped. -->
+<style>
+  /* Critical inline: stage colour to prevent first-paint flash */
+  html, body { background:#0A0405; color:#F8EFE0; margin:0; }
+  body { font-family: "IBM Plex Sans", system-ui, -apple-system, sans-serif; }
+  .v-curtain { position:fixed; inset:0; background:#0A0405; z-index:9999; pointer-events:none;
+               animation: v-curtain-rise 1.2s cubic-bezier(.16,1,.3,1) forwards; }
+  @keyframes v-curtain-rise { 0% { transform: translateY(0); } 100% { transform: translateY(-100%); } }
+  @media (prefers-reduced-motion: reduce) { .v-curtain { display:none; } }
+</style>
+
+<!-- JSON-LD organization -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "Vaelvet",
+  "url": "https://vaelvet.com",
+  "logo": "/assets/images/logo.jpg",
+  "sameAs": ["https://instagram.com/vaelvet", "https://linkedin.com/company/vaelvet"],
+  "slogan": "elevate your Presence"
+}
+</script>
+</head>
+<body>
+<div class="v-curtain" aria-hidden="true"></div>
+<div id="main"></div>
+</body>
+</html>

@@ -1,102 +1,59 @@
-# Velvet PR Agency — Dev Automation
-# Usage: just <command>
+# Vaelvet — single source of dev commands. Run `just` for the menu.
 
-# Find free port 8080-8100, kill existing, build WASM, serve & auto-open
+set shell := ["bash", "-cu"]
+set positional-arguments
+
+default:
+    @just --list --unsorted
+
+# Dev server: pick first free port in 8080..8100, hot reload, open browser.
 dev:
-    @bash scripts/bootstrap.sh dev
+    #!/usr/bin/env bash
+    set -euo pipefail
+    PORT=8080
+    while lsof -iTCP:$PORT -sTCP:LISTEN -P -n >/dev/null 2>&1; do
+        PORT=$((PORT + 1))
+        if [ $PORT -gt 8100 ]; then echo "no free port 8080-8100"; exit 1; fi
+    done
+    echo "→ dx serve --port $PORT"
+    cd velvet-ui && dx serve --port $PORT --open
 
-# Production WASM build (format → clippy → test → build)
+# Production WASM build → dist/
 build:
-    @bash scripts/bootstrap.sh build
+    cd velvet-ui && dx build --release
 
-# Build + serve + open in Safari + Chrome
-serve:
-    @bash scripts/bootstrap.sh serve
+# Static export — `dist/` ready to drop on any CDN.
+static: build
+    @ls -lh dist/*.wasm 2>/dev/null || true
+    @echo "→ static output: dist/"
 
-# Full release pipeline: format → clippy → test → audit → build → serve → open
-release:full:
-    @bash scripts/bootstrap.sh release:full
-
-# Docker container mode: build → docker → port forward → open browsers
-container:
-    @bash scripts/bootstrap.sh container
-
-# Run all tests
+# All tests (cargo + dioxus-ssr).
 test:
-    cargo test --package velvet-ui
+    cargo test --workspace --all-targets
 
-# Lint + format
+# fmt + clippy (deny warnings).
 lint:
-    cargo fmt --all && cargo clippy --workspace -- -D warnings
+    cargo fmt --all --check
+    cargo clippy --workspace --all-targets -- -D warnings
 
-# Security audit
+# Auto-fix formatting.
+fmt:
+    cargo fmt --all
+
+# Security audit (cargo-audit must be installed: `cargo install cargo-audit`).
 audit:
-    cargo audit
+    cargo audit --deny warnings
 
-# Clean build artifacts
-clean:
-    dx clean && cargo clean
-    @docker rm -f velvet-pr 2>/dev/null || true
-
-# Generate static output for CDN deploy
-static:
-    dx build --release --package velvet-ui
-    @echo "Static output in target/dx/velvet-ui/release/web/public/"
-
-# Dev with hot reload (debug)
-dev-debug:
-    dx serve --hot-reload
-
-# Build Docker image only
-docker-build:
-    docker build -t velvet-pr:latest -f Containerfile .
-
-# Stop and remove container
-docker-stop:
-    docker stop velvet-pr 2>/dev/null || true
-    docker rm velvet-pr 2>/dev/null || true
-
-# Show logs from container
-docker-logs:
-    docker logs -f velvet-pr
-
-# Run Playwright E2E tests (requires running server)
+# Playwright e2e (Node only inside test-suite/).
 e2e:
-    @cd test-suite/playwright && npx playwright test
+    cd test-suite/playwright && npm ci && npx playwright test
 
-# Run Playwright E2E tests with UI
-e2e-ui:
-    @cd test-suite/playwright && npx playwright test --ui
+# Bundle size report.
+size: build
+    @ls -lh dist/*.wasm | awk '{print $5, $9}'
+    @gzip -c dist/*.wasm 2>/dev/null | wc -c | awk '{printf "wasm gz: %.1f KB\n", $1/1024}'
 
-# Quick health check
-health:
-    @curl -s -o /dev/null -w "HTTP %{http_code}" http://localhost:8080/ || echo "Server not running"
-
-# Show current port
-port:
-    @lsof -i :8080 -sTCP:LISTEN -P -n 2>/dev/null | grep LISTEN || echo "No process on port 8080"
-
-# Help
-.DEFAULT_GOAL := help
-help:
-    @echo "Velvet PR Agency — Available Commands"
-    @echo "======================================"
-    @echo ""
-    @echo "  just dev            Start dev server with hot reload"
-    @echo "  just build          Production WASM build (format + clippy + test + build)"
-    @echo "  just serve          Build + serve + open in Safari + Chrome"
-    @echo "  just release:full   Full release pipeline with quality gates"
-    @echo "  just container      Docker container with port forward + open browsers"
-    @echo "  just test           Run all Rust tests"
-    @echo "  just lint           Format + clippy"
-    @echo "  just audit          Security audit"
-    @echo "  just clean          Clean build artifacts"
-    @echo "  just static         Generate static output"
-    @echo "  just e2e            Run Playwright E2E tests"
-    @echo "  just e2e-ui         Run Playwright E2E with UI"
-    @echo "  just docker-build   Build Docker image only"
-    @echo "  just docker-stop    Stop and remove container"
-    @echo "  just docker-logs    Show container logs"
-    @echo "  just health         Quick health check"
-    @echo "  just port           Show current port status"
-    @echo "  just help           Show this help"
+# Wipe build artifacts.
+clean:
+    cargo clean
+    rm -rf dist

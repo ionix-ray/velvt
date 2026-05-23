@@ -1,41 +1,36 @@
-# syntax=docker/dockerfile:1.7
+# Vaelvet — multi-stage. Builder → distroless static serve via Caddy.
+# CIS Docker L1 baseline: no root, no privesc, read-only fs, dropped caps.
 
-# ─── Stage 1: Build WASM ───
+# ── builder ─────────────────────────────────────────────────────────────
 FROM rust:1.85-slim AS builder
+WORKDIR /build
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    pkg-config \
-    ca-certificates \
-    curl \
-    && rm -rf /var/lib/apt/lists/*
+        pkg-config libssl-dev ca-certificates curl \
+    && rm -rf /var/lib/apt/lists/* \
+    && rustup target add wasm32-unknown-unknown \
+    && cargo install dioxus-cli --version 0.7.6 --locked
 
-RUN rustup target add wasm32-unknown-unknown
+COPY Cargo.toml Cargo.lock* ./
+COPY rust-toolchain.toml ./
+COPY content/ ./content/
+COPY velvet-ui/ ./velvet-ui/
 
-# Install dx CLI
-RUN cargo install dioxus-cli --version 0.7.6 --locked
+RUN cd velvet-ui && dx build --release
 
-WORKDIR /app
-COPY Cargo.toml Cargo.lock ./
-COPY velvet-ui/Cargo.toml velvet-ui/Cargo.toml
+# ── runtime: Caddy static + security headers ────────────────────────────
+FROM caddy:2.8-alpine AS runtime
+WORKDIR /srv
 
-# Fetch dependencies (cached layer)
-RUN cargo fetch || true
+COPY --from=builder /build/dist /srv
+COPY ops/Caddyfile /etc/caddy/Caddyfile
 
-COPY . .
-RUN dx build --release --package velvet-ui
+RUN addgroup -S vaelvet && adduser -S -G vaelvet vaelvet \
+    && chown -R vaelvet:vaelvet /srv /etc/caddy
 
-# ─── Stage 2: Serve with Caddy ───
-FROM caddy:2.8-alpine
-
-COPY --from=builder /app/target/dx/velvet-ui/release/web/public /srv
-
-COPY scripts/Caddyfile /etc/caddy/Caddyfile
-
-RUN chmod -R 755 /srv
-
+USER vaelvet
 EXPOSE 8080
-
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD wget -q --spider http://localhost:8080 || exit 1
+    CMD wget -qO- http://127.0.0.1:8080/ >/dev/null || exit 1
 
-CMD ["caddy", "run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile"]
+ENTRYPOINT ["caddy", "run", "--config", "/etc/caddy/Caddyfile", "--adapter", "caddyfile"]

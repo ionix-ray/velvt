@@ -1,18 +1,10 @@
-#[allow(unused_imports)]
+//! UI components. Stateless renderers that consume `Site` config.
+
+pub mod case_studies;
 pub mod contact;
-#[allow(unused_imports)]
 pub mod footer;
-#[allow(unused_imports)]
 pub mod hero;
-#[allow(unused_imports)]
-pub mod navbar;
-#[allow(unused_imports)]
-pub mod podcast;
-#[allow(unused_imports)]
-pub mod portfolio;
-#[allow(unused_imports)]
+pub mod icons;
+pub mod manifesto;
+pub mod nav;
 pub mod services;
-#[allow(unused_imports)]
-pub mod shared;
-#[allow(unused_imports)]
-pub mod talent;

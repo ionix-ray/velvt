@@ -1,0 +1,110 @@
+# Vaelvet — canonical content. Edit here, rebuild, ship.
+# Parsed at compile time via include_str! → serde → Site struct.
+
+[brand]
+name      = "Vaelvet"
+tagline   = "elevate your Presence."
+short     = "Vaelvet"
+copyright = "© Vaelvet. Mumbai · New York."
+
+[meta]
+title       = "Vaelvet — elevate your Presence"
+description = "A cinematic public-relations house for film, music, fashion, and founders. We don't write press releases — we compose entrances."
+og_image    = "/assets/images/logo.jpg"
+theme_color = "#5A0A0F"
+twitter     = "@vaelvet"
+
+[[nav]]
+label = "Manifesto"
+href  = "#manifesto"
+
+[[nav]]
+label = "Services"
+href  = "#services"
+
+[[nav]]
+label = "Cases"
+href  = "#cases"
+
+[[nav]]
+label = "Roster"
+href  = "#roster"
+
+[[nav]]
+label = "Contact"
+href  = "#contact"
+
+[hero]
+eyebrow  = "PR · FILM · FASHION · FOUNDERS"
+headline = "We don't write press releases. We compose entrances."
+sub      = "Vaelvet is a premium public-relations house for those who refuse to be ordinary. Every campaign is staged like a third-act reveal."
+cta      = "Book a private consultation"
+cta_href = "#contact"
+
+[[services]]
+icon  = "film"
+title = "Cinematic PR"
+body  = "Press tours, festival debuts, premiere choreography. From log-line to red carpet."
+
+[[services]]
+icon  = "shield"
+title = "Crisis & Counsel"
+body  = "Narrative repair, executive shielding, 72-hour response. Quiet, surgical, irreversible."
+
+[[services]]
+icon  = "spark"
+title = "Talent Curation"
+body  = "Actor, athlete, founder positioning. Global press, deliberate placement."
+
+[[services]]
+icon  = "stage"
+title = "Event Direction"
+body  = "Premieres, listening sessions, after-parties. The room before you walk in."
+
+[[services]]
+icon  = "feather"
+title = "Editorial Placement"
+body  = "Long-lead features in Vogue, GQ, Vanity Fair, Hollywood Reporter, Variety."
+
+[[cases]]
+slug    = "auroras-last-light"
+client  = "A24 · Aurora's Last Light"
+metric  = "$12M opening · 3 Cannes invitations"
+summary = "Indie debut staged across nine festivals in six weeks. Three trailers, one rumor, zero leaks."
+
+[[cases]]
+slug    = "house-of-marais"
+client  = "House of Marais"
+metric  = "14 cover stories · 9 weeks"
+summary = "Couture relaunch positioned as the year's quietest reveal. Editors came to us."
+
+[[cases]]
+slug    = "project-lumen"
+client  = "Project Lumen"
+metric  = "$80M Series C · WSJ profile · TED keynote"
+summary = "Fintech founder reframed as cultural figure. From server room to magazine cover."
+
+[manifesto]
+title = "Presence is a craft."
+body  = """
+Most agencies measure reach. We measure resonance — the silence after the room turns.
+
+We are deliberately small. Deliberately picky. Deliberately quiet about most of what we do. The rest, you will recognise on covers, screens, and stages — long before our name appears in the credits.
+"""
+
+[contact]
+email_general = "hello@vaelvet.com"
+email_press   = "press@vaelvet.com"
+ateliers      = ["Bandra West, Mumbai", "Tribeca, New York"]
+cta           = "Tell us who you want to become."
+
+[footer]
+links     = [
+    { label = "Privacy",   href = "/privacy" },
+    { label = "Press kit", href = "/press" },
+    { label = "Careers",   href = "/careers" },
+]
+socials   = [
+    { label = "Instagram", href = "https://instagram.com/vaelvet" },
+    { label = "LinkedIn",  href = "https://linkedin.com/company/vaelvet" },
+]

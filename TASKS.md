@@ -1,58 +1,40 @@
-# TASKS.md — Velvet PR Agency Website
+# TASKS.md — Vaelvet backlog
 
-## Sprint 1: Foundation (P0 — Week 1)
-| ID | Task | Priority | Depends | Effort | Status |
-|----|------|----------|---------|--------|--------|
-| T-001 | Scaffold workspace, Cargo.toml, dx.toml, justfile | P0 | — | S | DONE |
-| T-002 | Write design tokens (theme.css + tokens.rs) | P0 | T-001 | S | DONE |
-| T-003 | Set up router + route skeleton (6 routes) | P0 | T-001 | M | DONE |
-| T-004 | Implement shared components (Button, Card, Section, FadeIn) | P0 | T-002 | M | DONE |
-| T-005 | Write unit tests for shared components | P0 | T-004 | M | DONE |
-| T-006 | Configure Dioxus.toml metadata + SEO base | P0 | T-003 | S | DONE |
-| T-007 | Set up Playwright E2E harness | P0 | T-003 | S | DONE |
+Picked up by `autonomous-iterate`. One row = one PR. AC must be Given/When/Then before implementation.
 
-## Sprint 2: Core Pages (P0 — Week 2)
-| ID | Task | Priority | Depends | Effort | Status |
-|----|------|----------|---------|--------|--------|
-| T-008 | Hero component (full-viewport, CTA, parallax bg) | P0 | T-004 | M | DONE |
-| T-009 | Navbar (sticky, scroll-aware, keyboard nav) | P0 | T-004 | M | DONE |
-| T-010 | Services section (3-col grid, hover states) | P0 | T-004 | M | DONE |
-| T-011 | Talent & Events section (roster, parallax) | P0 | T-004 | M | DONE |
-| T-012 | Portfolio section (carousel, case studies) | P0 | T-004 | M | DONE |
-| T-013 | Podcast section (coming soon, email capture) | P1 | T-004 | S | DONE |
-| T-014 | Contact section (form + validation) | P0 | T-004 | M | DONE |
-| T-015 | Footer (persistent CTA, legal) | P0 | T-004 | S | DONE |
-| T-016 | Write tests for all page components | P0 | T-008–T-015 | L | DONE |
+## Sprint S0 — Scaffold (this session)
+| ID | Task | Status |
+|----|------|--------|
+| S0-01 | Archive `archive/pre-vaelvet` + tag | DONE |
+| S0-02 | Wipe old code, preserve `.git/.claude/.github/memory` | DONE |
+| S0-03 | Optimise logo + favicon from iCloud | DONE |
+| S0-04 | CLAUDE.md, README.md, STATE/TASKS/PROGRESS | DONE |
+| S0-05 | `.claude/settings.json` + agents (Sonnet/Haiku, no Opus) | DONE |
+| S0-06 | Workspace Cargo.toml, Dioxus.toml, justfile, Containerfile | DONE |
+| S0-07 | velvet-ui Cargo.toml + index.html (preload, no lazy) | DONE |
+| S0-08 | theme/tokens.rs + assets/theme.css (cinematic, ≤40KB) | DONE |
+| S0-09 | main.rs + config.rs + components + route | DONE |
+| S0-10 | Per-component tests + Playwright smoke | DONE |
+| S0-11 | Memory entries | DONE |
 
-## Sprint 3: Polish & SEO (P1 — Week 3) — COMPLETE ✅
-| ID | Task | Priority | Depends | Effort | Status |
-|----|------|----------|---------|--------|--------|
-| T-017 | Scroll-triggered animations (IntersectionObserver) | P1 | T-008–T-015 | M | DONE |
-| T-018 | Page transitions (fade + slide) | P1 | T-003 | S | DONE |
-| T-019 | `prefers-reduced-motion` fallbacks | P1 | T-017 | S | DONE |
-| T-020 | JSON-LD structured data (all schema types) | P1 | T-006 | M | DONE |
-| T-021 | sitemap.xml + robots.txt | P1 | T-006 | S | DONE |
-| T-022 | OpenGraph + Twitter Card meta per route | P1 | T-006 | S | DONE |
-| T-023 | CSP headers + security hardening | P1 | T-014 | S | DONE |
-| T-024 | WASM bundle size optimization | P1 | T-008–T-015 | M | DONE |
+## Sprint S1 — First production build (next)
+| ID | Task | AC sketch | Effort |
+|----|------|-----------|--------|
+| S1-01 | Install `dx` CLI; verify `just dev` boots on a free port | When dev server runs, GET `/` returns 200 with hero text | S |
+| S1-02 | Verify `just build` produces WASM ≤1.5 MB gzipped | Build artifact under budget; report `du -h dist/*.wasm` | S |
+| S1-03 | Wire IntersectionObserver scroll triggers via `web-sys` | Sections fade-in on first visibility; reduced-motion path skips | M |
+| S1-04 | Animated SVG `V`-mark hero overlay (CSS keyframes, no JS) | Vine grows from baseline over 1.2s, GPU-composited only | M |
+| S1-05 | Carbon-style 12-col fluid grid via CSS custom properties | Grid responds at 320 / 768 / 1024 / 1440; no media-query bloat | S |
+| S1-06 | Three-plane parallax hero (CSS transform-3d) | Three depth layers; perspective set; scroll updates `--scroll-y` once per frame | M |
+| S1-07 | Carbon icon set inline (top 8: arrow-right, email, phone, location, play, close, menu, chevron-down) | All inline SVG, no font icons, currentColor stroke | S |
+| S1-08 | Lighthouse audit: Perf ≥90, A11y ≥95 | Report exported to `reports/lighthouse-<date>.html` | M |
+| S1-09 | Threat model for the public site | `security/threat-model/components/web.md` filled, STRIDE per element | M |
 
-## Sprint 4: QA & Ship (P1 — Week 4)
-| ID | Task | Priority | Depends | Effort | Status |
-|----|------|----------|---------|--------|--------|
-| T-025 | Run Lighthouse CI, fix bottlenecks | P1 | T-020–T-024 | M | DONE |
-| T-026 | Playwright E2E: all routes + interactions | P1 | T-016 | L | DONE |
-| T-027 | Visual regression snapshots (3 breakpoints) | P1 | T-026 | M | DONE |
-| T-028 | Keyboard navigation audit | P1 | T-009 | S | DONE |
-| T-029 | Responsive audit (320px–1440px) | P1 | T-026 | S | DONE |
-| T-030 | cargo-audit + cargo-deny clean | P1 | T-024 | S | DONE |
-| T-031 | Generate static output, DEPLOY.md | P1 | T-025–T-030 | S | DONE |
-| T-032 | Final coverage report (≥95% logic) | P1 | T-016 | S | DONE |
-
-## Coverage Targets
-| Module | Target |
-|--------|--------|
-| Shared components | ≥95% |
-| Route logic | ≥95% |
-| Theme tokens | 100% |
-| Form validation | 100% |
-| SEO meta injection | ≥95% |
+## Sprint S2 — Cinematic motion + content polish
+| ID | Task | AC sketch | Effort |
+|----|------|-----------|--------|
+| S2-01 | Hero "stage-curtain reveal" on first load (1.4s, prefers-reduced-motion respected) | First paint shows curtain; reveal triggers exactly once per session | M |
+| S2-02 | Case-study cards: hover = rim-light + z-translate | GPU-composited, no layout shift on hover | S |
+| S2-03 | Manifesto block: split-letter typography animation | Letters settle on scroll-in, deterministic, no JS RNG | M |
+| S2-04 | Contact form (no-JS-first, progressive enhancement) | Submits to mailto: fallback; client validation enhances | M |
+| S2-05 | OG + Twitter card meta + JSON-LD `Organization` | Meta passes Twitter card validator | S |

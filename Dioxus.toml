@@ -1,27 +1,29 @@
 [application]
-name = "velvet"
+name             = "vaelvet"
 default_platform = "web"
-out_dir = "dist"
+out_dir          = "dist"
 
 [web.app]
-title = "Velvet — Premium PR Agency"
+title     = "Vaelvet — elevate your Presence"
 base_path = "/"
 
 [web.watcher]
 reload_html = true
-watch = ["assets", "src"]
+watch       = ["assets", "src", "../content"]
 
 [web.resource]
-style = ["assets/theme.css"]
+# All resources are loaded via Rust-side asset!() + document::Link so dx hashes
+# them. Leaving these arrays empty prevents duplicate un-hashed <link> tags.
+style  = []
 script = []
 
 [web.resource.dev]
-style = []
+style  = []
 script = []
 
 [bundle]
-icon = []
-copyright = "Velvet PR Agency"
-category = "Business"
-short_description = "Premium PR Agency — Editorial minimalism meets cinematic luxury"
-long_description = "Velvet is a premium public relations agency specializing in media relations, crisis communications, talent management, and event production."
+icon              = ["assets/images/favicon.png"]
+copyright         = "Vaelvet"
+category          = "Business"
+short_description = "Cinematic PR house. We compose entrances."
+long_description  = "Vaelvet is a premium public-relations house for film, music, fashion, and founders. Every campaign is staged like a third-act reveal."

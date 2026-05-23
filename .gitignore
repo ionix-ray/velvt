@@ -1,12 +1,38 @@
+# Rust
 /target
 **/*.rs.bk
+Cargo.lock.bak
+
+# Dioxus
+/dist
+/velvet-ui/dist
+/.dioxus
+
+# Node (test-suite only)
+/test-suite/**/node_modules
+/test-suite/**/playwright-report
+/test-suite/**/test-results
+
+# Env / secrets
 .env
 .env.*
 !.env.example
-*.log
-.DS_Store
-dist/
+
+# Editors
+.vscode/*
+!.vscode/extensions.json
 .idea/
-.vscode/launch.json
-*.wasm
-*.d
+
+# Local Claude / project
+.claude/settings.local.json
+.claude/state/local-*
+docs/file_tree.md
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+*.wasm.gz
+*.tmp
+*.log

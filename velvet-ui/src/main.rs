@@ -1,62 +1,48 @@
-mod components;
-mod routes;
-mod theme;
+//! Vaelvet entry — launches the WASM app and mounts the router.
+
+#![cfg_attr(not(test), forbid(clippy::unwrap_used, clippy::expect_used))]
 
 use dioxus::prelude::*;
 use dioxus_router::Routable;
 use dioxus_router::components::Router;
-use routes::{Contact, Home, Podcast, Portfolio, Services, Talent};
+use vaelvet_ui::routes::Home;
+use vaelvet_ui::{Site, scroll};
 
 fn main() {
+    console_error_panic_hook::set_once();
+    tracing_wasm::set_as_global_default();
     dioxus::launch(App);
 }
 
 #[component]
 fn App() -> Element {
+    let site = Site::load();
+
+    // Install scroll-linked CSS variable + reveal observer after first render.
+    use_effect(move || {
+        let _ = scroll::install();
+        let _ = scroll::install_reveal();
+    });
+
+    let _ = site;
+
     rsx! {
-        document::Meta { name: "viewport", content: "width=device-width, initial-scale=1" }
-        document::Meta {
-            "http-equiv": "Content-Security-Policy",
-            content: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://fonts.googleapis.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self';",
-        }
-        document::Link {
-            rel: "stylesheet",
-            href: asset!("/assets/theme.css"),
-        }
-        document::Link {
-            rel: "preconnect",
-            href: "https://fonts.googleapis.com",
-        }
-        document::Link {
-            rel: "preconnect",
-            href: "https://fonts.gstatic.com",
-            crossorigin: "anonymous",
-        }
-        document::Link {
-            rel: "stylesheet",
-            href: "https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@400;500&family=Manrope:wght@600&display=swap",
-        }
-        document::Link { rel: "sitemap", r#type: "application/xml", href: "/sitemap.xml" }
-        document::Title { "Velvet — Premium PR Agency" }
-        document::Meta { name: "description", content: "Premium public relations agency specializing in media relations, crisis communications, talent management, and event production." }
-        document::Meta { name: "theme-color", content: "#0A0A0A" }
+        document::Link { rel: "stylesheet",     href: asset!("/assets/theme.css") }
+        document::Link { rel: "icon", r#type: "image/png",
+                          href: asset!("/assets/images/favicon.png") }
+        document::Link { rel: "apple-touch-icon",
+                          href: asset!("/assets/images/favicon.png") }
+        document::Link { rel: "preload", r#as: "image", fetchpriority: "high",
+                          href: asset!("/assets/images/logo.jpg") }
+        document::Link { rel: "preload", r#as: "image",
+                          href: asset!("/assets/images/mark.jpg") }
         Router::<Route> {}
     }
 }
 
-#[derive(Routable, Clone, PartialEq)]
+#[derive(Routable, Clone, PartialEq, Eq)]
 #[rustfmt::skip]
-enum Route {
+pub enum Route {
     #[route("/")]
     Home {},
-    #[route("/services")]
-    Services {},
-    #[route("/talent")]
-    Talent {},
-    #[route("/portfolio")]
-    Portfolio {},
-    #[route("/podcast")]
-    Podcast {},
-    #[route("/contact")]
-    Contact {},
 }

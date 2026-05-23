@@ -1,8 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://velvet.pr/sitemap.xml
-
-# Disallow admin and internal paths
-Disallow: /admin/
-Disallow: /internal/
