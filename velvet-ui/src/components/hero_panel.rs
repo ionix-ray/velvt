@@ -26,6 +26,11 @@ pub fn HeroPanel(site: Site) -> Element {
                 div { class: "v-container",
                     div { class: "v-hero__content",
                         div { class: "v-reveal-left",
+                            img {
+                                class: "v-hero__logo",
+                                src: asset!("/assets/images/velvt-logo.png"),
+                                alt: "VAELVET",
+                            }
                             div { class: "v-hero__badge",
                                 span { class: "v-hero__badge-dot" }
                                 span { "{site.hero.badge}" }

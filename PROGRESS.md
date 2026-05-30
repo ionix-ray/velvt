@@ -45,3 +45,18 @@
 - theme.css 28 KB raw (budget ≤40 KB) ✅
 - Dev server boots on port 8099, returns HTTP 200
 - Updated STATE.md to reflect S1 readiness
+
+## 2026-05-30 — Scroll fix (wheel handler) + container validation
+- **Root cause**: `body { overflow: hidden }` at `theme.css:85` disabled ALL scrolling; no wheel-to-horizontal conversion existed
+- **Fix**: Added `wheel` event listener on `window` in `home.rs:119-144` that converts `deltaY` → panel navigation (8px threshold)
+- Keyboard handler already existed (`ArrowRight`/`ArrowDown` → next, `ArrowLeft`/`ArrowUp` → prev), confirmed working
+- **Container build**: incremental `podman build --target runtime` succeeded, image 11.5 MB
+- **Validation via agent-browser**:
+  - ✅ Single wheel events advance one panel
+  - ✅ 10 sequential wheel events reach last panel (index 10)
+  - ✅ Wheel reverse (negative deltaY) navigates backward
+  - ✅ ArrowRight/ArrowDown/ArrowLeft/ArrowUp all work
+  - ✅ All security headers present (HSTS, CSP, COEP, COOP, CORP, etc.)
+- **Bundle budget**: WASM 316 KB gzipped, CSS 5.3 KB gzipped, HTML 12 KB gzipped (total ~341 KB, ≤1.5 MB ✅)
+- All 20 tests pass; fmt + clippy clean; cargo audit zero vulnerabilities
+- Dev server running on `127.0.0.1:8080` (from container, not dx serve); open browser to validate
