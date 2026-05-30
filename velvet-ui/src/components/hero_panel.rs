@@ -1,7 +1,7 @@
-//! Hero panel — headline, badge, stats grid, CTA, social strip.
+//! Hero panel — headline, badge, stats grid, CTA.
+//! Social strip is rendered globally by the Home route, not here.
 
 use crate::Site;
-use crate::components::icons::Icon;
 use dioxus::prelude::*;
 
 #[component]
@@ -9,28 +9,9 @@ pub fn HeroPanel(site: Site) -> Element {
     rsx! {
         section { class: "v-panel", id: "home",
             div { class: "v-hero",
-                div { class: "v-hero__social",
-                    a { href: "https://facebook.com/vaelvet", target: "_blank", rel: "noopener",
-                        Icon { name: "facebook".to_string() }
-                    }
-                    a { href: "https://instagram.com/vaelvet", target: "_blank", rel: "noopener",
-                        Icon { name: "instagram".to_string() }
-                    }
-                    a { href: "https://youtube.com/@vaelvet", target: "_blank", rel: "noopener",
-                        Icon { name: "youtube".to_string() }
-                    }
-                    a { href: "https://linkedin.com/company/vaelvet", target: "_blank", rel: "noopener",
-                        Icon { name: "linkedin".to_string() }
-                    }
-                }
                 div { class: "v-container",
                     div { class: "v-hero__content",
                         div { class: "v-reveal-left",
-                            img {
-                                class: "v-hero__logo",
-                                src: asset!("/assets/images/velvt-logo.png"),
-                                alt: "VAELVET",
-                            }
                             div { class: "v-hero__badge",
                                 span { class: "v-hero__badge-dot" }
                                 span { "{site.hero.badge}" }
@@ -39,16 +20,20 @@ pub fn HeroPanel(site: Site) -> Element {
                                 span { "{site.hero.headline1}" }
                                 br {}
                                 span { "{site.hero.headline2}" }
-                                br {}
+                                " "
                                 span { class: "v-accent", "{site.hero.headline3}" }
                             }
-                            p { class: "v-body v-hero__sub", "{site.hero.sub}" }
+                            p { class: "v-hero__sub", "{site.hero.sub}" }
                             div { class: "v-btn-group",
-                                a { class: "v-btn v-btn--primary", href: "{site.hero.cta_primary_href}",
+                                a {
+                                    class: "v-btn v-btn--primary",
+                                    href: "{site.hero.cta_primary_href}",
                                     span { "{site.hero.cta_primary}" }
-                                    span { class: "v-btn__arrow", "\u{2192}" }
+                                    span { class: "v-btn__arrow", "→" }
                                 }
-                                a { class: "v-btn v-btn--outline", href: "{site.hero.cta_secondary_href}",
+                                a {
+                                    class: "v-btn v-btn--outline",
+                                    href: "{site.hero.cta_secondary_href}",
                                     span { "{site.hero.cta_secondary}" }
                                 }
                             }

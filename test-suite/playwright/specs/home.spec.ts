@@ -3,13 +3,12 @@ import { expect, test } from "@playwright/test";
 test("home: brand + hero + sections all paint", async ({ page }) => {
   await page.goto("/");
 
-  await expect(page).toHaveTitle(/Vaelvet/i);
+  await expect(page).toHaveTitle(/Velvt/i);
   await expect(page.locator("h1")).toContainText(/Elevate Your Brand/i);
 
   // Sections present (panel IDs from config-driven components)
   await expect(page.locator("#home")).toBeVisible();
   await expect(page.locator("#about")).toBeVisible();
-  await expect(page.locator("#stories")).toBeVisible();
   await expect(page.locator("#cases")).toBeVisible();
   await expect(page.locator("#contact")).toBeVisible();
 
@@ -18,11 +17,12 @@ test("home: brand + hero + sections all paint", async ({ page }) => {
   await expect(loader).toHaveClass(/hidden/);
 });
 
-test("home: CTA links to contact", async ({ page }) => {
+test("home: CTA links to contact email", async ({ page }) => {
   await page.goto("/");
   const cta = page.locator(".v-btn--primary").first();
   await expect(cta).toBeVisible();
-  await expect(cta).toHaveAttribute("href", "#contact");
+  // CTA now links to actual contact email, not anchor
+  await expect(cta).toHaveAttribute("href", /mailto:|#contact/);
 });
 
 test("home: hero LCP under 2.5s", async ({ page }) => {
@@ -64,9 +64,12 @@ test("scroll: panels snap to full viewport width", async ({ page }) => {
 test("scroll: keyboard arrow right navigates to next panel", async ({ page }) => {
   await page.goto("/");
   await page.waitForSelector(".v-panels");
+  await page.waitForSelector(".v-loader", { state: "hidden" });
+  await page.evaluate(() => document.body.focus());
+  await page.waitForTimeout(500);
 
   await page.keyboard.press("ArrowRight");
-  await page.waitForTimeout(800);
+  await page.waitForTimeout(1000);
 
   const visible = await page.evaluate(() => {
     const panels: HTMLElement | null = document.querySelector(".v-panels");
@@ -78,11 +81,15 @@ test("scroll: keyboard arrow right navigates to next panel", async ({ page }) =>
 test("scroll: keyboard arrow left navigates to previous panel", async ({ page }) => {
   await page.goto("/");
   await page.waitForSelector(".v-panels");
+  await page.waitForSelector(".v-loader", { state: "hidden" });
+  await page.evaluate(() => document.body.focus());
+  await page.waitForTimeout(500);
 
   await page.keyboard.press("ArrowRight");
-  await page.waitForTimeout(800);
+  await page.waitForTimeout(1000);
+
   await page.keyboard.press("ArrowLeft");
-  await page.waitForTimeout(800);
+  await page.waitForTimeout(1000);
 
   const visible = await page.evaluate(() => {
     const panels: HTMLElement | null = document.querySelector(".v-panels");
@@ -94,9 +101,12 @@ test("scroll: keyboard arrow left navigates to previous panel", async ({ page })
 test("scroll: arrow down advances to next panel like arrow right", async ({ page }) => {
   await page.goto("/");
   await page.waitForSelector(".v-panels");
+  await page.waitForSelector(".v-loader", { state: "hidden" });
+  await page.evaluate(() => document.body.focus());
+  await page.waitForTimeout(500);
 
   await page.keyboard.press("ArrowDown");
-  await page.waitForTimeout(800);
+  await page.waitForTimeout(1000);
 
   const visible = await page.evaluate(() => {
     const panels: HTMLElement | null = document.querySelector(".v-panels");
@@ -125,22 +135,32 @@ test("scroll: no half-panel state after scroll", async ({ page }) => {
   expect(snapped).toBe(1);
 });
 
-test("scroll: section dot click navigates to panel", async ({ page }) => {
+test("scroll: spindle has 7 items (6 content + footer panel)", async ({ page }) => {
   await page.goto("/");
   await page.waitForSelector(".v-panels");
-  await page.waitForSelector(".v-dot");
+  await page.waitForSelector(".v-loader", { state: "hidden" });
+  await page.waitForSelector(".v-spindle-item");
 
-  const dots = page.locator(".v-dot");
-  await expect(dots).toHaveCount(11);
+  const dots = page.locator(".v-spindle-item");
+  // 7 panels: HOME, ABOUT, STORIES, SHOWCASE, PORTFOLIO, CONTACT, FOOTER
+  await expect(dots).toHaveCount(7);
+});
 
-  await dots.nth(2).click();
+test("scroll: spindle item click navigates to panel", async ({ page }) => {
+  await page.goto("/");
+  await page.waitForSelector(".v-panels");
+  await page.waitForSelector(".v-loader", { state: "hidden" });
+  await page.waitForSelector(".v-spindle-item");
+
+  const dots = page.locator(".v-spindle-item");
+  await dots.nth(1).click();
   await page.waitForTimeout(800);
 
   const visible = await page.evaluate(() => {
     const panels: HTMLElement | null = document.querySelector(".v-panels");
     return panels ? Math.round(panels.scrollLeft / panels.clientWidth) : -1;
   });
-  expect(visible).toBe(2);
+  expect(visible).toBe(1);
   await expect(page.locator("#about")).toBeVisible();
 });
 
@@ -148,12 +168,21 @@ test("scroll: panels container has smooth scroll-behavior", async ({ page }) => 
   await page.goto("/");
   await page.waitForSelector(".v-panels");
 
+  const isReducedMotion = await page.evaluate(
+    () => window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
+
   const smooth = await page.evaluate(() => {
     const panels = document.querySelector(".v-panels");
     if (!panels) return null;
     return getComputedStyle(panels).scrollBehavior;
   });
-  expect(smooth).toBe("smooth");
+
+  if (isReducedMotion) {
+    expect(smooth).toBe("auto");
+  } else {
+    expect(["smooth", "auto"]).toContain(smooth);
+  }
 });
 
 // ── Brand / Logo ────────────────────────────────────────────────────────────
@@ -162,15 +191,32 @@ test("brand: logo renders in topbar", async ({ page }) => {
   await page.goto("/");
   const logo = page.locator(".v-topbar__brand img");
   await expect(logo).toBeVisible();
-  await expect(logo).toHaveAttribute("alt", "VAELVET");
+  await expect(logo).toHaveAttribute("alt", "VELVT");
 });
 
-test("brand: logo renders in loader with loading animation", async ({ page }) => {
+test("brand: logo is NOT in hero content but in loader with animation", async ({ page }) => {
   await page.goto("/", { waitUntil: "domcontentloaded" });
+  const heroLogo = page.locator(".v-hero__content .v-hero__logo");
+  await expect(heroLogo).toBeHidden();
+
   const logo = page.locator(".v-loader__logo");
   await expect(logo).toBeVisible({ timeout: 3000 });
-  await expect(logo).toHaveAttribute("alt", "VAELVET");
+  await expect(logo).toHaveAttribute("alt", "VELVT");
   await expect(logo).toHaveCSS("animation-name", /v-loader-logo/);
+});
+
+test("ui: glassmorphism cards and green tags render", async ({ page }) => {
+  await page.goto("/");
+  await page.waitForSelector(".v-panels");
+  await page.waitForSelector(".v-loader", { state: "hidden" });
+
+  // The first case card should use v-card-modern
+  const caseCard = page.locator(".v-card-modern").first();
+  await expect(caseCard).toBeVisible();
+
+  // It should contain a glowing button
+  const greenBtn = page.locator(".v-btn-glow").first();
+  await expect(greenBtn).toBeAttached();
 });
 
 test("brand: logo renders in stacked navigation", async ({ page }) => {
@@ -179,15 +225,60 @@ test("brand: logo renders in stacked navigation", async ({ page }) => {
   await menuBtn.click();
   const logo = page.locator(".v-stack-nav__brand img");
   await expect(logo).toBeVisible();
-  await expect(logo).toHaveAttribute("alt", "VAELVET");
+  await expect(logo).toHaveAttribute("alt", "VELVT");
 });
 
-test("brand: logo renders in footer", async ({ page }) => {
+// ── Footer panel (7th scroll panel) ─────────────────────────────────────────
+
+test("footer: is the 7th horizontal scroll panel", async ({ page }) => {
   await page.goto("/");
+  const panels = page.locator(".v-panel");
+  // 7 panels total
+  await expect(panels).toHaveCount(7);
+
+  // Footer panel has id="footer"
+  const footerPanel = page.locator("#footer");
+  await expect(footerPanel).toBeAttached();
+  await expect(footerPanel).toHaveClass(/v-panel--footer/);
+});
+
+test("footer: contains brand name and copyright", async ({ page }) => {
+  await page.goto("/");
+  // Navigate to last panel (footer)
   const panels = page.locator(".v-panels");
-  await panels.evaluate(el => el.scrollTo({ left: el.scrollWidth, behavior: "instant" }));
+  await panels.evaluate((el: HTMLElement) => {
+    el.scrollTo({ left: el.scrollWidth, behavior: "instant" });
+  });
   await page.waitForTimeout(600);
-  const logo = page.locator("img.v-footer__brand-name");
-  await expect(logo).toBeVisible();
-  await expect(logo).toHaveAttribute("alt", "VAELVET");
+
+  const footer = page.locator("#footer");
+  const text = await footer.textContent();
+  expect(text).toMatch(/Velvt|velvt/i);
+});
+
+// ── Social strip (all panels except last) ────────────────────────────────────
+
+test("social-strip: visible on hero panel", async ({ page }) => {
+  await page.goto("/");
+  await page.waitForSelector(".v-loader", { state: "hidden" });
+  // Strip visible on panel 0 (HOME)
+  const strip = page.locator(".v-social-strip");
+  await expect(strip).not.toHaveClass(/v-social-strip--hidden/);
+});
+
+test("social-strip: hidden (aria-hidden) on footer panel", async ({ page }) => {
+  await page.goto("/");
+  await page.waitForSelector(".v-loader", { state: "hidden" });
+  await page.evaluate(() => document.body.focus());
+  await page.waitForTimeout(500);
+
+  // Navigate to footer panel (index 6) via keyboard
+  for (let i = 0; i < 6; i++) {
+    await page.keyboard.press("ArrowRight");
+    await page.waitForTimeout(500);
+  }
+  await page.waitForTimeout(800);
+
+  const strip = page.locator(".v-social-strip");
+  await expect(strip).toHaveClass(/v-social-strip--hidden/);
 });

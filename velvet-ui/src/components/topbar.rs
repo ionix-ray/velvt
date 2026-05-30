@@ -13,7 +13,7 @@ pub fn TopBar(menu_open: Signal<bool>, theme: Signal<String>) -> Element {
     rsx! {
         header { class: "v-topbar", id: "topbar",
             div { class: "v-topbar__brand",
-                img { src: asset!("/assets/images/velvt-logo.png"), alt: "VAELVET" }
+                img { src: asset!("/assets/images/velvt-logo.png"), alt: "VELVT" }
             }
             div { class: "v-topbar__actions",
                 button {

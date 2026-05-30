@@ -1,4 +1,5 @@
-//! Cases panel — 3 case study cards.
+//! Cases panel — client case study cards (compact, fit within 100vh).
+//! Cards use v-card-modern with smaller height image sections.
 
 use crate::Site;
 use dioxus::prelude::*;
@@ -9,29 +10,43 @@ pub fn CasesPanel(site: Site) -> Element {
         section { class: "v-panel", id: "cases",
             div { class: "v-section",
                 div { class: "v-container",
-                    div { class: "v-reveal", style: "text-align: center; margin-bottom: 2rem;",
-                        span { class: "v-eyebrow", "Success Stories" }
+                    div { class: "v-panel-header v-reveal",
+                        span { class: "v-eyebrow", "Showcase" }
                         h2 { class: "v-display-2", "{site.cases.title}" }
-                        p { class: "v-body", style: "margin-inline: auto;",
-                            "{site.cases.sub}"
-                        }
+                        p { class: "v-panel-header__sub", "{site.cases.sub}" }
                     }
-                    div { class: "v-cases",
+                    div { class: "v-cases-grid",
                         for (i, case) in site.cases.items.iter().enumerate() {
-                            div { class: "v-case-card v-reveal",
-                                style: "transition-delay: {format_delay(i)}ms;",
-                                div { class: "v-case-card__visual",
-                                    div { class: "v-case-card__metric", "{case.metric}" }
+                            div {
+                                class: "v-card-modern v-reveal",
+                                style: "transition-delay: {(i + 1) * 80}ms;",
+                                div {
+                                    class: "v-card-modern__image",
+                                    style: "background-image: url('{case.bg_image}');"
                                 }
-                                div { class: "v-case-card__body",
-                                    div { class: "v-case-card__client", "{case.client}" }
-                                    p { class: "v-case-card__desc", "{case.desc}" }
+                                div { class: "v-card-modern__content",
+                                    img {
+                                        class: "v-card-modern__logo",
+                                        src: "{case.logo_image}",
+                                        alt: "{case.client} logo"
+                                    }
+                                    div { class: "v-card-modern__client", "{case.client}" }
+                                    div { class: "v-card-modern__metric", "{case.metric}" }
                                     div { class: "v-tags",
                                         for tag in case.tags.iter() {
-                                            span { class: "v-tag", "{tag}" }
+                                            span { class: "v-tag--green", "{tag}" }
                                         }
                                     }
+                                    p { class: "v-card-modern__desc", "{case.desc}" }
+                                    a {
+                                        class: "v-btn-glow",
+                                        href: "{case.button_link}",
+                                        target: "_blank",
+                                        rel: "noopener noreferrer",
+                                        "View Case Study"
+                                    }
                                 }
+                                div { class: "v-card-modern__footer", "{case.footer_label}" }
                             }
                         }
                     }
@@ -39,8 +54,4 @@ pub fn CasesPanel(site: Site) -> Element {
             }
         }
     }
-}
-
-fn format_delay(i: usize) -> String {
-    format!("{}", (i + 1) * 80)
 }

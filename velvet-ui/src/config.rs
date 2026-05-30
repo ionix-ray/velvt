@@ -166,6 +166,14 @@ pub struct CaseItem {
     pub desc: String,
     #[serde(default)]
     pub tags: Vec<String>,
+    #[serde(default)]
+    pub bg_image: String,
+    #[serde(default)]
+    pub logo_image: String,
+    #[serde(default)]
+    pub button_link: String,
+    #[serde(default)]
+    pub footer_label: String,
 }
 
 #[derive(Deserialize, Debug, Clone, Default, PartialEq)]

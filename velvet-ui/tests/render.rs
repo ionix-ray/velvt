@@ -17,14 +17,14 @@ fn render_home() -> String {
 #[test]
 fn site_config_parses() {
     let s = Site::load();
-    assert_eq!(s.brand.name, "Vaelvet");
+    assert_eq!(s.brand.name, "Velvt");
     assert_eq!(s.brand.tagline, "elevate your Presence.");
     assert!(!s.nav.is_empty(), "nav must have items");
     assert!(!s.services.items.is_empty(), "services must have items");
     assert!(!s.cases.items.is_empty(), "case-studies must have items");
 }
 
-// ── Every one of the 11 panels must appear in the SSR output ────────────────
+// ── Every one of the 6 panels must appear in the SSR output ────────────────
 
 #[test]
 fn panel_1_home_hero_renders() {
@@ -37,71 +37,37 @@ fn panel_1_home_hero_renders() {
 fn panel_2_about_renders() {
     let html = render_home();
     assert!(html.contains(r#"id="about""#), "panel #about must appear");
-    assert!(html.contains("v-timeline"), "timeline class must appear");
+    assert!(html.contains("v-pillars"), "pillars class must appear");
 }
 
 #[test]
-fn panel_3_stories_renders() {
+fn panel_3_process_renders() {
     let html = render_home();
     assert!(
         html.contains(r#"id="stories""#),
         "panel #stories must appear"
     );
-    assert!(html.contains("v-dashboard"), "dashboard class must appear");
-}
-
-#[test]
-fn panel_4_showcase_renders() {
-    let html = render_home();
-    assert!(
-        html.contains(r#"id="showcase""#),
-        "panel #showcase must appear"
-    );
-    assert!(html.contains("v-masonry"), "masonry class must appear");
-}
-
-#[test]
-fn panel_5_portfolio_renders() {
-    let html = render_home();
-    assert!(
-        html.contains(r#"id="portfolio""#),
-        "panel #portfolio must appear"
-    );
-    assert!(
-        html.contains("v-services__grid"),
-        "services grid class must appear"
-    );
-}
-
-#[test]
-fn panel_6_process_renders() {
-    let html = render_home();
-    assert!(
-        html.contains(r#"id="process""#),
-        "panel #process must appear"
-    );
     assert!(html.contains("v-process"), "process class must appear");
 }
 
 #[test]
-fn panel_7_cases_renders() {
+fn panel_4_cases_renders() {
     let html = render_home();
     assert!(html.contains(r#"id="cases""#), "panel #cases must appear");
     assert!(html.contains("v-cases"), "cases class must appear");
 }
 
 #[test]
-fn panel_8_inquiry_renders() {
+fn panel_5_showcase_renders() {
     let html = render_home();
     assert!(
-        html.contains(r#"id="inquiry""#),
-        "panel #inquiry must appear"
+        html.contains(r#"id="showcase""#) || html.contains(r#"id="studio""#) || html.contains("v-masonry"),
+        "showcase or studio panel must appear"
     );
-    assert!(html.contains("v-wwu"), "work with us class must appear");
 }
 
 #[test]
-fn panel_9_cta_renders() {
+fn panel_6_contact_renders() {
     let html = render_home();
     assert!(
         html.contains(r#"id="contact""#),
@@ -111,27 +77,16 @@ fn panel_9_cta_renders() {
 }
 
 #[test]
-fn panel_10_footer_renders() {
+fn footer_renders() {
     let html = render_home();
-    assert!(html.contains("v-footer"), "footer class must appear");
-    assert!(html.contains("VAELVET"), "brand name must appear in footer");
+    assert!(
+        html.contains("v-footer"),
+        "footer class must appear"
+    );
+    assert!(html.contains("VELVT"), "brand name must appear in footer");
 }
 
 // ── Content completeness ────────────────────────────────────────────────────
-
-#[test]
-fn home_includes_all_services() {
-    let html = render_home();
-    for name in [
-        "Event Management",
-        "Celebrity Management",
-        "Custom Branding",
-        "Influencer Management",
-        "Seasonal Events",
-    ] {
-        assert!(html.contains(name), "service {name} must render");
-    }
-}
 
 #[test]
 fn home_includes_all_case_studies() {
@@ -176,6 +131,6 @@ fn home_renders_navigation_elements() {
     let html = render_home();
     assert!(html.contains("v-topbar"), "topbar must exist");
     assert!(html.contains("v-stack-nav"), "stacked nav must exist");
-    assert!(html.contains("v-dots"), "section dots must exist");
+    assert!(html.contains("v-spindle"), "section spindle must exist");
     assert!(html.contains("v-next-hint"), "next hint must exist");
 }

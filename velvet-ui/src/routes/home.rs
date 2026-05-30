@@ -1,30 +1,29 @@
 //! Home — the only route. Composes the full horizontal-scroll page.
+//! All navigation state lives here; child components are purely reactive.
 
 use crate::Site;
 use crate::components::{
-    analytics_panel::AnalyticsPanel, cases_panel::CasesPanel, client_banner::ClientBanner,
-    cta_panel::CtaPanel, footer_panel::FooterPanel, hero_panel::HeroPanel, loader::Loader,
-    next_hint::NextHint, process_panel::ProcessPanel, scroll_progress::ScrollProgress,
-    section_dots::SectionDots, services_panel::ServicesPanel, stacked_nav::StackedNav,
-    story_panel::StoryPanel, studio_panel::StudioPanel, topbar::TopBar, work_with_us::WorkWithUs,
+    about_aggregated_panel::AboutAggregatedPanel, cases_panel::CasesPanel, cta_panel::CtaPanel,
+    footer_panel::FooterPanel, hero_panel::HeroPanel, loader::Loader, next_hint::NextHint,
+    process_panel::ProcessPanel, scroll_progress::ScrollProgress, section_dots::SectionDots,
+    social_strip::SocialStrip, stacked_nav::StackedNav, studio_panel::StudioPanel, topbar::TopBar,
 };
 use dioxus::prelude::*;
 use wasm_bindgen::JsCast;
 
+/// Panel labels — displayed in the spindle navigator.
+/// The 7th panel is the footer; SocialStrip hides on it.
 const PANEL_LABELS: &[&str] = &[
-    "Home",
-    "About",
-    "Stories",
-    "Banner",
-    "Showcase",
-    "Portfolio",
-    "Process",
-    "Cases",
-    "Inquiry",
-    "CTA",
-    "Footer",
+    "01 HOME",
+    "02 ABOUT",
+    "03 STORIES",
+    "04 SHOWCASE",
+    "05 PORTFOLIO",
+    "06 CONTACT",
+    "07 FOOTER",
 ];
 
+/// Smooth-scroll `.v-panels` to the panel at `idx`.
 fn scroll_to_panel(idx: usize) {
     if let Some(win) = web_sys::window() {
         if let Some(doc) = win.document() {
@@ -48,7 +47,7 @@ pub fn Home() -> Element {
     let theme = use_signal(|| "dark".to_string());
     let mut current_panel = use_signal(|| 0usize);
 
-    // Apply theme to document
+    // Apply theme attribute to <html>
     {
         use_effect(move || {
             if let Some(win) = web_sys::window() {
@@ -61,7 +60,7 @@ pub fn Home() -> Element {
         });
     }
 
-    // Hide loader after mount
+    // Hide loader after 2.2 s
     let mut timeout_handle = use_signal(|| Option::<gloo_timers::callback::Timeout>::None);
     {
         use_effect(move || {
@@ -73,34 +72,35 @@ pub fn Home() -> Element {
         });
     }
 
-    // Close menu on navigation + scroll to target panel
-    let on_navigate = move |idx: usize| {
+    // Navigation helper — shared by spindle clicks, menu clicks, key events
+    let mut on_navigate = move |idx: usize| {
         current_panel.set(idx);
         menu_open.set(false);
         scroll_to_panel(idx);
     };
 
-    // Keyboard arrow navigation + scroll sync
+    // Keyboard arrow navigation + scroll-position sync
     {
         use_effect(move || {
             if let Some(win) = web_sys::window() {
                 if let Some(doc) = win.document() {
                     let doc_scroll = doc.clone();
 
+                    // ── Keyboard handler ─────────────────────────────────
                     let kbd =
                         wasm_bindgen::closure::Closure::<dyn FnMut(web_sys::KeyboardEvent)>::new(
                             move |ev: web_sys::KeyboardEvent| {
+                                let cur = *current_panel.read();
+                                let len = PANEL_LABELS.len();
                                 let idx = match ev.key().as_str() {
                                     "ArrowRight" | "ArrowDown" => {
-                                        let cur = *current_panel.read();
-                                        if cur < PANEL_LABELS.len() - 1 {
+                                        if cur < len - 1 {
                                             cur + 1
                                         } else {
                                             return;
                                         }
                                     }
                                     "ArrowLeft" | "ArrowUp" => {
-                                        let cur = *current_panel.read();
                                         if cur > 0 {
                                             cur - 1
                                         } else {
@@ -116,6 +116,7 @@ pub fn Home() -> Element {
                             },
                         );
 
+                    // ── Wheel / trackpad handler ─────────────────────────
                     let wheel =
                         wasm_bindgen::closure::Closure::<dyn FnMut(web_sys::WheelEvent)>::new(
                             move |ev: web_sys::WheelEvent| {
@@ -124,8 +125,9 @@ pub fn Home() -> Element {
                                     return;
                                 }
                                 let cur = *current_panel.read();
+                                let len = PANEL_LABELS.len();
                                 let idx = if dy > 0.0 {
-                                    if cur < PANEL_LABELS.len() - 1 {
+                                    if cur < len - 1 {
                                         cur + 1
                                     } else {
                                         return;
@@ -143,6 +145,7 @@ pub fn Home() -> Element {
                             },
                         );
 
+                    // ── Scroll listener — keeps spindle in sync with touch/scroll ─
                     let scroll = wasm_bindgen::closure::Closure::<dyn FnMut()>::new(move || {
                         if let Some(panels) = doc_scroll.query_selector(".v-panels").ok().flatten()
                         {
@@ -180,7 +183,11 @@ pub fn Home() -> Element {
     } else {
         0.0
     };
+
+    // Next hint hides on the last panel
     let hint_hidden = *current_panel.read() >= panel_count - 1;
+    // Social strip hides on the footer panel (last)
+    let is_footer_panel = *current_panel.read() >= panel_count - 1;
 
     rsx! {
         Loader { hidden: *loader_hidden.read() }
@@ -203,19 +210,28 @@ pub fn Home() -> Element {
             on_navigate,
         }
 
-        NextHint { hidden: hint_hidden }
+        // Social icons — visible on all panels except the footer
+        SocialStrip { is_last_panel: is_footer_panel }
 
+        NextHint {
+            hidden: hint_hidden,
+            onclick: move |_| {
+                let cur = *current_panel.read();
+                if cur < panel_count - 1 {
+                    on_navigate(cur + 1);
+                }
+            }
+        }
+
+        // ── Horizontal scroll panels ──────────────────────────────────────
         div { class: "v-panels",
             HeroPanel { site: site.clone() }
-            StoryPanel { site: site.clone() }
-            AnalyticsPanel { site: site.clone() }
-            ClientBanner { site: site.clone() }
-            StudioPanel { site: site.clone() }
-            ServicesPanel { site: site.clone() }
+            AboutAggregatedPanel { site: site.clone() }
             ProcessPanel { site: site.clone() }
+            StudioPanel { site: site.clone() }
             CasesPanel { site: site.clone() }
-            WorkWithUs { site: site.clone() }
             CtaPanel { site: site.clone() }
+            // 7th panel — footer rolls in after the last content panel
             FooterPanel { site }
         }
     }

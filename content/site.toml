@@ -1,18 +1,18 @@
-# Vaelvet — Event, Celebrity & Influencer Agency
+# Velvt — Event, Celebrity & Influencer Agency
 # Parsed at compile time via include_str! -> serde -> Site struct.
 
 [brand]
-name      = "Vaelvet"
+name      = "Velvt"
 tagline   = "elevate your Presence."
-short     = "Vaelvet"
-copyright = "© 2026 Vaelvet. All rights reserved."
+short     = "Velvt"
+copyright = "© 2026 Velvt. All rights reserved."
 
 [meta]
-title       = "Vaelvet — Elevate Your Brand Experiences"
+title       = "Velvt — Elevate Your Brand Experiences"
 description = "Leading event management, celebrity talent booking, influencer marketing & custom gifting agency. Transforming brands through immersive experiences from concept to execution."
 og_image    = "/assets/images/logo.jpg"
 theme_color = "#5A0A0F"
-twitter     = "@vaelvet"
+twitter     = "@velvt"
 
 [[nav]]
 label = "Home"
@@ -166,16 +166,30 @@ client = "TechNova"
 metric = "+240%"
 desc   = "SaaS platform achieved 3x lead generation through our full-funnel experiential strategy."
 tags   = ["B2B", "Experiential", "Lead Gen"]
+bg_image = "https://images.unsplash.com/photo-1550745165-9bc0b252726f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+logo_image = "/assets/images/logo.jpg"
+button_link = "#"
+footer_label = "Developed by 🍐 Community"
+
 [[cases.items]]
 client = "Luxe Beauty"
 metric = "+185%"
 desc   = "Premium beauty brand broke sales records with our celebrity-driven launch activation."
 tags   = ["Beauty", "Celebrity", "Launch"]
+bg_image = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+logo_image = "/assets/images/logo.jpg"
+button_link = "#"
+footer_label = "Developed by Velvt"
+
 [[cases.items]]
 client = "GreenFuture"
 metric = "+312%"
 desc   = "Eco-tech startup dominated their market with our immersive brand storytelling campaign."
 tags   = ["Tech", "Sustainability", "Immersive"]
+bg_image = "https://images.unsplash.com/photo-1518770660439-4636190af475?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+logo_image = "/assets/images/logo.jpg"
+button_link = "#"
+footer_label = "Developed by 🍐 Community"
 
 [studio]
 title = "Experience Design. Flawlessly Delivered."
@@ -210,8 +224,8 @@ btn_secondary = "Book a Consultation"
 btn_ghost     = "View Our Work"
 
 [contact]
-email_general = "hello@vaelvet.com"
-email_press   = "press@vaelvet.com"
+email_general = "hello@velvt.com"
+email_press   = "press@velvt.com"
 ateliers      = ["Saheed Nagar, Bhubaneswar", "Bandra West, Mumbai"]
 cta           = "Tell us who you want to become."
 
@@ -242,17 +256,17 @@ links = [
 [[footer.columns]]
 title = "Contact"
 links = [
-  { label = "hello@vaelvet.com", href = "mailto:hello@vaelvet.com" },
+  { label = "hello@velvt.com", href = "mailto:hello@velvt.com" },
   { label = "+91 (555) 000-0000", href = "tel:+915550000000" },
   { label = "Saheed Nagar, Bhubaneswar", href = "#" },
   { label = "Bandra West, Mumbai", href = "#" },
 ]
 [[footer.socials]]
 label = "X"
-href  = "https://x.com/vaelvet"
+href  = "https://x.com/velvt"
 [[footer.socials]]
 label = "in"
-href  = "https://linkedin.com/company/vaelvet"
+href  = "https://linkedin.com/company/velvt"
 [[footer.socials]]
 label = "IG"
-href  = "https://instagram.com/vaelvet"
+href  = "https://instagram.com/velvt"

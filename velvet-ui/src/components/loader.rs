@@ -12,7 +12,7 @@ pub fn Loader(hidden: bool) -> Element {
     rsx! {
         div { class: "{class}",
             div { class: "v-loader__brand",
-                img { class: "v-loader__logo", src: asset!("/assets/images/velvt-logo.png"), alt: "VAELVET" }
+                img { class: "v-loader__logo", src: asset!("/assets/images/velvt-logo.png"), alt: "VELVT" }
             }
             div { class: "v-loader__bar",
                 div { class: "v-loader__fill" }

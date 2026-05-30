@@ -1,6 +1,6 @@
-//! Section navigation — camera-reel counter dial.
-//! Rust-driven animation: items slide vertically like film-advance frames.
-//! The active page locks into centre as a tag; the reel rotates mechanically.
+//! Section navigation — 3D Spindle wheel.
+//! Pure CSS-transition driven — no JS coroutine or gloo_timers.
+//! The active page is in the middle, prev above (rotated away), next below.
 
 use dioxus::prelude::*;
 
@@ -11,90 +11,57 @@ pub fn SectionDots(
     labels: Vec<String>,
     on_navigate: EventHandler<usize>,
 ) -> Element {
-    let mut animated = use_signal(|| current as f64);
-    let mut prev = use_signal(|| current);
-    let mut generation = use_signal(|| 0u64);
-
-    use_effect(move || {
-        let old = *prev.read();
-        if old == current {
-            return;
-        }
-        prev.set(current);
-
-        let start_val: f64 = *animated.read();
-        let end_val: f64 = current as f64;
-        let range: f64 = end_val - start_val;
-        if range.abs() < f64::EPSILON {
-            return;
-        }
-
-        let this_gen = *generation.read() + 1;
-        generation.set(this_gen);
-
-        let Some(window) = web_sys::window() else {
-            return;
-        };
-        let Some(perf) = window.performance() else {
-            return;
-        };
-
-        dioxus::prelude::spawn(async move {
-            let start: f64 = perf.now();
-            let duration: f64 = 200.0;
-
-            loop {
-                if *generation.read() != this_gen {
-                    break;
-                }
-
-                let elapsed: f64 = perf.now() - start;
-                let t: f64 = (elapsed / duration).min(1.0);
-                let eased: f64 = 1.0 - (1.0 - t) * (1.0 - t) * (1.0 - t) * (1.0 - t);
-                animated.set(start_val + range * eased);
-
-                if t >= 1.0 {
-                    break;
-                }
-                gloo_timers::future::TimeoutFuture::new(16).await;
-            }
-        });
-    });
-
-    let anim: f64 = *animated.read();
-
+    // Compute per-item transform/opacity purely in Rust.
+    // CSS `transition` handles smooth interpolation — zero JS animation.
     let states: Vec<_> = (0..count)
         .map(|i| {
-            let dy = i as f64 - anim;
+            let dy = i as f64 - current as f64;
             let dist = dy.abs();
-            let pe = if dist * 0.35 > 0.95 {
+            let is_active = i == current;
+
+            // 28 degrees per step on the reel
+            let angle = -dy * 28.0;
+            // Fade items that are far away
+            let opacity = (1.0 - dist * 0.30).max(0.0);
+            // Disable pointer events on items too far away
+            let pe = if dist > 3.5 {
                 "pointer-events:none;"
             } else {
                 ""
             };
-            let style = if i == current && dist < 0.01 {
-                String::new()
+
+            let style = if is_active {
+                // Active item sits flat (no rotation)
+                format!("opacity:1;transform:rotateX(0deg);{pe}")
             } else {
-                let y = dy * 32.0;
-                let scale = (1.0 - dist * 0.3).max(0.1);
-                let op = (1.0 - dist * 0.35).max(0.0);
-                format!("transform:translateY({y:.1}px)scale({scale:.2});opacity:{op:.2};{pe}")
+                format!("transform:rotateX({angle:.1}deg);opacity:{opacity:.2};{pe}")
             };
-            let is_active = i == current;
+
             (i, is_active, style)
         })
         .collect();
 
     rsx! {
-        nav { class: "v-dots", "aria-label": "Section navigation",
+        nav {
+            class: "v-spindle",
+            "aria-label": "Page navigation",
             for (i, is_active, style) in states {
                 button {
-                    class: if is_active { "v-dot active" } else { "v-dot" },
+                    class: if is_active { "v-spindle-item active" } else { "v-spindle-item" },
                     style: "{style}",
                     "aria-current": if is_active { "page" } else { "false" },
                     onclick: move |_| on_navigate.call(i),
-                    span { class: "v-dot__label",
-                        "{labels.get(i).map_or(\"\", |l| l.as_str())}"
+                    span { class: "v-spindle-item__label",
+                        if let Some((num, text)) = labels.get(i)
+                            .map(|l| l.as_str())
+                            .unwrap_or("")
+                            .split_once(' ')
+                        {
+                            span { class: "v-spindle-item__num", "{num}" }
+                            span { class: "v-spindle-item__text", "{text}" }
+                        } else {
+                            "{labels.get(i).map(|l| l.as_str()).unwrap_or(\"\")}"
+                        }
                     }
                 }
             }

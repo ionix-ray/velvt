@@ -18,7 +18,7 @@ pub fn StackedNav(
     rsx! {
         nav { class: "{class}", aria_label: "Section navigation",
             div { class: "v-stack-nav__brand",
-                img { src: asset!("/assets/images/velvt-logo.png"), alt: "VAELVET" }
+                img { src: asset!("/assets/images/velvt-logo.png"), alt: "VELVT" }
             }
             for (i, item) in site.nav.iter().enumerate() {
                 button {

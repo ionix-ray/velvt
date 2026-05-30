@@ -1,4 +1,4 @@
-//! Studio panel — event showcase masonry.
+//! Studio panel — event showcase masonry, compact to fit 100vh.
 
 use crate::Site;
 use dioxus::prelude::*;
@@ -9,17 +9,16 @@ pub fn StudioPanel(site: Site) -> Element {
         section { class: "v-panel", id: "showcase",
             div { class: "v-section",
                 div { class: "v-container",
-                    div { class: "v-reveal", style: "text-align: center; margin-bottom: 2rem;",
+                    div { class: "v-panel-header v-reveal",
                         span { class: "v-eyebrow", "Event Showcase" }
                         h2 { class: "v-display-2", "{site.studio.title}" }
-                        p { class: "v-body", style: "margin-inline: auto;",
-                            "{site.studio.sub}"
-                        }
+                        p { class: "v-panel-header__sub", "{site.studio.sub}" }
                     }
                     div { class: "v-masonry",
                         for (i, item) in site.studio.items.iter().enumerate() {
-                            div { class: "v-masonry__item v-reveal",
-                                style: "transition-delay: {format_delay(i)}ms;",
+                            div {
+                                class: "v-masonry__item v-reveal",
+                                style: "transition-delay: {(i + 1) * 60}ms;",
                                 div { class: "v-masonry__content",
                                     span { class: "v-masonry__tag", "{item.tag}" }
                                     h4 { "{item.title}" }
@@ -32,8 +31,4 @@ pub fn StudioPanel(site: Site) -> Element {
             }
         }
     }
-}
-
-fn format_delay(i: usize) -> String {
-    format!("{}", (i + 1) * 80)
 }

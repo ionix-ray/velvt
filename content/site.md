@@ -2,17 +2,17 @@
 <!-- Edit this TOML block to update site data. The markdown below is for human reading. -->
 ```toml
 [brand]
-name = "Vaelvet"
+name = "Velvt"
 tagline = "elevate your Presence."
-short = "Vaelvet"
-copyright = "© 2026 Vaelvet. All rights reserved."
+short = "Velvt"
+copyright = "© 2026 Velvt. All rights reserved."
 
 [meta]
-title = "Vaelvet — Elevate Your Brand Experiences"
-description = "Leading event management, celebrity talent booking, influencer marketing & custom gifting agency. Transforming brands through immersive experiences from concept to execution."
+title = "Velvt — Elevate Your Brand Experiences"
+description = "Velvt is a premium public relations house. We engineer immersive events, strategic celebrity partnerships, and data-driven influencer campaigns that captivate audiences and deliver measurable ROI. through immersive experiences from concept to execution."
 og_image = "/assets/images/logo.jpg"
 theme_color = "#5A0A0F"
-twitter = "@vaelvet"
+twitter = "@velvt"
 
 [[nav]]
 label = "Home"

@@ -4,7 +4,7 @@ default_platform = "web"
 out_dir          = "dist"
 
 [web.app]
-title     = "Vaelvet — elevate your Presence"
+title     = "Velvt — elevate your Presence"
 base_path = "/"
 
 [web.watcher]
@@ -26,4 +26,4 @@ icon              = ["assets/images/favicon.png"]
 copyright         = "Vaelvet"
 category          = "Business"
 short_description = "Cinematic PR house. We compose entrances."
-long_description  = "Vaelvet is a premium public-relations house for film, music, fashion, and founders. Every campaign is staged like a third-act reveal."
+long_description  = "Velvt is a premium public-relations house for film, music, fashion, and founders. Every campaign is staged like a third-act reveal."
