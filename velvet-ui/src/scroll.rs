@@ -18,9 +18,7 @@ pub fn install() -> Option<()> {
 
     let cb = Closure::<dyn FnMut()>::new(move || {
         let y = win_for_cb.scroll_y().unwrap_or(0.0);
-        let _ = body
-            .style()
-            .set_property("--scroll-y", &y.to_string());
+        let _ = body.style().set_property("--scroll-y", &y.to_string());
     });
 
     let listener = cb.as_ref().unchecked_ref();
@@ -65,11 +63,13 @@ pub fn install_reveal() -> Option<()> {
     let init = IntersectionObserverInit::new();
     init.set_threshold(&js_sys::Array::of1(&wasm_bindgen::JsValue::from_f64(0.12)));
 
-    let observer = IntersectionObserver::new_with_options(cb.as_ref().unchecked_ref(), &init)
-        .ok()?;
+    let observer =
+        IntersectionObserver::new_with_options(cb.as_ref().unchecked_ref(), &init).ok()?;
     cb.forget();
 
-    let targets = doc.query_selector_all(".v-reveal").ok()?;
+    let targets = doc
+        .query_selector_all(".v-reveal, .v-reveal-left, .v-reveal-right")
+        .ok()?;
     for i in 0..targets.length() {
         if let Some(node) = targets.item(i) {
             if let Ok(el) = node.dyn_into::<web_sys::Element>() {

@@ -18,14 +18,9 @@ dev:
     echo "→ dx serve --port $PORT"
     cd velvet-ui && dx serve --port $PORT --open
 
-# Production WASM build → dist/
+# Production WASM build
 build:
-    cd velvet-ui && dx build --release
-
-# Static export — `dist/` ready to drop on any CDN.
-static: build
-    @ls -lh dist/*.wasm 2>/dev/null || true
-    @echo "→ static output: dist/"
+    dx build --release --package vaelvet-ui
 
 # All tests (cargo + dioxus-ssr).
 test:
@@ -48,12 +43,7 @@ audit:
 e2e:
     cd test-suite/playwright && npm ci && npx playwright test
 
-# Bundle size report.
-size: build
-    @ls -lh dist/*.wasm | awk '{print $5, $9}'
-    @gzip -c dist/*.wasm 2>/dev/null | wc -c | awk '{printf "wasm gz: %.1f KB\n", $1/1024}'
-
 # Wipe build artifacts.
 clean:
     cargo clean
-    rm -rf dist
+    rm -rf target/dx

@@ -1,0 +1,7 @@
+.git/
+.gitignore
+.DS_Store
+target/
+velvet-ui/target/
+velvet-ui/index copy.html
+velvet-ui/.DS_Store

@@ -6,7 +6,7 @@ use dioxus::prelude::*;
 use dioxus_router::Routable;
 use dioxus_router::components::Router;
 use vaelvet_ui::routes::Home;
-use vaelvet_ui::{Site, scroll};
+use vaelvet_ui::scroll;
 
 fn main() {
     console_error_panic_hook::set_once();
@@ -16,15 +16,10 @@ fn main() {
 
 #[component]
 fn App() -> Element {
-    let site = Site::load();
-
-    // Install scroll-linked CSS variable + reveal observer after first render.
+    // Install reveal observer after first render.
     use_effect(move || {
-        let _ = scroll::install();
         let _ = scroll::install_reveal();
     });
-
-    let _ = site;
 
     rsx! {
         document::Link { rel: "stylesheet",     href: asset!("/assets/theme.css") }
@@ -35,7 +30,9 @@ fn App() -> Element {
         document::Link { rel: "preload", r#as: "image", fetchpriority: "high",
                           href: asset!("/assets/images/logo.jpg") }
         document::Link { rel: "preload", r#as: "image",
-                          href: asset!("/assets/images/mark.jpg") }
+                  href: asset!("/assets/images/mark.jpg") }
+        document::Link { rel: "preload", r#as: "image", fetchpriority: "high",
+                  href: asset!("/assets/images/velvt-logo.png") }
         Router::<Route> {}
     }
 }

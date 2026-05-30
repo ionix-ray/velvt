@@ -19,7 +19,7 @@ tracing-subscriber  = { version = "0.3", features = ["env-filter"] }
 tracing-wasm        = "0.2"
 thiserror           = "2"
 gloo-timers         = "0.3"
-web-sys             = { version = "0.3", features = ["Window", "Document", "Element", "HtmlElement", "CssStyleDeclaration", "IntersectionObserver", "IntersectionObserverEntry", "IntersectionObserverInit", "DomTokenList", "NodeList"] }
+web-sys             = { version = "0.3", features = ["Window", "Document", "Element", "HtmlElement", "CssStyleDeclaration", "IntersectionObserver", "IntersectionObserverEntry", "IntersectionObserverInit", "DomTokenList", "NodeList", "KeyboardEvent", "ScrollToOptions", "ScrollBehavior", "Event", "Performance"] }
 wasm-bindgen        = "0.2"
 console_error_panic_hook = "0.1"
 js-sys                   = "0.3"
