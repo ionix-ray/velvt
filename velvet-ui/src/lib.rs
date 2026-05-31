@@ -2,9 +2,9 @@
 
 pub mod components;
 pub mod config;
+pub mod markdown;
 pub mod routes;
 pub mod scroll;
 pub mod theme;
-pub mod markdown;
 
 pub use config::Site;

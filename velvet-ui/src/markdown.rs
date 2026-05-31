@@ -13,7 +13,7 @@ pub struct CardData {
 #[component]
 pub fn MarkdownRenderer(content: String) -> Element {
     let parser = Parser::new(&content);
-    
+
     // In a real app, you'd build a full AST to VNode tree here.
     // For simplicity and avoiding breaking changes, we'll extract the custom blocks.
     let mut in_card = false;
@@ -39,7 +39,7 @@ pub fn MarkdownRenderer(content: String) -> Element {
                     let mut card_type = "showcase".to_string();
                     let mut title = "".to_string();
                     let mut desc = "".to_string();
-                    
+
                     for line in current_card_content.lines() {
                         if let Some((k, v)) = line.split_once('=') {
                             let key = k.trim();

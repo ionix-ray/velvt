@@ -61,7 +61,9 @@ fn panel_4_cases_renders() {
 fn panel_5_showcase_renders() {
     let html = render_home();
     assert!(
-        html.contains(r#"id="showcase""#) || html.contains(r#"id="studio""#) || html.contains("v-masonry"),
+        html.contains(r#"id="showcase""#)
+            || html.contains(r#"id="studio""#)
+            || html.contains("v-masonry"),
         "showcase or studio panel must appear"
     );
 }
@@ -79,10 +81,7 @@ fn panel_6_contact_renders() {
 #[test]
 fn footer_renders() {
     let html = render_home();
-    assert!(
-        html.contains("v-footer"),
-        "footer class must appear"
-    );
+    assert!(html.contains("v-footer"), "footer class must appear");
     assert!(html.contains("VELVT"), "brand name must appear in footer");
 }
 
