@@ -85,17 +85,10 @@ jobs:
       - name: Build frontend
         run: dx build --release --package vaelvet-ui
 
-      - name: Prepare build artifacts for deployment
+      - name: Add .nojekyll for GitHub Pages
         run: |
-          BUILD_OUTPUT="target/dx/vaelvet-ui/release/web/public"
-          DEPLOY_DIR="dist"
-          
-          # Copy build output to deployment directory
-          mkdir -p "$DEPLOY_DIR"
-          cp -r "$BUILD_OUTPUT"/* "$DEPLOY_DIR/"
-          
-          # Add GitHub Pages compatibility
-          touch "$DEPLOY_DIR/.nojekyll"
+          touch dist/.nojekyll
+          ls -la dist/ && ls -la dist/assets/ || echo "dist/ missing — check dx out_dir config"
 
       - name: Upload build artifact
         uses: actions/upload-pages-artifact@v3
