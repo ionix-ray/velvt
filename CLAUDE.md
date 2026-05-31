@@ -10,7 +10,7 @@ Auto-loaded by Claude Code. On resume read in order: `STATE.md`, `TASKS.md` (top
 
 ## Stack — Locked
 - Dioxus 0.7.6 web (WASM), `dioxus-router` 0.7.6
-- Rust 1.87 / edition 2024, `wasm32-unknown-unknown`
+- Rust 1.88 / edition 2024, `wasm32-unknown-unknown`
 - `dx` CLI for build/serve; **no Node, no pnpm, no Tailwind, no JS framework**
 - CSS: hand-written `velvet-ui/assets/theme.css` (cinematic) + design tokens in `tokens.rs`
 - Content: **config-driven** via `content/site.toml` (machine-readable) ⇆ `README.md` (human-readable). Editing either changes the site.
