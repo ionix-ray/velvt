@@ -11,6 +11,9 @@ base_path = "/"
 reload_html = true
 watch       = ["assets", "src", "../content"]
 
+[web.wasm_opt]
+level = "z"
+
 [web.resource]
 # All resources are loaded via Rust-side asset!() + document::Link so dx hashes
 # them. Leaving these arrays empty prevents duplicate un-hashed <link> tags.
@@ -23,7 +26,7 @@ script = []
 
 [bundle]
 icon              = ["assets/images/favicon.png"]
-copyright         = "Vaelvet"
+copyright         = "Velvt"
 category          = "Business"
 short_description = "Cinematic PR house. We compose entrances."
 long_description  = "Velvt is a premium public-relations house for film, music, fashion, and founders. Every campaign is staged like a third-act reveal."

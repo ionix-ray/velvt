@@ -62,9 +62,9 @@ We believe presence is a craft. Most agencies measure reach. We measure resonanc
 
 ## Contact
 
-- **Email** — hello@vaelvet.com
+- **Email** — connect@velvt.live
 - **Atelier** — Bandra West, Mumbai · Tribeca, New York
-- **Press inquiries** — press@vaelvet.com
+- **Press inquiries** — connect@velvt.live
 
 ---
 

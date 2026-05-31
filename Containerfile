@@ -1,9 +1,9 @@
 # syntax=docker/dockerfile:1.7
-# Vaelvet — multi-stage: build WASM, optimize with wasm-opt,
+# Velvt — multi-stage: build WASM, optimize with wasm-opt,
 #           inline JS glue into HTML, serve via static-web-server on localhost.
 #
 # Build & run:
-#   podman build -t vaelvet-web . && podman run -p 8080:8080 vaelvet-web
+#   podman build -t velvt-web . && podman run -p 8080:8080 velvt-web
 #
 # Architecture: arm64 (Apple Silicon) / amd64
 
@@ -74,11 +74,11 @@ FROM docker.io/joseluisq/static-web-server:2 AS server-source
 
 FROM gcr.io/distroless/static-debian12:nonroot AS runtime
 
-LABEL org.opencontainers.image.title="Vaelvet" \
+LABEL org.opencontainers.image.title="Velvt" \
       org.opencontainers.image.description="Cinematic PR agency — WASM bundle served distroless, localhost-only." \
-      org.opencontainers.image.source="https://github.com/vaelvet/vaelvet" \
+      org.opencontainers.image.source="https://github.com/velvt/velvt" \
       org.opencontainers.image.licenses="Apache-2.0" \
-      org.opencontainers.image.vendor="Vaelvet"
+      org.opencontainers.image.vendor="Velvt"
 
 WORKDIR /srv
 

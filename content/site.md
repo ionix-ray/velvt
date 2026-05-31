@@ -210,8 +210,8 @@ btn_secondary = "Book a Consultation"
 btn_ghost = "View Our Work"
 
 [contact]
-email_general = "hello@vaelvet.com"
-email_press = "press@vaelvet.com"
+email_general = "connect@velvt.live"
+email_press = "connect@velvt.live"
 ateliers = ["Saheed Nagar, Bhubaneswar", "Bandra West, Mumbai"]
 cta = "Tell us who you want to become."
 
@@ -242,7 +242,7 @@ links = [
 [[footer.columns]]
 title = "Contact"
 links = [
-  { label = "hello@vaelvet.com", href = "mailto:hello@vaelvet.com" },
+  { label = "connect@velvt.live", href = "mailto:connect@velvt.live" },
   { label = "+91 (555) 000-0000", href = "tel:+915550000000" },
   { label = "Saheed Nagar, Bhubaneswar", href = "#" },
   { label = "Bandra West, Mumbai", href = "#" },

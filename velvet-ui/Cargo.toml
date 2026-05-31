@@ -27,6 +27,7 @@ web-sys                  = { workspace = true }
 wasm-bindgen             = { workspace = true }
 console_error_panic_hook = { workspace = true }
 js-sys                   = { workspace = true }
+pulldown-cmark = "0.10"
 
 [dev-dependencies]
 dioxus-ssr = "=0.7.6"
