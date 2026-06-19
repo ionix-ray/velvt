@@ -1,0 +1,88 @@
+# Rust
+/target
+**/target/
+**/*.rs.bk
+Cargo.lock.bak
+
+# Dioxus / build output
+/dist
+/velvet-ui/dist
+/.dioxus
+/deployment/velvet-server
+/deployment/assets/
+*.wasm
+*.wasm.gz
+
+# Node (test-suite only)
+/test-suite/**/node_modules
+/test-suite/**/playwright-report
+/test-suite/**/test-results
+node_modules/
+
+# Env / secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cert
+.cargo/credentials
+.cargo/credentials.toml
+secrets/
+*.secret
+
+# Binaries (never commit compiled artifacts)
+*.exe
+*.dll
+*.dylib
+*.so
+*.o
+*.a
+
+# Coverage / profiling
+coverage/
+*.lcov
+lcov.info
+*.profraw
+*.profdata
+
+# Editors
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+.history/
+
+# Local Claude / project session state
+.claude/settings.local.json
+.claude/state/local-*
+.kimchi/ferments/
+.kimchi/cache/
+docs/file_tree.md
+
+# OS
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Logs / tmp
+*.tmp
+*.log
+logs/
+tmp/
+
+# Debug scratch
+/debug_*.rs
+
+# Ops local state
+/ops
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl

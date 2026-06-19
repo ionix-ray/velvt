@@ -1,0 +1,73 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "permissions": {
+    "allow": [
+      "Bash(cargo build *)",
+      "Bash(cargo test *)",
+      "Bash(cargo fmt *)",
+      "Bash(cargo clippy *)",
+      "Bash(cargo audit *)",
+      "Bash(cargo check *)",
+      "Bash(cargo update *)",
+      "Bash(cargo doc *)",
+      "Bash(cargo tree *)",
+      "Bash(dx *)",
+      "Bash(just *)",
+      "Bash(rustup *)",
+      "Bash(rustc --version)",
+      "Bash(rustfmt *)",
+      "Bash(sips *)",
+      "Bash(git status *)",
+      "Bash(git log *)",
+      "Bash(git diff *)",
+      "Bash(git branch *)",
+      "Bash(git checkout *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git tag *)",
+      "Bash(git fetch *)",
+      "Bash(git stash *)",
+      "Bash(git restore *)",
+      "Bash(git reset --soft *)",
+      "Bash(git reset HEAD *)",
+      "Bash(ls *)",
+      "Bash(find . *)",
+      "Bash(grep *)",
+      "Bash(rg *)",
+      "Bash(wc *)",
+      "Bash(du *)",
+      "Bash(file *)",
+      "Bash(stat *)",
+      "Bash(mkdir *)",
+      "Bash(touch *)",
+      "Bash(cp *)",
+      "Bash(mv *)",
+      "Bash(curl -s -o /dev/null *)",
+      "Bash(curl -sI *)",
+      "Bash(open http://localhost:*)",
+      "Bash(open -a \"Google Chrome\" http://localhost:*)",
+      "Read(/Volumes/hex/current-work/**)",
+      "Read(/Users/samirparhi-dev/Library/Mobile Documents/com~apple~CloudDocs/velvet/**)"
+    ],
+    "deny": [
+      "Bash(rm -rf /*)",
+      "Bash(git push --force *)",
+      "Bash(git push --force-with-lease origin main *)",
+      "Bash(git reset --hard origin/*)",
+      "Bash(git clean -fdx *)"
+    ]
+  },
+  "enabledPlugins": {
+    "ui-ux-pro-max@ui-ux-pro-max-skill": true
+  },
+  "env": {
+    "VAELVET_MODEL_POLICY": "sonnet-primary,haiku-routine,no-opus-default",
+    "RUST_BACKTRACE": "1"
+  },
+  "modelPolicy": {
+    "note": "Informational only — actual model is chosen by the user/runtime. Project convention: Sonnet 4.6 for code/design, Haiku 4.5 for routine ops (search, doc-keep, fmt-fix), never Opus by default.",
+    "preferred": "claude-sonnet-4-6",
+    "routine":   "claude-haiku-4-5",
+    "forbidden_default": "claude-opus-4-7"
+  }
+}

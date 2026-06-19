@@ -1,0 +1,28 @@
+# Vaelvet — local dev / CI container.
+# Run: docker compose up --build
+# CIS Docker L1 baseline: non-root, read-only FS, cap_drop ALL, resource limits.
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Containerfile
+      args:
+        BUILD_PROFILE: ${BUILD_PROFILE:-release}
+    image: localhost/velvet:${TAG:-latest}
+    ports:
+      - "8080:8080"
+    user: "65532:65532"
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    pids_limit: 128
+    mem_limit: 128m
+    cpus: "0.5"
+    # No in-container healthcheck: distroless has no shell. SWS exposes /health
+    # on :8080 — use it from an external probe (k8s readinessProbe, etc.).
+    restart: unless-stopped

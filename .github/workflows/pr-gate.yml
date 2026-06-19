@@ -1,0 +1,51 @@
+name: PR Gate
+on:
+  pull_request:
+    branches: [main]
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: "1.88.0"
+          components: "clippy,rustfmt"
+          targets: "wasm32-unknown-unknown"
+
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
+      - name: Rustfmt Check
+        run: cargo fmt --all -- --check
+
+      - name: Clippy Gate
+        run: cargo clippy --workspace --all-targets -- -D warnings
+
+      - name: Unit & Integration Tests
+        run: cargo test --workspace --all-targets
+
+      - name: Install Dioxus CLI
+        run: cargo install dioxus-cli --version "=0.7.6" --locked
+
+      - name: Install wasm-opt (binaryen)
+        run: sudo apt-get install -y binaryen
+
+      - name: WASM Build Gate
+        run: dx build --platform web --package vaelvet-ui --release
+
+      - name: Security Audit (CVEs)
+        run: |
+          cargo install cargo-audit --locked
+          cargo audit
+
+      - name: OpenTofu Validate
+        working-directory: ./ops/tofu
+        run: |
+          tofu init -backend=false
+          tofu validate

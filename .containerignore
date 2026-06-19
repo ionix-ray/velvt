@@ -1,0 +1,39 @@
+# VCS / OS
+.git/
+.gitignore
+.DS_Store
+*~
+*.swp
+*.swo
+
+# Build artefacts
+target/
+velvet-ui/target/
+dist/
+
+# Dev / test files (not needed for production build)
+test-suite/
+docs/
+scripts/
+ops/
+debug_*.rs
+
+# Project management (not needed in image)
+PROGRESS.md
+README.md
+CLAUDE.md
+AGENT_DIRECTIVE.md
+TASKS.md
+STATE.md
+memory/
+.cargo/
+.claude/
+.github/
+.kimchi/
+.skills/
+
+# Container / compose (self-reference)
+compose.yml
+
+# Misc
+velvet-ui/index\ copy.html
