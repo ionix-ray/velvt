@@ -16,6 +16,12 @@ Cargo.lock.bak
 # Node (test-suite only)
 /test-suite/**/node_modules
 /test-suite/**/playwright-report
+# Ad-hoc/scratch QA scripts — keep only the formal spec under specs/ tracked
+/test-suite/playwright/debug-*.cjs
+/test-suite/playwright/screenshot.cjs
+/test-suite/playwright/dump-*.cjs
+/test-suite/playwright/*-dump.html
+/test-suite/playwright/test-console.*
 /test-suite/**/test-results
 node_modules/
 

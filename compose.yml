@@ -7,8 +7,6 @@ services:
     build:
       context: .
       dockerfile: Containerfile
-      args:
-        BUILD_PROFILE: ${BUILD_PROFILE:-release}
     image: localhost/velvet:${TAG:-latest}
     ports:
       - "8080:8080"
@@ -23,6 +21,6 @@ services:
     pids_limit: 128
     mem_limit: 128m
     cpus: "0.5"
-    # No in-container healthcheck: distroless has no shell. SWS exposes /health
-    # on :8080 — use it from an external probe (k8s readinessProbe, etc.).
+    # No in-container healthcheck: distroless has no shell. velvet-server exposes
+    # /health on :8080 — use it from an external probe (k8s readinessProbe, etc.).
     restart: unless-stopped

@@ -32,30 +32,47 @@ pub fn install() -> Option<()> {
     Some(())
 }
 
-#[wasm_bindgen::prelude::wasm_bindgen(inline_js = r#"
-export function init_reveal_js() {
-    const observer = new IntersectionObserver((entries) => {
-        for (const entry of entries) {
-            if (entry.isIntersecting) {
-                entry.target.classList.add("in");
-            }
-        }
-    }, { threshold: 0.12 });
-    
-    const targets = document.querySelectorAll(".v-reveal, .v-reveal-left, .v-reveal-right");
-    for (const target of targets) {
-        observer.observe(target);
-    }
-}
-"#)]
-extern "C" {
-    fn init_reveal_js();
-}
-
 /// Reveal sections as they cross into view. Adds `in` class to any
-/// element with `.v-reveal`. Honours `prefers-reduced-motion`.
+/// element matching `.v-reveal`, `.v-reveal-left`, or `.v-reveal-right`.
 #[must_use]
 pub fn install_reveal() -> Option<()> {
-    init_reveal_js();
+    let win = web_sys::window()?;
+    let doc = win.document()?;
+
+    let callback =
+        Closure::<dyn FnMut(web_sys::js_sys::Array)>::new(|entries: web_sys::js_sys::Array| {
+            for entry in entries.iter() {
+                let Ok(entry) = entry.dyn_into::<web_sys::IntersectionObserverEntry>() else {
+                    continue;
+                };
+                if entry.is_intersecting() {
+                    if let Some(el) = entry.target().dyn_ref::<web_sys::Element>() {
+                        let _ = el.class_list().add_1("in");
+                    }
+                }
+            }
+        });
+
+    let options = web_sys::IntersectionObserverInit::new();
+    options.set_threshold(&wasm_bindgen::JsValue::from_f64(0.12));
+
+    let observer = web_sys::IntersectionObserver::new_with_options(
+        callback.as_ref().unchecked_ref(),
+        &options,
+    )
+    .ok()?;
+    callback.forget(); // intentional: observer lives for the page lifetime
+
+    let targets = doc
+        .query_selector_all(".v-reveal, .v-reveal-left, .v-reveal-right")
+        .ok()?;
+    for i in 0..targets.length() {
+        if let Some(node) = targets.item(i) {
+            if let Ok(el) = node.dyn_into::<web_sys::Element>() {
+                observer.observe(&el);
+            }
+        }
+    }
+
     Some(())
 }

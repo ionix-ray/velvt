@@ -9,7 +9,7 @@
 | Lighthouse  | Perf ≥ 90, A11y ≥ 95, BP ≥ 95, SEO ≥ 95 | manual / CI    |
 
 ## Critical assertions (must not regress)
-1. `site.toml` parses and all sections populate.
+1. `site.md` parses (fenced TOML blocks extract + deserialize) and all sections populate.
 2. Hero headline visible within 2.5 s LCP.
 3. CSP header present; no inline scripts beyond curtain CSS.
 4. Reduced-motion media query disables parallax.

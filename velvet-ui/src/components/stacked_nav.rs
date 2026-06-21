@@ -35,3 +35,16 @@ pub fn StackedNav(
 fn format_item_num(i: usize) -> String {
     format!("{:02}", i + 1)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn format_item_num_is_one_indexed_and_zero_padded() {
+        assert_eq!(format_item_num(0), "01");
+        assert_eq!(format_item_num(8), "09");
+        assert_eq!(format_item_num(9), "10");
+        assert_eq!(format_item_num(99), "100");
+    }
+}

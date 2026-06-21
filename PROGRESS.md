@@ -1,5 +1,64 @@
 # Progress Log — Vaelvet Container + UI/UX Refactor
 
+## 2026-06-20
+
+### Completed Today
+
+1. **Server crate lint-inheritance fix** — `server/Cargo.toml` hardcoded
+   `edition = "2021"` / `rust-version = "1.75"` and had no `[lints]` table,
+   so the workspace's `deny(unwrap_used, expect_used, panic, ...)` lints were
+   silently not enforced on shipping server code. Switched to
+   `{ workspace = true }`, added `[lints] workspace = true`, removed a dead
+   `[profile.release]` block cargo already ignored for non-root packages.
+2. **Removed `.unwrap()`/`.expect()`** from `handlers.rs`, `error.rs`,
+   `main.rs` now that the lint actually fires — replaced with infallible
+   `Response::new` + header-mutation, and proper error/exit-code handling
+   in `main()`.
+3. **Coverage**: 25.83% → 70.90% workspace-wide (`cargo llvm-cov --workspace`).
+   - `server/`: added 30 tests across `handlers`, `error`, `main`, `lib`,
+     `middleware`, plus a new `server/tests/integration.rs` (8 router-level
+     tests via `tower::ServiceExt::oneshot`, including a path-traversal
+     security test).
+   - `velvet-ui/`: extracted pure logic out of Dioxus closures into free,
+     directly-testable functions (`keyboard_nav_index`, `wheel_nav_index`,
+     `scroll_sync_index`, `progress_for` in `home.rs`; `validate_inquiry`,
+     `build_mailto` in `cta_panel.rs`; class-builder helpers in `topbar.rs`,
+     `next_hint.rs`, `stacked_nav.rs`, `loader.rs`, `mobile_nav.rs`). Added
+     direct SSR render tests for `MobileNav`/`Loader` conditional branches.
+   - Remaining low-coverage files (`home.rs` 38%, `scroll.rs` 0%, both
+     `main.rs` entry points) are structural: Dioxus event-handler/`use_effect`
+     closures and the WASM/socket entry points never execute under native
+     `cargo test` without a real browser or bound socket. Documented, not
+     hidden.
+4. **Dead code removal** — `ServicesPanel`, `WorkWithUs` components (never
+   rendered, confirmed via grep) and `velvet_ui::prelude` module (unused;
+   its `window()` helper's doc comment falsely claimed `web_sys::window()`
+   "returns `None` outside WASM" — it actually **panics** on native targets,
+   confirmed by hitting that exact panic this session. Removed rather than
+   fixed, since nothing used it).
+5. **SPA anchor routing** — `home.rs` now maps each panel index to a URL
+   hash (`#home`, `#about`, `#stories`, `#showcase`, `#cases`, `#contact`,
+   `#footer`) via `history.replaceState` (no page jump/reload), updated from
+   every navigation path (spindle clicks, keyboard, wheel, manual scroll).
+   Loading the page with a hash present jumps to that panel on first paint.
+6. **Showcase masonry fix** — the 5-item grid in a 3-column layout was
+   leaving an empty trailing cell, and card heights were set by guessing
+   `nth-child(2)`/`nth-child(5)`. Replaced with `aspect-ratio`-based uniform
+   cards and a Rust-computed `--wide`/`--full` span modifier on the last
+   item of an incomplete row, so the layout self-corrects if the item count
+   in `content/site.md` ever changes.
+
+### Verified
+- `just lint` (fmt + clippy -D warnings): clean
+- `cargo test --workspace`: 79 passed, 0 failed
+- `cargo llvm-cov --workspace --summary-only`: 70.90% lines
+
+### To Do — Next Session
+- `just audit`, WASM bundle size re-check after this session's changes
+- Decide whether to invest in `wasm-bindgen-test`/headless-browser coverage
+  for the documented structural gaps, or accept them as the floor
+- Close Task #8 (final pre-merge checklist) and #14 (code review write-up)
+
 ## 2026-06-15
 
 ### ✅ Completed Today

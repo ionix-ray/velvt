@@ -1,5 +1,9 @@
-//! Compile-time content config. The TOML lives at `content/site.toml`.
-//! `include_str!` embeds it in the wasm binary; `Site::load` parses on first use.
+//! Compile-time content config. Editable content lives at `content/site.md`:
+//! a markdown file with one `## Section` heading per `Site` field, each
+//! followed by a fenced ```toml``` block holding that field's data.
+//! `include_str!` embeds it in the wasm binary; `Site::load` strips the
+//! markdown prose, concatenates the fenced TOML blocks in order, and parses
+//! the result with `toml::from_str` on first use.
 
 use serde::Deserialize;
 use std::sync::OnceLock;
@@ -296,17 +300,40 @@ pub struct FooterSocial {
     pub href: Box<str>,
 }
 
-const RAW: &str = include_str!("../../content/site.toml");
+const RAW: &str = include_str!("../../content/site.md");
 static SITE: OnceLock<Site> = OnceLock::new();
+
+/// Extracts and concatenates every fenced ` ```toml ` code block from a
+/// markdown document, in document order, separated by newlines.
+fn extract_toml_from_markdown(md: &str) -> String {
+    let mut out = String::new();
+    let mut lines = md.lines();
+    while let Some(line) = lines.by_ref().next() {
+        if line.trim_start() != "```toml" {
+            continue;
+        }
+        for body_line in lines.by_ref() {
+            if body_line.trim_start() == "```" {
+                break;
+            }
+            out.push_str(body_line);
+            out.push('\n');
+        }
+    }
+    out
+}
 
 impl Site {
     #[must_use]
     pub fn load() -> &'static Self {
-        SITE.get_or_init(|| match toml::from_str::<Self>(RAW) {
-            Ok(s) => s,
-            Err(e) => {
-                tracing::error!(error = %e, "site.toml parse failed; falling back to default");
-                Self::default()
+        SITE.get_or_init(|| {
+            let toml_src = extract_toml_from_markdown(RAW);
+            match toml::from_str::<Self>(&toml_src) {
+                Ok(s) => s,
+                Err(e) => {
+                    tracing::error!(error = %e, "site.md parse failed; falling back to default");
+                    Self::default()
+                }
             }
         })
     }
@@ -317,7 +344,26 @@ mod tests {
     use super::*;
 
     #[test]
-    fn site_toml_parses() {
+    fn extract_toml_from_markdown_concatenates_fenced_blocks_in_order() {
+        let md = "# Title\nprose\n```toml\n[a]\nx = 1\n```\nmore prose\n```toml\n[b]\ny = 2\n```\n";
+        let extracted = extract_toml_from_markdown(md);
+        assert_eq!(extracted, "[a]\nx = 1\n[b]\ny = 2\n");
+    }
+
+    #[test]
+    fn extract_toml_from_markdown_ignores_non_toml_fences_and_prose() {
+        let md = "intro\n```rust\nfn f() {}\n```\n```toml\n[a]\nx = 1\n```\ntrailing prose\n";
+        let extracted = extract_toml_from_markdown(md);
+        assert_eq!(extracted, "[a]\nx = 1\n");
+    }
+
+    #[test]
+    fn extract_toml_from_markdown_empty_input_yields_empty_string() {
+        assert_eq!(extract_toml_from_markdown(""), "");
+    }
+
+    #[test]
+    fn site_md_parses() {
         let site = Site::load();
         assert!(!site.brand.name.is_empty());
         assert!(!site.hero.headline1.is_empty());
@@ -334,7 +380,7 @@ mod tests {
     }
 
     #[test]
-    fn site_toml_all_required_fields_non_empty() {
+    fn site_md_all_required_fields_non_empty() {
         let site = Site::load();
         assert!(!site.brand.tagline.is_empty(), "brand.tagline is empty");
         assert!(!site.brand.copyright.is_empty(), "brand.copyright is empty");
@@ -351,7 +397,7 @@ mod tests {
     }
 
     #[test]
-    fn site_toml_nav_has_entries() {
+    fn site_md_nav_has_entries() {
         let site = Site::load();
         assert!(!site.nav.is_empty(), "nav must have at least one item");
         for item in &site.nav {
@@ -361,7 +407,7 @@ mod tests {
     }
 
     #[test]
-    fn site_toml_footer_columns_non_empty() {
+    fn site_md_footer_columns_non_empty() {
         let site = Site::load();
         assert!(!site.footer.columns.is_empty(), "footer must have columns");
         for col in &site.footer.columns {

@@ -28,11 +28,7 @@ fn App() -> Element {
         document::Link { rel: "apple-touch-icon",
                           href: asset!("/assets/images/favicon.png") }
         document::Link { rel: "preload", r#as: "image", fetchpriority: "high",
-                          href: asset!("/assets/images/logo.jpg") }
-        document::Link { rel: "preload", r#as: "image",
-                  href: asset!("/assets/images/mark.jpg") }
-        document::Link { rel: "preload", r#as: "image", fetchpriority: "high",
-                  href: asset!("/assets/images/velvt-logo.png") }
+                  href: asset!("/assets/images/velvet-sqare.png") }
         Router::<Route> {}
     }
 }

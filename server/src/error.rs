@@ -47,11 +47,13 @@ impl IntoResponse for ServerError {
             ),
         };
 
-        Response::builder()
-            .status(status)
-            .header("content-type", "text/plain")
-            .body(body)
-            .unwrap()
+        let mut response = Response::new(body);
+        *response.status_mut() = status;
+        response.headers_mut().insert(
+            axum::http::header::CONTENT_TYPE,
+            axum::http::HeaderValue::from_static("text/plain"),
+        );
+        response
     }
 }
 
@@ -69,5 +71,34 @@ mod tests {
             format!("{}", ServerError::AssetNotFound("/x".to_string())),
             "asset not found: /x"
         );
+        assert_eq!(
+            format!("{}", ServerError::AssetRead("/x".to_string())),
+            "asset read error: /x"
+        );
+        assert_eq!(
+            format!("{}", ServerError::InvalidPath),
+            "invalid path (possible directory traversal)"
+        );
+        assert_eq!(
+            format!("{}", ServerError::ConfigRead("/x".to_string())),
+            "config read error: /x"
+        );
+    }
+
+    #[test]
+    fn into_response_maps_status_codes() -> Result<(), Box<dyn std::error::Error>> {
+        let resp = ServerError::AssetNotFound("/x".to_string()).into_response();
+        assert_eq!(resp.status(), StatusCode::NOT_FOUND);
+
+        let resp = ServerError::InvalidPath.into_response();
+        assert_eq!(resp.status(), StatusCode::BAD_REQUEST);
+
+        let resp = ServerError::AssetRead("/x".to_string()).into_response();
+        assert_eq!(resp.status(), StatusCode::INTERNAL_SERVER_ERROR);
+        let Some(content_type) = resp.headers().get("content-type").cloned() else {
+            return Err("missing content-type header".into());
+        };
+        assert_eq!(content_type, "text/plain");
+        Ok(())
     }
 }

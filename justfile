@@ -123,7 +123,3 @@ container-size:
     echo ""
     echo "WASM bundle:"
     ls -lh deployment/assets/*.wasm 2>/dev/null || echo "Run 'just container-up' first"
-
-# ── Full source build (slow, for CI) ─────────────────────────────────────────
-container-build-full:
-    podman build -f Containerfile.full -t localhost/velvet:full .

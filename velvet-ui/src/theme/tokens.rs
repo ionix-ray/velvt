@@ -19,10 +19,9 @@ pub mod palette {
 
 /// Type scale — display headings + IBM Plex Sans body.
 pub mod fonts {
-    pub const DISPLAY: &str =
-        "\"Jersey 10\", \"Oswald\", \"Bebas Neue\", Impact, \"Arial Narrow\", sans-serif";
+    pub const DISPLAY: &str = "\"Outfit\", system-ui, -apple-system, sans-serif";
     pub const SANS: &str = "\"IBM Plex Sans\", system-ui, -apple-system, sans-serif";
-    pub const MONO: &str = "\"IBM Plex Mono\", ui-monospace, monospace";
+    pub const MONO: &str = "\"IBM Plex Sans\", system-ui, -apple-system, sans-serif";
 }
 
 /// Spacing — 8px base, exponential.

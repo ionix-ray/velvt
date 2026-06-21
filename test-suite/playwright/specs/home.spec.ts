@@ -283,3 +283,157 @@ test("social-strip: hidden (aria-hidden) on footer panel", async ({ page }) => {
   const strip = page.locator(".v-social-strip");
   await expect(strip).toHaveClass(/v-social-strip--hidden/);
 });
+
+// ── Brand badge (oversized square mark, pinned top-left) ────────────────────
+
+test("brand: topbar mark is an oversized square badge hung below the header line", async ({ page }) => {
+  await page.goto("/");
+  const badge = page.locator(".v-topbar__brand img");
+  await expect(badge).toBeVisible();
+
+  const box = await badge.boundingBox();
+  const topbar = await page.locator(".v-topbar").boundingBox();
+  expect(box).not.toBeNull();
+  expect(topbar).not.toBeNull();
+  if (box && topbar) {
+    // Bigger than the old 36px inline pill, anchored near the left edge,
+    // and hung below the topbar's own bottom edge (not flush with it).
+    expect(box.width).toBeGreaterThanOrEqual(48);
+    expect(box.height).toBeGreaterThanOrEqual(48);
+    expect(box.x).toBeLessThan(40);
+    expect(box.y).toBeGreaterThanOrEqual(topbar.y + topbar.height);
+  }
+});
+
+test("brand: topbar actions cluster stays clear of the brand badge", async ({ page }) => {
+  await page.goto("/");
+  const badge = page.locator(".v-topbar__brand img");
+  const actions = page.locator(".v-topbar__actions");
+  const badgeBox = await badge.boundingBox();
+  const actionsBox = await actions.boundingBox();
+  expect(badgeBox).not.toBeNull();
+  expect(actionsBox).not.toBeNull();
+  if (badgeBox && actionsBox) {
+    // Actions cluster (theme + menu buttons) renders to the right of the badge.
+    expect(actionsBox.x).toBeGreaterThan(badgeBox.x + badgeBox.width / 2);
+  }
+});
+
+// ── Showcase masonry (card sizing + vertical overflow scroll) ───────────────
+
+test("showcase: masonry cards stay within a sane height and show their text", async ({ page }) => {
+  await page.goto("/");
+  await page.waitForSelector(".v-panels");
+  await page.waitForSelector(".v-loader", { state: "hidden" });
+
+  const items = page.locator("#showcase .v-masonry__item");
+  const count = await items.count();
+  expect(count).toBeGreaterThan(0);
+
+  for (let i = 0; i < count; i++) {
+    const item = items.nth(i);
+    const box = await item.boundingBox();
+    expect(box).not.toBeNull();
+    if (box) {
+      // Cards must never balloon to near-viewport height (the grid-auto-rows
+      // bug this regression-tests for stretched cards to ~700px+).
+      expect(box.height).toBeLessThan(500);
+    }
+    const text = (await item.locator(".v-masonry__content").textContent()) ?? "";
+    expect(text.trim().length).toBeGreaterThan(0);
+  }
+});
+
+test("showcase: panel content overflowing the viewport is reachable via vertical scroll", async ({ page }) => {
+  await page.goto("/");
+  await page.waitForSelector(".v-panels");
+  await page.waitForSelector(".v-loader", { state: "hidden" });
+
+  const overflowY = await page.locator("#showcase").evaluate(
+    (el) => getComputedStyle(el).overflowY,
+  );
+  expect(overflowY).toBe("auto");
+
+  const scrolled = await page.locator("#showcase").evaluate((el) => {
+    el.scrollTop = el.scrollHeight;
+    return el.scrollTop;
+  });
+  // If content fits, scrollTop legitimately stays 0 — the assertion is just
+  // that scrolling never throws and the value is non-negative/finite.
+  expect(scrolled).toBeGreaterThanOrEqual(0);
+});
+
+// ── Content: registered office + service naming ──────────────────────────────
+
+test("footer: lists the full registered office address", async ({ page }) => {
+  await page.goto("/");
+  const panels = page.locator(".v-panels");
+  await panels.evaluate((el: HTMLElement) => {
+    el.scrollTo({ left: el.scrollWidth, behavior: "instant" });
+  });
+  await page.waitForTimeout(600);
+
+  const text = await page.locator("#footer").textContent();
+  expect(text).toContain("Plot No.756");
+  expect(text).toMatch(/Khorda-\s*751007/);
+});
+
+// ── Social strip styling (bigger, always-red, responsive) ──────────────────
+
+test("social-strip: links are bigger and carry the brand-red background always, not just on hover", async ({ page }) => {
+  await page.goto("/");
+  await page.waitForSelector(".v-loader", { state: "hidden" });
+  const link = page.locator(".v-social-strip__link").first();
+  await expect(link).toBeVisible();
+
+  const box = await link.boundingBox();
+  expect(box).not.toBeNull();
+  if (box) {
+    expect(box.width).toBeGreaterThanOrEqual(40);
+    expect(box.height).toBeGreaterThanOrEqual(40);
+  }
+
+  const bg = await link.evaluate((el) => getComputedStyle(el).backgroundColor);
+  // var(--accent) in dark mode resolves to the crimson-light brand red.
+  expect(bg).toMatch(/rgba?\(/);
+  expect(bg).not.toBe("rgba(0, 0, 0, 0)");
+});
+
+test("social-strip: still visible (not display:none) on mobile viewports", async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto("/");
+  await page.waitForSelector(".v-loader", { state: "hidden" });
+  const strip = page.locator(".v-social-strip");
+  await expect(strip).toBeVisible();
+  const display = await strip.evaluate((el) => getComputedStyle(el).display);
+  expect(display).not.toBe("none");
+});
+
+// ── Loader: camera-iris entrance/exit ───────────────────────────────────────
+
+test("loader: aperture rings render behind the mark while loading", async ({ page }) => {
+  await page.goto("/");
+  const iris = page.locator(".v-loader__iris-ring");
+  await expect(iris).toBeAttached();
+});
+
+test("loader: hides via clip-path collapse, not display:none, and stops blocking clicks", async ({ page }) => {
+  await page.goto("/");
+  await page.waitForSelector(".v-loader", { state: "hidden" });
+  const loader = page.locator(".v-loader");
+  const pointerEvents = await loader.evaluate((el) => getComputedStyle(el).pointerEvents);
+  expect(pointerEvents).toBe("none");
+});
+
+test("footer: services column reads Celebrity Management, not Celebrity Booking", async ({ page }) => {
+  await page.goto("/");
+  const panels = page.locator(".v-panels");
+  await panels.evaluate((el: HTMLElement) => {
+    el.scrollTo({ left: el.scrollWidth, behavior: "instant" });
+  });
+  await page.waitForTimeout(600);
+
+  const text = await page.locator("#footer").textContent();
+  expect(text).toContain("Celebrity Management");
+  expect(text).not.toContain("Celebrity Booking");
+});

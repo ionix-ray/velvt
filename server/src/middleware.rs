@@ -3,9 +3,8 @@
 use axum::{
     extract::Request,
     http::header::{
-        HeaderName, CONTENT_SECURITY_POLICY, EXPIRES, PRAGMA,
-        REFERRER_POLICY, STRICT_TRANSPORT_SECURITY, X_CONTENT_TYPE_OPTIONS,
-        X_FRAME_OPTIONS,
+        CONTENT_SECURITY_POLICY, EXPIRES, HeaderName, PRAGMA, REFERRER_POLICY,
+        STRICT_TRANSPORT_SECURITY, X_CONTENT_TYPE_OPTIONS, X_FRAME_OPTIONS,
     },
     middleware::Next,
     response::Response,
@@ -15,7 +14,10 @@ use axum::{
 const SECURITY_HEADERS: &[(HeaderName, &str)] = &[
     (X_CONTENT_TYPE_OPTIONS, "nosniff"),
     (X_FRAME_OPTIONS, "SAMEORIGIN"),
-    (STRICT_TRANSPORT_SECURITY, "max-age=15552000; includeSubDomains"),
+    (
+        STRICT_TRANSPORT_SECURITY,
+        "max-age=15552000; includeSubDomains",
+    ),
     (REFERRER_POLICY, "strict-origin-when-cross-origin"),
 ];
 
@@ -75,4 +77,78 @@ pub async fn log_request(request: Request, next: Next) -> Response {
     );
 
     response
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use axum::body::Body;
+    use std::error::Error;
+    use tower::ServiceExt;
+
+    type TestResult = Result<(), Box<dyn Error>>;
+
+    fn router_with_content_type(content_type: Option<&'static str>) -> axum::Router {
+        axum::Router::new()
+            .route(
+                "/",
+                axum::routing::get(move || async move {
+                    let mut response = Response::new(Body::from("ok"));
+                    if let Some(ct) = content_type {
+                        response
+                            .headers_mut()
+                            .insert("content-type", axum::http::HeaderValue::from_static(ct));
+                    }
+                    response
+                }),
+            )
+            .layer(axum::middleware::from_fn(security_headers))
+            .layer(axum::middleware::from_fn(log_request))
+    }
+
+    #[tokio::test]
+    async fn html_responses_get_pragma_no_cache() -> TestResult {
+        let app = router_with_content_type(Some("text/html; charset=utf-8"));
+        let response = app
+            .oneshot(Request::builder().uri("/").body(Body::empty())?)
+            .await?;
+
+        let headers = response.headers();
+        let Some(pragma) = headers.get("pragma").cloned() else {
+            return Err("missing pragma header".into());
+        };
+        let Some(expires) = headers.get("expires").cloned() else {
+            return Err("missing expires header".into());
+        };
+        let Some(nosniff) = headers.get("x-content-type-options").cloned() else {
+            return Err("missing x-content-type-options header".into());
+        };
+        assert_eq!(pragma, "no-cache");
+        assert_eq!(expires, "0");
+        assert_eq!(nosniff, "nosniff");
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn non_html_responses_have_no_pragma() -> TestResult {
+        let app = router_with_content_type(Some("application/json"));
+        let response = app
+            .oneshot(Request::builder().uri("/").body(Body::empty())?)
+            .await?;
+
+        assert!(response.headers().get("pragma").is_none());
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn missing_content_type_is_handled_without_panicking() -> TestResult {
+        let app = router_with_content_type(None);
+        let response = app
+            .oneshot(Request::builder().uri("/").body(Body::empty())?)
+            .await?;
+
+        assert!(response.headers().get("pragma").is_none());
+        assert!(response.headers().contains_key("content-security-policy"));
+        Ok(())
+    }
 }

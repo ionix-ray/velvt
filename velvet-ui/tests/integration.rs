@@ -4,7 +4,7 @@
 
 use dioxus::prelude::*;
 
-use vaelvet_ui::prelude::*;
+use vaelvet_ui::Site;
 
 // We need to bring in the Home component to test it.
 use vaelvet_ui::routes::home::Home;

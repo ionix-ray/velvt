@@ -1,6 +1,6 @@
 # Vaelvet — *elevate your Presence.*
 
-A cinematic PR agency website. Built in Dioxus (Rust → WASM). Config-driven: edit this file or `content/site.toml` and rebuild — no code changes needed for copy.
+A cinematic PR agency website. Built in Dioxus (Rust → WASM). Config-driven: edit `content/site.md` and rebuild — no code changes needed for copy.
 
 ---
 
@@ -45,9 +45,9 @@ podman run --rm -p 8080:8080 localhost/velvet:latest
 
 ## To edit site content
 
-The canonical content lives in **[`content/site.toml`](content/site.toml)**. Update strings there, rebuild. The Rust app parses the TOML at compile time via `include_str!`, so there is no runtime config fetch.
+The canonical content lives in **[`content/site.md`](content/site.md)**. It's a markdown file — one `## Section` heading per content field, each followed by a fenced `toml` block holding that field's data. Edit the values inside the fences, rebuild. The Rust app strips the markdown prose, concatenates the fenced blocks, and parses the result at compile time via `include_str!`, so there is no runtime config fetch.
 
-The sections below mirror that TOML so you can read the site at a glance.
+The sections below mirror that file so you can read the site at a glance.
 
 ---
 
@@ -103,10 +103,10 @@ We believe presence is a craft. Most agencies measure reach. We measure resonanc
   - `src/middleware.rs` — security headers (CSP, HSTS, X-Frame-Options)
   - `src/config.rs` — runtime config (addr, static root)
   - `src/error.rs` — typed error handling with HTTP status mapping
-- `velvet-ui/src/config.rs` — parses `content/site.toml` at compile time via `include_str!`
+- `velvet-ui/src/config.rs` — parses `content/site.md` at compile time via `include_str!`
 - `velvet-ui/src/components/` — render that struct; no business logic in components
 - `velvet-ui/assets/theme.css` — cinematic layer, hand-written, ≤40 KB
-- `content/site.toml` — single source of truth for site content
+- `content/site.md` — single source of truth for site content
 - `deployment/` — staging folder for container (pre-built WASM + Rust server binary)
 
 See [`CLAUDE.md`](CLAUDE.md) for the engineering rulebook.

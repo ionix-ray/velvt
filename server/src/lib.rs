@@ -35,3 +35,23 @@ pub async fn serve(router: Router, addr: &str) -> Result<(), crate::error::Serve
         .await
         .map_err(crate::error::ServerError::Serve)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn app_builds_router_without_panicking() {
+        let _router = app(config::Config::default());
+    }
+
+    #[tokio::test]
+    async fn serve_rejects_unparsable_address() {
+        let router = app(config::Config::default());
+        let result = serve(router, "not-an-address").await;
+        assert!(matches!(
+            result,
+            Err(crate::error::ServerError::AddrParse(_))
+        ));
+    }
+}

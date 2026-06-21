@@ -16,7 +16,7 @@ Auto-loaded by Claude Code. On resume read in order: `STATE.md`, `TASKS.md` (top
 - Rust 1.88 / edition 2024, `wasm32-unknown-unknown`
 - `dx` CLI for build/serve; **no Node, no pnpm, no Tailwind, no JS framework**
 - CSS: hand-written `velvet-ui/assets/theme.css` (cinematic) + design tokens in `tokens.rs`
-- Content: **config-driven** via `content/site.toml` (machine-readable) ⇆ `README.md` (human-readable). Editing either changes the site.
+- Content: **single source**, `content/site.md` — markdown, one `## Section` heading per content field, each followed by a fenced ` ```toml ` block. Edit it, `just build`. No code changes for copy/links/case studies.
 - Tests: `#[test]`, `dioxus-ssr`, Playwright e2e (Node only inside `test-suite/`, never in app)
 
 ## Model policy
@@ -51,18 +51,17 @@ just clean    # cargo clean + dist/
 | What | Where |
 |---|---|
 | App entry + router | `velvet-ui/src/main.rs` |
-| Config loader | `velvet-ui/src/config.rs` (parses `content/site.toml` via `include_str!`) |
+| Config loader | `velvet-ui/src/config.rs` (parses `content/site.md` via `include_str!`) |
 | Route components | `velvet-ui/src/routes/*.rs` |
 | UI components | `velvet-ui/src/components/<name>.rs` |
 | Design tokens | `velvet-ui/src/theme/tokens.rs` |
 | Cinematic CSS | `velvet-ui/assets/theme.css` |
 | Brand images | `velvet-ui/assets/images/` |
-| Content (machine) | `content/site.toml` |
-| Content (human) | `README.md` |
+| Content (single source) | `content/site.md` |
 | E2E specs | `test-suite/playwright/specs/` |
 
 ## Maintainer workflow
-**To change site content**: edit `content/site.toml` (or `README.md`), `just build`. Done. No code changes needed for copy/links/case studies.
+**To change site content**: edit `content/site.md`, `just build`. Done. No code changes needed for copy/links/case studies.
 
 ## Pre-merge checklist
 1. `just lint` green

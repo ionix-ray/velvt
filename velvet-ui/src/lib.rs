@@ -2,8 +2,6 @@
 
 pub mod components;
 pub mod config;
-pub mod markdown;
-pub mod prelude;
 pub mod routes;
 pub mod scroll;
 pub mod theme;
