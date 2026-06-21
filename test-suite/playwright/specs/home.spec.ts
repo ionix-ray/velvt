@@ -411,10 +411,11 @@ test("social-strip: still visible (not display:none) on mobile viewports", async
 
 // ── Loader: camera-iris entrance/exit ───────────────────────────────────────
 
-test("loader: aperture rings render behind the mark while loading", async ({ page }) => {
+test("loader: three aperture blade rings and a flash render behind the mark while loading", async ({ page }) => {
   await page.goto("/");
-  const iris = page.locator(".v-loader__iris-ring");
-  await expect(iris).toBeAttached();
+  const rings = page.locator(".v-loader__iris-ring");
+  await expect(rings).toHaveCount(3);
+  await expect(page.locator(".v-loader__iris-flash")).toBeAttached();
 });
 
 test("loader: hides via clip-path collapse, not display:none, and stops blocking clicks", async ({ page }) => {

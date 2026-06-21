@@ -31,10 +31,13 @@ pub fn Loader(hidden: bool) -> Element {
 
     rsx! {
         div { class: "{class}",
-            // Camera-iris aperture: concentric rings pulse behind the mark
-            // while it pulls into focus, instead of a flat opacity fade.
+            // Camera-iris aperture: three blade rings step down around the
+            // mark like a lens stopping down, then a flash marks focus.
             div { class: "v-loader__iris", "aria-hidden": "true",
-                div { class: "v-loader__iris-ring" }
+                div { class: "v-loader__iris-ring v-loader__iris-ring--1" }
+                div { class: "v-loader__iris-ring v-loader__iris-ring--2" }
+                div { class: "v-loader__iris-ring v-loader__iris-ring--3" }
+                div { class: "v-loader__iris-flash" }
             }
             div { class: "v-loader__brand",
                 img { class: "v-loader__logo",
@@ -113,7 +116,10 @@ mod tests {
     fn visible_loader_renders_camera_iris_curtain() {
         let html = render(WrapVisible);
         assert!(html.contains("v-loader__iris"));
-        assert!(html.contains("v-loader__iris-ring"));
+        assert!(html.contains("v-loader__iris-ring--1"));
+        assert!(html.contains("v-loader__iris-ring--2"));
+        assert!(html.contains("v-loader__iris-ring--3"));
+        assert!(html.contains("v-loader__iris-flash"));
     }
 
     #[test]

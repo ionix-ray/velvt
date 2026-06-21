@@ -203,35 +203,43 @@ ul { list-style: none; }
   justify-content: center;
 }
 
-/* Aperture rings pulsing behind the mark — the mark reads as focusing
-   through a lens, instead of sitting on a flat fade-in. */
+/* Camera-iris aperture: three blade rings step down around the mark like a
+   lens stopping down, then a single flash marks the moment focus lands. */
 .v-loader__iris {
   position: absolute;
   inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   pointer-events: none;
 }
 .v-loader__iris-ring {
-  position: relative;
-  width: 200px;
-  height: 200px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  border-radius: 50%;
+  border: 1.5px solid var(--accent);
+  animation: v-iris-blade 2.4s var(--ease-out) infinite;
 }
-.v-loader__iris-ring::before,
-.v-loader__iris-ring::after {
-  content: "";
+.v-loader__iris-ring--1 { width: 200px; height: 200px; margin: -100px 0 0 -100px; }
+.v-loader__iris-ring--2 { width: 150px; height: 150px; margin: -75px 0 0 -75px; animation-delay: 0.25s; }
+.v-loader__iris-ring--3 { width: 100px; height: 100px; margin: -50px 0 0 -50px; animation-delay: 0.5s; }
+@keyframes v-iris-blade {
+  0%   { transform: scale(1.3) rotate(0deg); opacity: 0; }
+  15%  { opacity: 0.85; }
+  55%  { transform: scale(1) rotate(35deg); opacity: 0.55; }
+  80%  { transform: scale(0.5) rotate(70deg); opacity: 0; }
+  100% { transform: scale(0.5) rotate(70deg); opacity: 0; }
+}
+.v-loader__iris-flash {
   position: absolute;
   inset: 0;
   border-radius: 50%;
-  border: 1.5px solid var(--accent);
-  animation: v-iris-pulse 2.2s var(--ease-out) infinite;
+  background: radial-gradient(circle, var(--off-white) 0%, transparent 70%);
+  opacity: 0;
+  animation: v-iris-flash 2.4s linear infinite;
 }
-.v-loader__iris-ring::after { animation-delay: 1.1s; }
-@keyframes v-iris-pulse {
-  0%   { transform: scale(0.35); opacity: 0; }
-  30%  { opacity: 0.8; }
-  100% { transform: scale(1.5); opacity: 0; }
+@keyframes v-iris-flash {
+  0%, 78% { opacity: 0; }
+  82%     { opacity: 0.85; }
+  88%, 100% { opacity: 0; }
 }
 .v-loader__logo {
   width: 280px;
