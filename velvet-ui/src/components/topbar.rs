@@ -1,5 +1,6 @@
 //! Top bar — fixed brand + menu toggle + theme toggle.
 
+use crate::theme::brand::brand_mark;
 use dioxus::prelude::*;
 
 #[component]
@@ -9,7 +10,7 @@ pub fn TopBar(menu_open: Signal<bool>, theme: Signal<String>) -> Element {
     rsx! {
         header { class: "v-topbar", id: "topbar",
             div { class: "v-topbar__brand",
-                img { src: asset!("/assets/images/velvet-sqare.png"), alt: "VELVT" }
+                img { src: brand_mark(), alt: "VELVT" }
             }
             div { class: "v-topbar__actions",
                 button {
@@ -34,7 +35,7 @@ pub fn TopBar(menu_open: Signal<bool>, theme: Signal<String>) -> Element {
     }
 }
 
-fn theme_icon_for(theme: &str) -> &'static str {
+pub(crate) fn theme_icon_for(theme: &str) -> &'static str {
     if theme == "dark" {
         "\u{2600}"
     } else {
@@ -42,7 +43,7 @@ fn theme_icon_for(theme: &str) -> &'static str {
     }
 }
 
-fn toggle_theme(current: &str) -> String {
+pub(crate) fn toggle_theme(current: &str) -> String {
     if current == "dark" {
         "light".to_string()
     } else {

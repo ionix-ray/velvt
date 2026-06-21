@@ -246,6 +246,7 @@ ul { list-style: none; }
   max-width: 80vw;
   height: auto;
   object-fit: contain;
+  border-radius: 6px;
   animation: v-loader-logo 2s var(--ease-out) forwards;
 }
 @keyframes v-loader-logo {
@@ -2019,8 +2020,12 @@ ul { list-style: none; }
 .v-card-modern__image {
   /* Smaller image height so cards fit panel */
   height: 130px;
-  background-size: cover;
-  background-position: center;
+  background: linear-gradient(
+    135deg,
+    var(--crimson-deep) 0%,
+    var(--crimson) 55%,
+    var(--crimson-light) 100%
+  );
   position: relative;
   mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
   -webkit-mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
@@ -2283,5 +2288,187 @@ ul { list-style: none; }
   .v-contact-form { max-width: 100%; }
   .v-form-row input,
   .v-form-row textarea { font-size: 16px; /* prevent iOS zoom on focus */ }
+}
+
+/* --- Case study pages (standalone, vertical-flow — not part of the
+   Home horizontal-panel scroller, so no .v-panel/.v-section here) ------- */
+.v-case-page {
+  min-height: 100vh;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+.v-case-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--s3) var(--s4);
+  border-bottom: var(--border);
+}
+.v-case-topbar__brand {
+  display: flex;
+  align-items: center;
+}
+.v-case-topbar__brand img {
+  height: 2rem;
+  display: block;
+}
+.v-case-topbar__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+}
+.v-case-page__back {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  transition: color var(--d-fast) var(--ease);
+}
+.v-case-page__back:hover { color: var(--accent); }
+.v-case-hero {
+  padding: var(--s6) 0 var(--s4);
+}
+.v-case-hero__meta {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s3);
+  margin: var(--s2) 0;
+}
+.v-case-hero__metric {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+.v-case-hero__date {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+.v-case-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  padding: var(--s3) 0;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+.v-case-breadcrumb a { color: var(--text-secondary); }
+.v-case-breadcrumb a:hover { color: var(--accent); }
+.v-case-breadcrumb__sep { color: var(--text-muted); }
+.v-case-breadcrumb__current { color: var(--text-primary); font-weight: 600; }
+
+/* Two-column layout: left sticky sidebar + right main content, matching
+   the reference app's blog structure (collapses to a single stacked
+   column under 1024px, the same breakpoint the reference uses). */
+.v-case-layout {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: var(--s5);
+  padding: var(--s4) 0 var(--s7);
+}
+.v-case-layout__sidebar {
+  flex-shrink: 0;
+  width: 16rem;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+  position: sticky;
+  top: var(--s4);
+}
+.v-case-layout__main {
+  flex: 1;
+  min-width: 0;
+}
+.v-case-sidebar-card {
+  background: var(--bg-card);
+  border: var(--border);
+  border-radius: 0.75rem;
+  padding: var(--s3);
+}
+.v-case-sidebar-card__label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin-bottom: var(--s1);
+}
+.v-case-sidebar-card__value {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+.v-case-tag-filter {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+}
+.v-case-tag-filter__item {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  padding: var(--s1) 0;
+  transition: color var(--d-fast) var(--ease);
+}
+.v-case-tag-filter__item:hover { color: var(--accent); }
+.v-case-tag-filter__item.active {
+  color: var(--accent);
+  font-weight: 600;
+}
+.v-case-results-count {
+  color: var(--text-secondary);
+  margin-bottom: var(--s3);
+  font-size: 0.9rem;
+}
+.v-case-article {
+  background: var(--bg-card);
+  border: var(--border);
+  border-radius: 0.75rem;
+  padding: var(--s5);
+}
+@media (max-width: 1024px) {
+  .v-case-layout {
+    flex-direction: column;
+  }
+  .v-case-layout__sidebar {
+    width: 100%;
+    position: static;
+  }
+}
+/* The footer panel is designed for Home's full-viewport horizontal-scroll
+   panels (100vw/100vh, flex gutter for the spindle nav); on the standalone
+   vertical-flow case-study pages it needs to behave like a normal block
+   section instead. */
+.v-case-page .v-panel--footer {
+  width: 100%;
+  height: auto;
+  min-width: 0;
+  max-width: 100%;
+  padding-left: 0;
+  position: static;
+}
+.v-prose { max-width: 68ch; margin: 0 auto; line-height: 1.7; }
+.v-prose h2 { font-family: var(--font-display); margin-top: var(--s5); margin-bottom: var(--s2); }
+.v-prose h3 { font-family: var(--font-display); margin-top: var(--s4); margin-bottom: var(--s2); }
+.v-prose p { margin-bottom: var(--s3); color: var(--text-secondary); }
+.v-prose ul, .v-prose ol { margin: 0 0 var(--s3) var(--s4); }
+.v-prose li { margin-bottom: var(--s1); color: var(--text-secondary); }
+.v-prose blockquote {
+  border-left: 3px solid var(--accent);
+  padding-left: var(--s3);
+  margin: var(--s3) 0;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+.v-prose table { width: 100%; border-collapse: collapse; margin: var(--s3) 0; }
+.v-prose th, .v-prose td {
+  border: var(--border);
+  padding: var(--s2);
+  text-align: left;
+}
+.v-prose strong { color: var(--text-primary); }
+.v-case-page--missing .v-container {
+  padding-top: var(--s6);
+  text-align: center;
 }
 

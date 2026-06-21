@@ -171,13 +171,15 @@ pub struct CaseItem {
     #[serde(default)]
     pub tags: Vec<String>,
     #[serde(default)]
-    pub bg_image: String,
-    #[serde(default)]
     pub logo_image: String,
     #[serde(default)]
     pub button_link: String,
     #[serde(default)]
     pub footer_label: String,
+    /// Slug of a markdown file under `docs/cse_studies/` — when set, "View
+    /// Case Study" links to `/cases/{slug}` instead of `button_link`.
+    #[serde(default)]
+    pub slug: String,
 }
 
 #[derive(Deserialize, Debug, Clone, Default, PartialEq)]
@@ -323,19 +325,22 @@ fn extract_toml_from_markdown(md: &str) -> String {
     out
 }
 
+/// Parse extracted TOML into a [`Site`], falling back to [`Site::default`]
+/// (with a logged error) if the content is malformed.
+fn parse_or_default(toml_src: &str) -> Site {
+    match toml::from_str::<Site>(toml_src) {
+        Ok(s) => s,
+        Err(e) => {
+            tracing::error!(error = %e, "site.md parse failed; falling back to default");
+            Site::default()
+        }
+    }
+}
+
 impl Site {
     #[must_use]
     pub fn load() -> &'static Self {
-        SITE.get_or_init(|| {
-            let toml_src = extract_toml_from_markdown(RAW);
-            match toml::from_str::<Self>(&toml_src) {
-                Ok(s) => s,
-                Err(e) => {
-                    tracing::error!(error = %e, "site.md parse failed; falling back to default");
-                    Self::default()
-                }
-            }
-        })
+        SITE.get_or_init(|| parse_or_default(&extract_toml_from_markdown(RAW)))
     }
 }
 
@@ -404,6 +409,12 @@ mod tests {
             assert!(!item.label.is_empty(), "nav item label is empty");
             assert!(!item.href.is_empty(), "nav item href is empty");
         }
+    }
+
+    #[test]
+    fn parse_or_default_falls_back_on_malformed_toml() {
+        let site = parse_or_default("this is not valid toml {{{");
+        assert_eq!(site, Site::default());
     }
 
     #[test]

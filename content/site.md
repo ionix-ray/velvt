@@ -204,30 +204,30 @@ client = "TechNova"
 metric = "+240%"
 desc   = "SaaS platform achieved 3x lead generation through our full-funnel experiential strategy."
 tags   = ["B2B", "Experiential", "Lead Gen"]
-bg_image = "https://images.unsplash.com/photo-1550745165-9bc0b252726f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
 logo_image = "/assets/images/logo.jpg"
 button_link = "#"
 footer_label = "Developed by 🍐 Community"
+slug = "technova-full-funnel-growth"
 
 [[cases.items]]
 client = "Luxe Beauty"
 metric = "+185%"
 desc   = "Premium beauty brand broke sales records with our celebrity-driven launch activation."
 tags   = ["Beauty", "Celebrity", "Launch"]
-bg_image = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
 logo_image = "/assets/images/logo.jpg"
 button_link = "#"
 footer_label = "Developed by Velvt"
+slug = "luxe-beauty-celebrity-launch"
 
 [[cases.items]]
 client = "GreenFuture"
 metric = "+312%"
 desc   = "Eco-tech startup dominated their market with our immersive brand storytelling campaign."
 tags   = ["Tech", "Sustainability", "Immersive"]
-bg_image = "https://images.unsplash.com/photo-1518770660439-4636190af475?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
 logo_image = "/assets/images/logo.jpg"
 button_link = "#"
 footer_label = "Developed by 🍐 Community"
+slug = "greenfuture-immersive-storytelling"
 ```
 
 ## Studio

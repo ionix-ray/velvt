@@ -25,6 +25,61 @@ test("home: CTA links to contact email", async ({ page }) => {
   await expect(cta).toHaveAttribute("href", /mailto:|#contact/);
 });
 
+test("topbar: theme toggle flips html[data-theme]", async ({ page }) => {
+  await page.goto("/");
+  const html = page.locator("html");
+  await expect(html).toHaveAttribute("data-theme", "dark");
+
+  await page.locator(".v-theme-toggle").click();
+  await expect(html).toHaveAttribute("data-theme", "light");
+
+  await page.locator(".v-theme-toggle").click();
+  await expect(html).toHaveAttribute("data-theme", "dark");
+});
+
+test("topbar: menu button opens and closes the stacked nav", async ({ page }) => {
+  await page.goto("/");
+  const stackNav = page.locator(".v-stack-nav");
+  const menuBtn = page.locator(".v-topbar__menu-btn");
+
+  await expect(stackNav).not.toHaveClass(/open/);
+  await menuBtn.click();
+  await expect(stackNav).toHaveClass(/open/);
+  await expect(menuBtn).toHaveClass(/active/);
+
+  await menuBtn.click();
+  await expect(stackNav).not.toHaveClass(/open/);
+});
+
+test("cta: filling and submitting the inquiry form shows the thank-you view", async ({ page }) => {
+  await page.goto("/");
+  const form = page.locator(".v-contact-form");
+  await form.scrollIntoViewIfNeeded();
+
+  await form.locator('input[type="text"]').fill("Sam Parhi");
+  await form.locator('input[type="email"]').fill("sam@example.com");
+  await form.locator("textarea").fill("Tell me more about your services.");
+  await form.locator('button[type="submit"]').click();
+
+  await expect(page.locator(".v-cta__inner")).toContainText(/Thank You/i);
+});
+
+test("cta: submitting with an invalid email shows a validation error", async ({ page }) => {
+  await page.goto("/");
+  const form = page.locator(".v-contact-form");
+  await form.scrollIntoViewIfNeeded();
+
+  await form.locator('input[type="text"]').fill("Sam Parhi");
+  // Passes the browser's native type="email" constraint (just needs an "@")
+  // but fails our own dot-in-domain check, so the app's onsubmit handler
+  // (not native HTML5 validation) is what produces this message.
+  await form.locator('input[type="email"]').fill("sam@examplecom");
+  await form.locator("textarea").fill("Hello there");
+  await form.locator('button[type="submit"]').click();
+
+  await expect(page.locator(".v-form-error")).toContainText(/valid email/i);
+});
+
 test("home: hero LCP under 2.5s", async ({ page }) => {
   const t0 = Date.now();
   await page.goto("/", { waitUntil: "load" });

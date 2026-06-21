@@ -9,9 +9,14 @@
 
 ARG RUST_VERSION=1.88.0
 ARG DIOXUS_CLI_VERSION=0.7.6
+# Digest-pinned base images: a mutated/republished tag can't silently swap
+# what gets built or shipped (supply-chain tag-mutation defense).
+ARG RUST_BASE_DIGEST=sha256:9a7159329166b45f453351a077367f501aa3e98378f7e327530e7966a139d05f
+ARG DISTROLESS_DIGEST=sha256:b0ae8e989418b458e0f25489bc3be523718938a2b70864cc0f6a00af1ddbd985
 
 # ── Stage 1: Build toolchain ─────────────────────────────────────────────────
-FROM docker.io/library/rust:${RUST_VERSION}-slim-trixie AS builder
+# Digest above resolved from rust:${RUST_VERSION}-slim-trixie at pin time.
+FROM docker.io/library/rust@${RUST_BASE_DIGEST} AS builder
 
 ARG DIOXUS_CLI_VERSION
 ARG TARGETARCH
@@ -85,7 +90,8 @@ RUN --mount=type=cache,id=velvet-cargo-registry,target=/usr/local/cargo/registry
  && cp /app/target/release/velvet-server /out/velvet-server
 
 # ── Stage 3: Runtime (distroless, non-root) ─────────────────────────────────
-FROM gcr.io/distroless/cc-debian12:nonroot
+# Digest above resolved from gcr.io/distroless/cc-debian12:nonroot at pin time.
+FROM gcr.io/distroless/cc-debian12@${DISTROLESS_DIGEST}
 
 LABEL org.opencontainers.image.title="Vaelvet" \
       org.opencontainers.image.description="Cinematic PR house — Dioxus WASM + Rust server." \

@@ -152,6 +152,7 @@ fn encode_mailto(s: &str) -> String {
         .map(|c| match c {
             ' ' => "%20".to_string(),
             '\n' => "%0A".to_string(),
+            '\r' => "%0D".to_string(),
             '&' => "%26".to_string(),
             '?' => "%3F".to_string(),
             '=' => "%3D".to_string(),
@@ -218,6 +219,7 @@ mod tests {
         assert_eq!(encode_mailto("a?b"), "a%3Fb");
         assert_eq!(encode_mailto("a=b"), "a%3Db");
         assert_eq!(encode_mailto("a%b"), "a%25b");
+        assert_eq!(encode_mailto("a\rb"), "a%0Db");
     }
 
     #[test]

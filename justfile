@@ -36,9 +36,36 @@ lint:
 fmt:
     cargo fmt --all
 
+# Logic coverage — excludes irreducible bootstrap/glue (process entrypoints,
+# wasm32 web_sys/DOM bindings) that native `cargo test` cannot execute and
+# that Playwright e2e already exercises against the running app.
+# Requires: cargo install cargo-llvm-cov (not a crate dep — a dev CLI tool,
+# same category as `dx`/`podman`, intentionally not pinned in Cargo.toml).
+coverage:
+    cargo llvm-cov --workspace --all-targets \
+        --ignore-filename-regex '(velvet-ui/src/main\.rs|velvet-ui/src/scroll\.rs|velvet-ui/src/routes/home\.rs|server/src/main\.rs)' \
+        --fail-under-lines 90 \
+        --summary-only
+
+# Full HTML coverage report (includes excluded files, for inspection).
+coverage-html:
+    cargo llvm-cov --workspace --all-targets --html --output-dir target/llvm-cov-html
+    @echo "→ target/llvm-cov-html/html/index.html"
+
 # Security audit.
 audit:
     cargo audit --deny warnings
+
+# Secret scan (history + working tree).
+gitleaks:
+    gitleaks detect --source . --no-banner
+
+# SBOM (CycloneDX) for both crates.
+# Requires: cargo install cargo-cyclonedx.
+sbom:
+    cargo cyclonedx --all --format json
+    @echo "→ velvet-ui/vaelvet-ui.cdx.json"
+    @echo "→ server/velvet-server.cdx.json"
 
 # Playwright e2e (Node only inside test-suite/).
 e2e:
@@ -86,7 +113,15 @@ container-up:
 
     echo "→ Starting container on port $PORT..."
     podman stop velvet 2>/dev/null || true
-    podman run -d --rm -p ${PORT}:8080 --name velvet localhost/velvet:latest
+    podman run -d --rm -p ${PORT}:8080 --name velvet \
+        --read-only \
+        --tmpfs /tmp:rw,noexec,nosuid,size=16m \
+        --cap-drop=ALL \
+        --security-opt=no-new-privileges \
+        --pids-limit=128 \
+        --memory=128m \
+        --cpus=0.5 \
+        localhost/velvet:latest
 
     sleep 1
 
@@ -109,7 +144,15 @@ container-up:
 
 # Run existing container image on :8080.
 container-run:
-    podman run --rm -p 8080:8080 --name velvet localhost/velvet:latest
+    podman run --rm -p 8080:8080 --name velvet \
+        --read-only \
+        --tmpfs /tmp:rw,noexec,nosuid,size=16m \
+        --cap-drop=ALL \
+        --security-opt=no-new-privileges \
+        --pids-limit=128 \
+        --memory=128m \
+        --cpus=0.5 \
+        localhost/velvet:latest
 
 # Stop running container.
 container-stop:

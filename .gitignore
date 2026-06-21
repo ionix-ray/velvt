@@ -55,6 +55,9 @@ lcov.info
 *.profraw
 *.profdata
 
+# SBOM (regenerate via `just sbom`, attach to release artifacts instead of committing)
+*.cdx.json
+
 # Editors
 .vscode/*
 !.vscode/extensions.json

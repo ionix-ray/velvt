@@ -1,5 +1,6 @@
 //! Loading screen — retro progress bar with cycling creative text.
 
+use crate::theme::brand::brand_mark;
 use dioxus::prelude::*;
 use gloo_timers::future::TimeoutFuture;
 
@@ -41,7 +42,7 @@ pub fn Loader(hidden: bool) -> Element {
             }
             div { class: "v-loader__brand",
                 img { class: "v-loader__logo",
-                      src: asset!("/assets/images/velvet-sqare.png"),
+                      src: brand_mark(),
                       alt: "VELVT" }
             }
             div { class: "v-loader__bar",

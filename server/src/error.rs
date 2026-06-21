@@ -63,9 +63,19 @@ mod tests {
 
     #[test]
     fn error_display_messages() {
+        let io_err = || std::io::Error::other("boom");
+
         assert_eq!(
             format!("{}", ServerError::AddrParse("bad".to_string())),
             "address parse error: bad"
+        );
+        assert_eq!(
+            format!("{}", ServerError::Bind(io_err())),
+            "bind error: boom"
+        );
+        assert_eq!(
+            format!("{}", ServerError::Serve(io_err())),
+            "serve error: boom"
         );
         assert_eq!(
             format!("{}", ServerError::AssetNotFound("/x".to_string())),
@@ -86,7 +96,7 @@ mod tests {
     }
 
     #[test]
-    fn into_response_maps_status_codes() -> Result<(), Box<dyn std::error::Error>> {
+    fn into_response_maps_status_codes() {
         let resp = ServerError::AssetNotFound("/x".to_string()).into_response();
         assert_eq!(resp.status(), StatusCode::NOT_FOUND);
 
@@ -95,10 +105,10 @@ mod tests {
 
         let resp = ServerError::AssetRead("/x".to_string()).into_response();
         assert_eq!(resp.status(), StatusCode::INTERNAL_SERVER_ERROR);
-        let Some(content_type) = resp.headers().get("content-type").cloned() else {
-            return Err("missing content-type header".into());
-        };
-        assert_eq!(content_type, "text/plain");
-        Ok(())
+        assert!(
+            resp.headers()
+                .get("content-type")
+                .is_some_and(|v| v == "text/plain")
+        );
     }
 }

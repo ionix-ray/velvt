@@ -151,6 +151,42 @@ async fn path_traversal_attempt_falls_back_to_index_not_escaped_file() -> TestRe
 }
 
 #[tokio::test]
+async fn path_traversal_with_literal_dotdot_cannot_escape_static_root() -> TestResult {
+    let root = temp_static_root("dotdot-escape")?;
+    let sentinel_path = root
+        .parent()
+        .ok_or("temp root has no parent")?
+        .join(format!("velvet-sentinel-{}.txt", std::process::id()));
+    std::fs::write(&sentinel_path, "TOP-SECRET-OUTSIDE-ROOT")?;
+    let sentinel_name = sentinel_path
+        .file_name()
+        .ok_or("sentinel has no file name")?
+        .to_string_lossy()
+        .into_owned();
+
+    let app = app_with_root(&root);
+    let response = app
+        .oneshot(
+            Request::builder()
+                .uri(format!("/../{sentinel_name}"))
+                .body(Body::empty())?,
+        )
+        .await?;
+    let status = response.status();
+    let body = body_string(response).await?;
+
+    let _ = std::fs::remove_dir_all(&root);
+    let _ = std::fs::remove_file(&sentinel_path);
+
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+    assert!(
+        !body.contains("TOP-SECRET-OUTSIDE-ROOT"),
+        "path traversal escaped static_root: {body}"
+    );
+    Ok(())
+}
+
+#[tokio::test]
 async fn security_headers_present_on_every_response() -> TestResult {
     let root = temp_static_root("headers")?;
     let app = app_with_root(&root);

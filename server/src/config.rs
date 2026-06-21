@@ -76,4 +76,14 @@ mod tests {
         assert_eq!(cfg.addr, "127.0.0.1:3000");
         assert_eq!(cfg.static_root, "/srv");
     }
+
+    #[test]
+    fn cli_override_static_root_updates_index_path() {
+        let cfg = Config::default().with_cli(CliArgs {
+            addr: None,
+            static_root: Some("/custom".to_string()),
+        });
+        assert_eq!(cfg.static_root, "/custom");
+        assert_eq!(cfg.index_path, "/custom/index.html");
+    }
 }

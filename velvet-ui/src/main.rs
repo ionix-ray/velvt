@@ -5,8 +5,9 @@
 use dioxus::prelude::*;
 use dioxus_router::Routable;
 use dioxus_router::components::Router;
-use vaelvet_ui::routes::Home;
+use vaelvet_ui::routes::{CaseStudiesByTag, CaseStudiesIndex, CaseStudy, Home};
 use vaelvet_ui::scroll;
+use vaelvet_ui::theme::brand::brand_mark;
 
 fn main() {
     console_error_panic_hook::set_once();
@@ -28,7 +29,7 @@ fn App() -> Element {
         document::Link { rel: "apple-touch-icon",
                           href: asset!("/assets/images/favicon.png") }
         document::Link { rel: "preload", r#as: "image", fetchpriority: "high",
-                  href: asset!("/assets/images/velvet-sqare.png") }
+                  href: brand_mark() }
         Router::<Route> {}
     }
 }
@@ -38,4 +39,10 @@ fn App() -> Element {
 pub enum Route {
     #[route("/")]
     Home {},
+    #[route("/cases")]
+    CaseStudiesIndex {},
+    #[route("/cases/tag/:tag")]
+    CaseStudiesByTag { tag: String },
+    #[route("/cases/:slug")]
+    CaseStudy { slug: String },
 }

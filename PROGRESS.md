@@ -129,3 +129,108 @@
 - Container image size optimization (currently ~40MB)
 - Lighthouse audit target (Perf ≥90, A11y ≥95)
 - Full responsive CSS overhaul
+
+## 2026-06-21
+
+### Completed Today
+
+1. **Case study pages (S3-01)**, branch `feature/case-study-pages`. Replicated
+   shalgo's `/blog` content pipeline — TOML frontmatter + `build.rs`
+   directory-scan codegen (`include_str!` per file, slug-keyed loader) +
+   pulldown-cmark GFM rendering — but on Vaelvet's own theme, not shalgo's
+   Tailwind card design. New routes: `/cases` (index), `/cases/tag/:tag`
+   (filter), `/cases/:slug` (detail). Content source of truth:
+   `docs/cse_studies/*.md`.
+2. **Backward-compatible wiring** — `CaseItem` gained `slug: String`
+   (`#[serde(default)]`). `cases_panel.rs`'s "View Case Study" button branches
+   on `case.slug.is_empty()`: empty keeps the old external `button_link`/
+   `target=_blank` link, non-empty links to `/cases/{slug}`. The 3 existing
+   `content/site.md` case items (TechNova, Luxe Beauty, GreenFuture) got
+   matching `slug =` lines plus 3 new markdown files under
+   `docs/cse_studies/` mirroring their client/metric/tags.
+3. **TDD**: every new module written test-first — `case_studies.rs` (TOML
+   frontmatter parsing, slug lookup, date-sort), `markdown_renderer.rs`
+   (pulldown-cmark GFM conversion + component wrapper), `routes/case_study.rs`
+   (known/unknown slug), `routes/case_studies_index.rs` (index/tag-filter/
+   empty-state), plus new SSR tests on `cases_panel.rs` for both link
+   branches. All via the existing `VirtualDom` + `dioxus_ssr::render` SSR-test
+   pattern (no `Router` context needed since internal nav uses plain `<a>`,
+   relying on the server's existing SPA fallback).
+4. **Gates, all green**: `just lint` (fmt + clippy `-D warnings`, including
+   the new `build.rs` target — required dropping `.unwrap()/.expect()` from
+   it in favour of `fn main() -> Result<...>` with `?`), `just test` (96
+   tests, 0 failed), `just coverage` (94.97% lines workspace-wide, gate ≥90%;
+   every new file at 100%), `just audit` (0 advisories), `just build`
+   (release WASM: 328 KB gz, budget 1.5 MB; `theme.css` 11.6 KB gz, budget
+   40 KB). Smoke-tested the built server with curl against all 4 new/old
+   paths — all 200, SPA fallback intact, no server-side breakage.
+5. **Not yet done**: no in-browser click-through (no browser-automation tool
+   available this session) and `just e2e` (Playwright) was not run for this
+   feature — existing specs don't touch "View Case Study" so no known
+   regression, but a manual check is recommended before merge. Nothing
+   committed; work sits uncommitted on `feature/case-study-pages`.
+
+### Bug-fix round — same day, branch `feature/case-study-pages`
+
+User clicked through in a real browser and found exactly the class of bug
+the note above flagged as untested: SSR string-assertions don't catch real
+rendering/CSS/theme-attribute state.
+
+1. **Bug 1 — brand was text, not the logo image.** Header markup on the
+   case-study pages was a literal `"VAELVET"` string, not `brand_mark()`.
+2. **Bug 2 — theme broken.** `data-theme` is set by `Home`'s own
+   `Signal`/`use_effect`; case-study pages mount a separate component tree
+   (full page nav, fresh WASM boot) that never runs `Home`'s effect, so
+   `theme.css`'s `:root` (light) defaults applied with no way to switch.
+3. **Bug 3 — layout didn't match the reference app.** Pages were single-column;
+   the reference (`shalgo/src/blog.rs`) uses a left sticky-sidebar + right
+   main-content two-column structure on both the listing and detail pages.
+
+Root-caused all three, then delegated the fix to `code-writer` (Sonnet) with
+a fully-specified prompt referencing the exact reference file/line ranges,
+to fan work out to the model pinned for implementation rather than burning
+orchestrator tokens on the edits directly. Fix:
+- New `components/case_header.rs` — shared header owning a real `brand_mark()`
+  `<img>` and its own theme signal/effect/toggle (same pattern as `home.rs`),
+  reusing `topbar.rs`'s `theme_icon_for`/`toggle_theme` (promoted to
+  `pub(crate)`) instead of duplicating the logic. Fixes bugs 1+2 for both
+  case-study routes in one place.
+- `routes/case_study.rs` and `routes/case_studies_index.rs` rebuilt around
+  `.v-case-layout` / `.v-case-layout__sidebar` / `.v-case-layout__main`:
+  detail page sidebar carries Published/Topics/Read-time cards (new
+  `read_time_minutes` helper, 200wpm/ceil/min-1-minute), index page sidebar
+  carries the tag filter; both match the reference's structural shape while
+  using only Vaelvet's own CSS tokens (no Tailwind classes carried over).
+- `theme.css` gained the `.v-case-*` layout/sidebar/breadcrumb/article rules
+  plus a `max-width: 1024px` collapse breakpoint (sidebar goes static/full
+  width, column stacks) — same breakpoint the reference app uses, fixes the
+  responsiveness complaint.
+- Playwright spec extended from 4 to 8 tests, adding real-browser checks
+  for exactly what SSR tests can't catch: brand `<img>` visible with alt
+  text, `.v-theme-toggle` click flips `html[data-theme]` dark↔light, sidebar
+  contains Published/Topics with tag links, and a 375px-viewport bounding-box
+  check that the main content starts below (not beside) the sidebar.
+
+**Independently re-verified** (not just the agent's self-report): killed
+stray `dx serve` processes from earlier in the session to rule out testing
+against a stale build, then re-ran every gate myself —
+`just lint` clean, `just test` 126/126, `just coverage` 91.64% lines
+(`case_header.rs` 69.77%, `case_studies_index.rs` 98.67%, `case_study.rs`
+99.23%), `just audit` 0 advisories, `just build` + manual gzip check (WASM
+441,037 B, `theme.css` 12,396 B, both within budget) — all numbers matched
+the agent's report exactly. Additionally ran the Playwright suite myself
+against a freshly booted `dx serve` (`--project=chromium`): 8/8 passed (one
+run had a single `page.goto("/")` timeout from a dev-server cold-start
+hot-reload compile, confirmed non-reproducing on isolated re-run — not a
+regression). Dispatched a `security-reviewer` (Sonnet) pass over the full
+markdown-rendering trust boundary (`dangerous_inner_html` fed only by
+compile-time `include_str!` content, slug only ever used as a fixed `match`
+key, never a path or interpolated string) — **verdict pass-with-notes**, no
+blockers; one stylistic note that a marker type (e.g. `TrustedMarkdown`)
+would make the trust boundary self-enforcing instead of convention-only if
+this pattern is reused elsewhere later (not required for this PR, only two
+call sites today and both first-party).
+
+All three user-reported bugs (logo, theme, layout) confirmed fixed and
+gated. Still uncommitted on `feature/case-study-pages`, awaiting user
+review/merge decision.

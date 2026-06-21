@@ -38,3 +38,8 @@ Picked up by `autonomous-iterate`. One row = one PR. AC must be Given/When/Then 
 | S2-03 | Manifesto block: split-letter typography animation | Letters settle on scroll-in, deterministic, no JS RNG | M |
 | S2-04 | Contact form (no-JS-first, progressive enhancement) | Submits to mailto: fallback; client validation enhances | M |
 | S2-05 | OG + Twitter card meta + JSON-LD `Organization` | Meta passes Twitter card validator | S |
+
+## Sprint S3 — Case study pages
+| ID | Task | AC sketch | Effort | Status |
+|----|------|-----------|--------|--------|
+| S3-01 | Markdown-backed case study pages (`/cases`, `/cases/tag/:tag`, `/cases/:slug`) replicating shalgo's `/blog` content-loading logic (TOML frontmatter + `build.rs` codegen + pulldown-cmark) on Vaelvet's own theme | Clicking "View Case Study" on a tagged `CaseItem` navigates to `/cases/{slug}` and renders the matching markdown from `docs/cse_studies/`; untagged items keep the legacy external-link behaviour; tag chips link to `/cases/tag/:tag` | M | DONE |

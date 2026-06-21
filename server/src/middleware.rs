@@ -10,6 +10,12 @@ use axum::{
     response::Response,
 };
 
+/// Site uses none of these browser features — deny all of them outright.
+const PERMISSIONS_POLICY_VALUE: &str = concat!(
+    "accelerometer=(), camera=(), geolocation=(), gyroscope=(), ",
+    "magnetometer=(), microphone=(), payment=(), usb=()"
+);
+
 /// Security headers applied to every outgoing response.
 const SECURITY_HEADERS: &[(HeaderName, &str)] = &[
     (X_CONTENT_TYPE_OPTIONS, "nosniff"),
@@ -45,6 +51,11 @@ pub async fn security_headers(request: Request, next: Next) -> Response {
     headers.insert(
         CONTENT_SECURITY_POLICY,
         axum::http::HeaderValue::from_static(CSP_VALUE),
+    );
+
+    headers.insert(
+        HeaderName::from_static("permissions-policy"),
+        axum::http::HeaderValue::from_static(PERMISSIONS_POLICY_VALUE),
     );
 
     if let Some(content_type) = headers.get("content-type") {
@@ -114,18 +125,106 @@ mod tests {
             .await?;
 
         let headers = response.headers();
-        let Some(pragma) = headers.get("pragma").cloned() else {
-            return Err("missing pragma header".into());
-        };
-        let Some(expires) = headers.get("expires").cloned() else {
-            return Err("missing expires header".into());
-        };
-        let Some(nosniff) = headers.get("x-content-type-options").cloned() else {
-            return Err("missing x-content-type-options header".into());
-        };
-        assert_eq!(pragma, "no-cache");
-        assert_eq!(expires, "0");
-        assert_eq!(nosniff, "nosniff");
+        assert!(headers.get("pragma").is_some_and(|v| v == "no-cache"));
+        assert!(headers.get("expires").is_some_and(|v| v == "0"));
+        assert!(
+            headers
+                .get("x-content-type-options")
+                .is_some_and(|v| v == "nosniff")
+        );
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn every_response_denies_unused_browser_permissions() -> TestResult {
+        let app = router_with_content_type(None);
+        let response = app
+            .oneshot(Request::builder().uri("/").body(Body::empty())?)
+            .await?;
+
+        let policy = response
+            .headers()
+            .get("permissions-policy")
+            .and_then(|v| v.to_str().ok())
+            .unwrap_or_default()
+            .to_string();
+
+        for feature in [
+            "accelerometer",
+            "camera",
+            "geolocation",
+            "gyroscope",
+            "magnetometer",
+            "microphone",
+            "payment",
+            "usb",
+        ] {
+            assert!(
+                policy.contains(&format!("{feature}=()")),
+                "permissions-policy missing {feature}=(): {policy}"
+            );
+        }
+        Ok(())
+    }
+
+    thread_local! {
+        // `tracing`'s per-callsite `Interest` cache is a *process-wide* cache,
+        // not per-thread. Swapping subscribers via `set_default` per test races
+        // other test threads doing the same, intermittently dropping events.
+        // A single global subscriber (installed once) sidesteps the race; each
+        // test reads only the events its own thread produced.
+        static CAPTURE_BUFFER: std::cell::RefCell<Vec<u8>> = const { std::cell::RefCell::new(Vec::new()) };
+    }
+
+    #[derive(Clone, Copy, Default)]
+    struct ThreadLocalWriter;
+
+    impl std::io::Write for ThreadLocalWriter {
+        fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
+            CAPTURE_BUFFER.with(|b| b.borrow_mut().write(buf))
+        }
+        fn flush(&mut self) -> std::io::Result<()> {
+            Ok(())
+        }
+    }
+
+    impl tracing_subscriber::fmt::MakeWriter<'_> for ThreadLocalWriter {
+        type Writer = Self;
+        fn make_writer(&self) -> Self::Writer {
+            *self
+        }
+    }
+
+    fn install_global_test_subscriber_once() {
+        static INIT: std::sync::Once = std::sync::Once::new();
+        INIT.call_once(|| {
+            let subscriber = tracing_subscriber::fmt()
+                .with_writer(ThreadLocalWriter)
+                .with_ansi(false)
+                .finish();
+            // Best-effort: a prior global default (set by another test binary
+            // sharing this process) is not something we need to fail over.
+            let _ = tracing::subscriber::set_global_default(subscriber);
+        });
+    }
+
+    #[tokio::test]
+    async fn log_request_emits_structured_event_with_fields() -> TestResult {
+        install_global_test_subscriber_once();
+        // Worker threads are reused across tests; start from a clean buffer.
+        CAPTURE_BUFFER.with(|b| b.borrow_mut().clear());
+
+        let app = router_with_content_type(Some("text/plain"));
+        let response = app
+            .oneshot(Request::builder().uri("/").body(Body::empty())?)
+            .await?;
+        assert_eq!(response.status(), axum::http::StatusCode::OK);
+
+        let log = CAPTURE_BUFFER.with(|b| String::from_utf8_lossy(&b.borrow()).into_owned());
+        assert!(log.contains("method=GET"), "log was: {log}");
+        assert!(log.contains("path=/"), "log was: {log}");
+        assert!(log.contains("status=200"), "log was: {log}");
+        assert!(log.contains("latency_ms="), "log was: {log}");
         Ok(())
     }
 

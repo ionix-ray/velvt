@@ -38,13 +38,14 @@ pub async fn serve_request(
     tracing::debug!(path = %path_str, "incoming request");
 
     let requested = state.static_root.join(path_str);
+    let requested_exists_as_file =
+        !path_str.is_empty() && requested.exists() && requested.is_file();
 
-    let is_valid = !path_str.is_empty()
-        && requested.starts_with(&state.static_root)
-        && requested.exists()
-        && requested.is_file();
+    if requested_exists_as_file && !is_within_root(&requested, &state.static_root) {
+        return Err(ServerError::InvalidPath);
+    }
 
-    if is_valid {
+    if requested_exists_as_file {
         let content = fs::read(&requested)
             .await
             .map_err(|e| ServerError::AssetRead(format!("{path_str}: {e}")))?;
@@ -70,6 +71,18 @@ pub async fn serve_request(
     set_header(&mut response, "content-type", "text/html; charset=utf-8");
     set_header(&mut response, "cache-control", "no-cache");
     Ok(response)
+}
+
+/// Lexical `starts_with` on an unresolved path is not a traversal guard —
+/// `..` components and symlinks reach real files the OS resolves normally.
+/// Canonicalize both sides and compare the resolved paths instead.
+fn is_within_root(candidate: &std::path::Path, root: &std::path::Path) -> bool {
+    let (Ok(canonical_candidate), Ok(canonical_root)) =
+        (candidate.canonicalize(), root.canonicalize())
+    else {
+        return false;
+    };
+    canonical_candidate.starts_with(canonical_root)
 }
 
 fn mime_type(path: &std::path::Path) -> &'static str {
@@ -98,6 +111,65 @@ fn is_immutable_asset(path: &str) -> bool {
 mod tests {
     use super::*;
     use std::path::Path;
+
+    type TestResult = Result<(), Box<dyn std::error::Error>>;
+
+    fn temp_dir(name: &str) -> std::io::Result<std::path::PathBuf> {
+        let dir = std::env::temp_dir().join(format!(
+            "velvet-handlers-test-{name}-{}",
+            std::process::id()
+        ));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir)?;
+        Ok(dir)
+    }
+
+    #[test]
+    fn is_within_root_accepts_file_directly_under_root() -> TestResult {
+        let root = temp_dir("within")?;
+        let file = root.join("index.html");
+        std::fs::write(&file, "ok")?;
+
+        assert!(is_within_root(&file, &root));
+
+        let _ = std::fs::remove_dir_all(&root);
+        Ok(())
+    }
+
+    #[test]
+    fn is_within_root_rejects_literal_dotdot_escape() -> TestResult {
+        let root = temp_dir("escape-root")?;
+        let outside = temp_dir("escape-outside")?.join("secret.txt");
+        std::fs::write(&outside, "secret")?;
+
+        let Some(outside_dir) = outside.parent() else {
+            return Err("outside file has no parent dir".into());
+        };
+        let Some(outside_dir_name) = outside_dir.file_name() else {
+            return Err("outside parent dir has no name".into());
+        };
+
+        // Lexically joins to `root/../escape-outside-<pid>/secret.txt`,
+        // which resolves to a real file outside `root` once canonicalized.
+        let escaping = root.join("..").join(outside_dir_name).join("secret.txt");
+
+        assert!(!is_within_root(&escaping, &root));
+
+        let _ = std::fs::remove_dir_all(&root);
+        let _ = std::fs::remove_dir_all(outside_dir);
+        Ok(())
+    }
+
+    #[test]
+    fn is_within_root_rejects_nonexistent_candidate() -> TestResult {
+        let root = temp_dir("missing-candidate")?;
+        let missing = root.join("does-not-exist.html");
+
+        assert!(!is_within_root(&missing, &root));
+
+        let _ = std::fs::remove_dir_all(&root);
+        Ok(())
+    }
 
     #[test]
     fn mime_type_covers_every_known_extension() {

@@ -54,4 +54,17 @@ mod tests {
             Err(crate::error::ServerError::AddrParse(_))
         ));
     }
+
+    #[tokio::test]
+    async fn serve_binds_and_starts_serving_on_an_ephemeral_port() {
+        let router = app(config::Config::default());
+        let handle = tokio::spawn(serve(router, "127.0.0.1:0"));
+
+        // Bind + axum::serve entry have happened by the time the task is
+        // running; abort before the (otherwise infinite) accept loop blocks.
+        tokio::time::sleep(std::time::Duration::from_millis(50)).await;
+        handle.abort();
+        let result = handle.await;
+        assert!(result.is_err_and(|e| e.is_cancelled()));
+    }
 }
