@@ -1,5 +1,6 @@
 //! Stacked right-side navigation panel.
 
+use crate::theme::brand::brand_mark;
 use crate::Site;
 use dioxus::prelude::*;
 
@@ -18,7 +19,7 @@ pub fn StackedNav(
     rsx! {
         nav { class: "{class}", aria_label: "Section navigation",
             div { class: "v-stack-nav__brand",
-                img { src: asset!("/assets/images/velvt-logo.png"), alt: "VELVT" }
+                img { src: brand_mark(), alt: "VELVT" }
             }
             for (i, item) in site.nav.iter().enumerate() {
                 button {

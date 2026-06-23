@@ -274,6 +274,44 @@ test("ui: glassmorphism cards and green tags render", async ({ page }) => {
   await expect(greenBtn).toBeAttached();
 });
 
+test("brand: topbar uses the standard in-bar logo layout", async ({ page }) => {
+  await page.goto("/");
+  const topbar = page.locator(".v-topbar");
+  const brand = topbar.locator(".v-topbar__brand");
+  const logo = brand.locator("img");
+
+  await expect(topbar).toBeVisible();
+  await expect(brand).toBeVisible();
+  await expect(logo).toBeVisible();
+  await expect(logo).toHaveAttribute("alt", "VELVT");
+
+  const topbarBox = await topbar.boundingBox();
+  const brandBox = await brand.boundingBox();
+  expect(topbarBox).not.toBeNull();
+  expect(brandBox).not.toBeNull();
+
+  if (topbarBox && brandBox) {
+    expect(brandBox.x).toBeGreaterThanOrEqual(topbarBox.x);
+    expect(brandBox.y).toBeGreaterThanOrEqual(topbarBox.y);
+    expect(brandBox.y + brandBox.height).toBeLessThanOrEqual(
+      topbarBox.y + topbarBox.height,
+    );
+  }
+});
+
+test("brand: topbar and stacked navigation share the same brand mark", async ({ page }) => {
+  await page.goto("/");
+  const topbarLogo = page.locator(".v-topbar__brand img");
+  const menuBtn = page.locator(".v-topbar__menu-btn");
+  await menuBtn.click();
+  const navLogo = page.locator(".v-stack-nav__brand img");
+
+  const topbarSrc = await topbarLogo.getAttribute("src");
+  const navSrc = await navLogo.getAttribute("src");
+  expect(topbarSrc).toBe(navSrc);
+  expect(topbarSrc).toContain("velvet-square");
+});
+
 test("brand: logo renders in stacked navigation", async ({ page }) => {
   await page.goto("/");
   const menuBtn = page.locator(".v-topbar__menu-btn");
@@ -311,6 +349,20 @@ test("footer: contains brand name and copyright", async ({ page }) => {
   expect(text).toMatch(/Velvt|velvt/i);
 });
 
+test("footer: renders the real brand logo in the standard footer block", async ({ page }) => {
+  await page.goto("/");
+  const panels = page.locator(".v-panels");
+  await panels.evaluate((el: HTMLElement) => {
+    el.scrollTo({ left: el.scrollWidth, behavior: "instant" });
+  });
+  await page.waitForTimeout(600);
+
+  const logo = page.locator(".v-footer-panel__logo");
+  await expect(logo).toBeVisible();
+  await expect(logo).toHaveAttribute("alt", "VELVT");
+  await expect(logo).toHaveAttribute("src", /velvet-square/);
+});
+
 // ── Social strip (all panels except last) ────────────────────────────────────
 
 test("social-strip: visible on hero panel", async ({ page }) => {
@@ -341,22 +393,22 @@ test("social-strip: hidden (aria-hidden) on footer panel", async ({ page }) => {
 
 // ── Brand badge (oversized square mark, pinned top-left) ────────────────────
 
-test("brand: topbar mark is an oversized square badge hung below the header line", async ({ page }) => {
+test("brand: topbar mark is inside the fixed header strip", async ({ page }) => {
   await page.goto("/");
   const badge = page.locator(".v-topbar__brand img");
+  const brand = page.locator(".v-topbar__brand");
   await expect(badge).toBeVisible();
 
-  const box = await badge.boundingBox();
-  const topbar = await page.locator(".v-topbar").boundingBox();
-  expect(box).not.toBeNull();
-  expect(topbar).not.toBeNull();
-  if (box && topbar) {
-    // Bigger than the old 36px inline pill, anchored near the left edge,
-    // and hung below the topbar's own bottom edge (not flush with it).
-    expect(box.width).toBeGreaterThanOrEqual(48);
-    expect(box.height).toBeGreaterThanOrEqual(48);
-    expect(box.x).toBeLessThan(40);
-    expect(box.y).toBeGreaterThanOrEqual(topbar.y + topbar.height);
+  const badgeBox = await badge.boundingBox();
+  const brandBox = await brand.boundingBox();
+  expect(badgeBox).not.toBeNull();
+  expect(brandBox).not.toBeNull();
+  if (badgeBox && brandBox) {
+    expect(badgeBox.x).toBeGreaterThanOrEqual(brandBox.x);
+    expect(badgeBox.y).toBeGreaterThanOrEqual(brandBox.y);
+    expect(badgeBox.y + badgeBox.height).toBeLessThanOrEqual(
+      brandBox.y + brandBox.height,
+    );
   }
 });
 
@@ -381,7 +433,7 @@ test("showcase: masonry cards stay within a sane height and show their text", as
   await page.waitForSelector(".v-panels");
   await page.waitForSelector(".v-loader", { state: "hidden" });
 
-  const items = page.locator("#showcase .v-masonry__item");
+  const items = page.locator("#showcase .v-showcase__item");
   const count = await items.count();
   expect(count).toBeGreaterThan(0);
 
@@ -394,7 +446,7 @@ test("showcase: masonry cards stay within a sane height and show their text", as
       // bug this regression-tests for stretched cards to ~700px+).
       expect(box.height).toBeLessThan(500);
     }
-    const text = (await item.locator(".v-masonry__content").textContent()) ?? "";
+    const text = (await item.locator(".v-showcase__item-content").textContent()) ?? "";
     expect(text.trim().length).toBeGreaterThan(0);
   }
 });
@@ -416,6 +468,44 @@ test("showcase: panel content overflowing the viewport is reachable via vertical
   // If content fits, scrollTop legitimately stays 0 — the assertion is just
   // that scrolling never throws and the value is non-negative/finite.
   expect(scrolled).toBeGreaterThanOrEqual(0);
+});
+
+test("showcase: responsive grid collapses from three columns to one on narrow viewports", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto("/#showcase");
+  await page.waitForSelector(".v-loader", { state: "hidden" });
+
+  const desktopColumns = await page.locator("#showcase .v-showcase__grid").evaluate(
+    (el) => getComputedStyle(el).gridTemplateColumns.split(" ").length,
+  );
+  expect(desktopColumns).toBeGreaterThanOrEqual(3);
+
+  await page.setViewportSize({ width: 640, height: 900 });
+  await page.goto("/#showcase");
+  await page.waitForSelector(".v-loader", { state: "hidden" });
+
+  const mobileColumns = await page.locator("#showcase .v-showcase__grid").evaluate(
+    (el) => getComputedStyle(el).gridTemplateColumns.split(" ").length,
+  );
+  expect(mobileColumns).toBe(1);
+});
+
+test("showcase: overflow scrollbars are enabled on both axes", async ({ page }) => {
+  await page.setViewportSize({ width: 900, height: 520 });
+  await page.goto("/#showcase");
+  await page.waitForSelector(".v-loader", { state: "hidden" });
+
+  const panelOverflow = await page.locator("#showcase").evaluate((el) => {
+    const style = getComputedStyle(el);
+    return { x: style.overflowX, y: style.overflowY };
+  });
+  expect(panelOverflow.x).toBe("auto");
+  expect(panelOverflow.y).toBe("auto");
+
+  const panelsScrollbarWidth = await page.locator(".v-panels").evaluate((el) => {
+    return getComputedStyle(el).scrollbarWidth;
+  });
+  expect(panelsScrollbarWidth).not.toBe("none");
 });
 
 // ── Content: registered office + service naming ──────────────────────────────
@@ -475,8 +565,15 @@ test("loader: three aperture blade rings and a flash render behind the mark whil
 
 test("loader: hides via clip-path collapse, not display:none, and stops blocking clicks", async ({ page }) => {
   await page.goto("/");
-  await page.waitForSelector(".v-loader", { state: "hidden" });
+  // Wait for the loader to actually toggle its `hidden` modifier — using
+  // `waitForSelector(".v-loader", { state: "hidden" })` would also match the
+  // brief pre-mount window where the loader element doesn't exist yet, which
+  // under slower engines (playwright webkit, reduced-motion Chrome) returns
+  // before the 2.2s hide timer fires and yields pointer-events from the
+  // still-visible initial state. Asserting on the `.hidden` class is the
+  // unambiguous signal that the iris-wipe has been triggered.
   const loader = page.locator(".v-loader");
+  await expect(loader).toHaveClass(/\bhidden\b/, { timeout: 10000 });
   const pointerEvents = await loader.evaluate((el) => getComputedStyle(el).pointerEvents);
   expect(pointerEvents).toBe("none");
 });

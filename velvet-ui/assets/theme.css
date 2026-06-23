@@ -167,9 +167,10 @@ h1, h2, h3, h4, h5, h6 {
 ul { list-style: none; }
 
 /* ----- Scrollbar (thin, themed) ----------------------------------------- */
-::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 2px; }
+::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent-hover); }
 
 /* ----- Loading Screen --------------------------------------------------- */
 .v-loader {
@@ -305,10 +306,9 @@ ul { list-style: none; }
   overflow-y: hidden;
   scroll-snap-type: x mandatory;
   scroll-behavior: smooth;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+  scrollbar-width: thin;
+  scrollbar-color: var(--accent) transparent;
 }
-.v-panels::-webkit-scrollbar { display: none; }
 
 .v-panel {
   box-sizing: border-box;
@@ -317,10 +317,7 @@ ul { list-style: none; }
   max-width: 100vw;
   height: 100vh;
   scroll-snap-align: start;
-  /* Horizontal overflow stays clipped (panel-to-panel nav owns that axis);
-     vertical overflow gets its own themed scrollbar when content
-     (e.g. the showcase grid) is taller than the viewport. */
-  overflow-x: hidden;
+  overflow-x: auto;
   overflow-y: auto;
   scrollbar-width: thin;
   scrollbar-color: var(--accent) transparent;
@@ -402,15 +399,13 @@ ul { list-style: none; }
   top: 0;
   left: 0;
   right: 0;
-  height: 56px;
+  min-height: 56px;
   z-index: 9999;
   display: flex;
   align-items: center;
-  /* Brand badge breaks out of this strip via its own fixed position
-     (see .v-topbar__brand below), so the only real flex child left here
-     is the actions cluster — push it to the far right. */
-  justify-content: flex-end;
-  padding: 0 var(--s4);
+  justify-content: space-between;
+  gap: var(--s3);
+  padding: 0 clamp(var(--s3), 4vw, var(--s5));
   background: var(--bg-nav);
   backdrop-filter: blur(14px) saturate(140%);
   border-bottom: var(--border);
@@ -418,30 +413,25 @@ ul { list-style: none; }
 }
 .v-topbar.hidden { transform: translateY(-100%); }
 
-/* Square brand mark, oversized relative to the thin topbar strip.
-   Hangs just below the topbar's own border line (not flush with the
-   viewport corner) so it reads as a deliberate badge under the chrome,
-   never fighting the bar's blur/border for the same pixels. */
 .v-topbar__brand {
-  position: fixed;
-  top: calc(56px + var(--s2));
-  left: var(--s3);
-  z-index: 9998;
-  pointer-events: none;
+  display: flex;
+  align-items: center;
+  min-width: 0;
 }
 .v-topbar__brand img {
-  height: 88px;
-  width: 88px;
+  height: clamp(2.4rem, 4.2vw, 3.25rem);
+  width: auto;
   display: block;
   object-fit: contain;
   border-radius: 6px;
-  filter: drop-shadow(0 8px 20px rgba(0, 0, 0, 0.45));
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.25));
 }
 
 .v-topbar__actions {
   display: flex;
   align-items: center;
-  gap: var(--s3);
+  gap: var(--s2);
+  flex-shrink: 0;
 }
 
 .v-topbar__menu-btn {
@@ -1322,57 +1312,92 @@ ul { list-style: none; }
   letter-spacing: 0;
 }
 
-/* --- Creative Studio / Masonry ------------------------------------------ */
-.v-masonry {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  /* `auto`, not `1fr` — `1fr` rows in an auto-height grid stretch to fill
-     leftover space in the panel instead of sizing to each card's own
-     aspect-ratio, which is what previously blew the cards up to cover
-     most of the viewport and clipped the wide card's text out of view. */
-  grid-auto-rows: auto;
-  gap: var(--s2);
-  margin-top: var(--s5);
+/* --- Creative Studio / Showcase Blocks ---------------------------------- */
+.v-showcase-panel {
+  background:
+    radial-gradient(circle at 18% 18%, rgba(184, 60, 43, 0.16), transparent 28rem),
+    radial-gradient(circle at 82% 76%, rgba(10, 4, 5, 0.08), transparent 24rem),
+    var(--bg-primary);
 }
-.v-masonry__item {
+.v-showcase__section {
+  justify-content: flex-start;
+}
+.v-showcase__header {
+  margin-top: var(--s4);
+}
+.v-showcase__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--s3);
+  margin-top: var(--s5);
+  align-items: stretch;
+  min-width: 0;
+}
+.v-showcase__item {
   border: var(--border);
-  border-radius: 2px;
+  border-radius: 18px;
   overflow: hidden;
   position: relative;
-  aspect-ratio: 4 / 3;
-  background: var(--bg-secondary);
-  transition: all var(--d-med) var(--ease);
+  min-width: 0;
+  min-height: 260px;
+  background: var(--bg-card);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+  transition: transform var(--d-med) var(--ease), border-color var(--d-fast) var(--ease), box-shadow var(--d-med) var(--ease);
 }
-/* A trailing row that doesn't fill all 3 columns gets a deliberately wide
-   or full-width card instead of leaving a dangling empty grid cell. */
-/* Same visual height as a 1-col card: doubled width needs doubled-width
-   aspect-ratio (8/3 not 4/3) or the card would look twice as tall too. */
-.v-masonry__item--wide { grid-column: span 2; aspect-ratio: 8 / 3; }
-.v-masonry__item--full { grid-column: 1 / -1; aspect-ratio: auto; min-height: 220px; }
-.v-masonry__item:hover { border-color: var(--accent); }
-.v-masonry__content {
+.v-showcase__item:hover {
+  transform: translateY(-4px);
+  border-color: var(--accent);
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.2);
+}
+.v-showcase__item--wide { grid-column: span 2; }
+.v-showcase__item--full { grid-column: 1 / -1; }
+.v-showcase__item-media {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(135deg, rgba(90, 10, 15, 0.92), rgba(139, 26, 31, 0.72)),
+    radial-gradient(circle at 20% 20%, rgba(248, 239, 224, 0.34), transparent 18rem);
+}
+.v-showcase__item-media::after {
+  content: '';
+  position: absolute;
+  inset: 12px;
+  border: 1px solid rgba(248, 239, 224, 0.22);
+  border-radius: 14px;
+  pointer-events: none;
+}
+.v-showcase__item-content {
   position: relative;
   z-index: 2;
-  padding: var(--s4);
-  height: 100%;
+  min-height: 260px;
+  padding: var(--s5);
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
+  color: var(--off-white);
+  background: linear-gradient(180deg, transparent 20%, rgba(10, 4, 5, 0.78));
 }
-.v-masonry__tag {
-  font-size: 0.62rem;
+.v-showcase__item-tag {
+  font-size: 0.64rem;
   text-transform: uppercase;
-  letter-spacing: 0.15em;
-  color: var(--accent);
-  margin-bottom: var(--s1);
+  letter-spacing: 0.16em;
+  color: var(--off-white);
+  margin-bottom: var(--s2);
+  opacity: 0.82;
 }
-.v-masonry__content h4 { font-size: 1rem; text-transform: none; letter-spacing: 0; }
-.v-masonry__content p {
-  font-size: 0.8rem;
-  color: var(--text-secondary);
-  margin-top: var(--s1);
+.v-showcase__item-content h4 {
+  font-size: clamp(1.25rem, 2vw, 2rem);
   text-transform: none;
   letter-spacing: 0;
+  line-height: 1.1;
+}
+.v-showcase__item-content p {
+  font-size: 0.92rem;
+  color: rgba(248, 239, 224, 0.82);
+  margin-top: var(--s2);
+  text-transform: none;
+  letter-spacing: 0;
+  line-height: 1.65;
 }
 
 /* --- AI Marketing ------------------------------------------------------- */
@@ -1771,7 +1796,7 @@ ul { list-style: none; }
   .v-social { grid-template-columns: repeat(2, 1fr); grid-template-rows: auto; }
   .v-social__post:first-child { grid-column: span 2; grid-row: span 1; }
   .v-footer__cols { flex-direction: column; gap: var(--s4); }
-  .v-masonry { grid-template-columns: 1fr 1fr; }
+  .v-showcase__grid { grid-template-columns: 1fr 1fr; }
   .v-timeline::before { left: 16px; }
   .v-timeline__item { grid-template-columns: 1fr; padding-left: 40px; }
   .v-timeline__item:nth-child(even) { direction: ltr; }
@@ -1780,7 +1805,7 @@ ul { list-style: none; }
 
 @media (max-width: 768px) {
   body { overflow: auto; height: auto; }
-  .v-topbar__brand img { height: 56px; width: 56px; }
+  .v-topbar__brand img { height: 2.35rem; }
   .v-panels {
     flex-direction: column;
     overflow-x: hidden;
@@ -1804,11 +1829,10 @@ ul { list-style: none; }
   .v-stack-nav { display: none; }
   .v-process { grid-template-columns: 1fr 1fr; }
   .v-cases { grid-template-columns: 1fr; }
-  .v-masonry { grid-template-columns: 1fr; }
-  .v-masonry__item, .v-masonry__item--wide, .v-masonry__item--full {
+  .v-showcase__grid { grid-template-columns: 1fr; }
+  .v-showcase__item, .v-showcase__item--wide, .v-showcase__item--full {
     grid-column: span 1;
-    aspect-ratio: auto;
-    min-height: 220px;
+    min-height: 240px;
   }
   .v-awards { grid-template-columns: 1fr; }
   .v-pr-grid { grid-template-columns: 1fr; }
@@ -2120,6 +2144,14 @@ ul { list-style: none; }
   display: flex;
   flex-direction: column;
   gap: var(--s2);
+}
+.v-footer-panel__logo {
+  height: clamp(3rem, 7vw, 5rem);
+  width: auto;
+  display: block;
+  object-fit: contain;
+  border-radius: 10px;
+  filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.28));
 }
 .v-footer-panel__name {
   font-family: var(--font-display);

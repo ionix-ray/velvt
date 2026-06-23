@@ -4,6 +4,7 @@
 //! content panel, giving the "rolling reel" effect the user requested.
 
 use crate::Site;
+use crate::theme::brand::brand_mark;
 use dioxus::prelude::*;
 
 #[component]
@@ -13,6 +14,7 @@ pub fn FooterPanel(site: Site) -> Element {
             div { class: "v-footer-panel",
                 // ── Top: Brand + tagline ─────────────────────────────
                 div { class: "v-footer-panel__brand",
+                    img { class: "v-footer-panel__logo", src: brand_mark(), alt: "VELVT" }
                     span { class: "v-footer-panel__name", "{site.brand.name}" }
                     p { class: "v-footer-panel__tagline", "{site.brand.tagline}" }
                     p { class: "v-footer-panel__desc", "{site.footer.brand_desc}" }
