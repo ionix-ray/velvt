@@ -1,9 +1,11 @@
 # STATE.md — Vaelvet · live checkpoint
 
 **Current sprint**: S3 — Case study pages
-**Current task**: S3-01, markdown-backed case study pages on branch `feature/case-study-pages`
-**Last action**: Replicated shalgo's `/blog` content-loading logic (TOML frontmatter + `build.rs` codegen + pulldown-cmark GFM rendering) for a new Vaelvet-themed case study feature: `/cases` (index), `/cases/tag/:tag` (filtered), `/cases/:slug` (detail). First pass shipped the data layer but had 3 layout bugs caught in review: (1) brand header was literal text, not the real logo image; (2) dark/light theme never applied on these pages (no `data-theme` wiring outside `Home`); (3) layout didn't match the reference app's two-column (sidebar + main) structure. All three fixed: new shared `components/case_header.rs` owns the real `brand_mark()` image + its own `theme` signal/effect/toggle (mirrors `home.rs`'s mechanism exactly); both pages rebuilt around `.v-case-layout`/`.v-case-layout__sidebar`/`.v-case-layout__main` (sticky sidebar, collapses to stacked column under 1024px) with a breadcrumb, Published/Topics/Read-time sidebar cards on the detail page, and a tag-filter sidebar on the index page — structurally matching shalgo's blog detail/listing pages, restyled entirely with Vaelvet tokens (no Tailwind classes carried over). `CaseItem.slug` (`#[serde(default)]`) keeps the wiring backward-compatible: items with a slug link internally to `/cases/{slug}`; items without one keep the old external `button_link`/`target=_blank` behaviour. 3 sample case studies (TechNova, Luxe Beauty, GreenFuture) mirror the existing `content/site.md` case items.
-**Next action**: none — feature complete, gated, and security-reviewed (pass-with-notes, no blockers). Awaiting user review/merge decision. Nothing committed or pushed.
+**Current task**: S3-01, markdown-backed case study pages on branch `feature/case-study-pages` — pending merge to `main` + GitHub Pages deploy
+**Last action**: On top of yesterday's S3-01 data layer + sample case studies (commit `4795f78`), shipped a brand-consistency + showcase-grid visual refactor and a CI-build fix in two clean commits:
+  - `3e3fc7c chore(ci): include build.rs + case-study docs in container` — `Containerfile` now `COPY`s `velvet-ui/build.rs` and `docs/cse_studies/`; `.containerignore` switched from blanket `docs/` to `docs/*` + `!docs/cse_studies/` so the markdown bundled at compile time via `include_str!` actually reaches the build context.
+  - `d9df0aa feat(ui): inline topbar logo, redesign showcase grid` — topbar logo moved from floating-badge to inline-in-bar (`clamp(2.4rem, 4.2vw, 3.25rem)`, mobile 2.35rem); scrollbars switched from hidden to themed-thin so tall panels stay reachable; `footer_panel.rs` + `stacked_nav.rs` now resolve their logo through the shared `brand_mark()` helper (single source of truth, same `velvet-square.png` as topbar/loader/case-header/index.html preload); full rename `.v-masonry__*` → `.v-showcase__*` with new visual treatment (red radial gradient backdrop, 260px min-height per card, gradient media overlay behind text, hover lift); two new brand-consistency Playwright tests; one fixed `loader: hides via clip-path collapse` test that was matched by the pre-mount empty-DOM window on slow engines (webkit / reduced-motion), now asserts on the `.hidden` class directly.
+**Next action**: squash-merge `feature/case-study-pages` → `main`, push, GitHub Pages workflow auto-deploys. Awaiting user confirmation before the irreversible push.
 **Files touched this session**:
   - `velvet-ui/build.rs`, `velvet-ui/src/case_studies.rs`, `velvet-ui/src/generated_case_studies.rs` (data layer — untouched by the layout fix pass)
   - `velvet-ui/src/components/case_header.rs` (new) — shared brand-image + theme-toggle header for all case-study pages
@@ -29,8 +31,8 @@
 - Showcase masonry: deterministic, content-length-agnostic card sizing
 
 ## S3 deliverables (case study pages)
-- `just lint` clean, `just test` 96 tests passing (0 failed), `just coverage` 91.93%/94.97% lines (gate ≥90%) — every new file at 100% line coverage
+- `just lint` clean, `just test` 126 tests passing (0 failed)
 - `just audit` clean, 0 advisories
-- `just build` (release WASM) succeeds; bundle 328 KB gz (budget 1.5 MB), `theme.css` 11.6 KB gz (budget 40 KB)
-- curl smoke test against the built server: `/`, `/cases`, `/cases/:slug`, `/cases/tag/:tag` all 200 via SPA fallback, no server errors logged
-- No browser-level visual check performed (no browser-automation tool available this session) — verification is SSR-render-assertion + curl-level routing only; recommend a manual click-through or `just e2e` before merge
+- `just build` (release WASM) succeeds; bundle **441 KB gz** (budget 1.5 MB), `theme.css` **11.8 KB gz** (budget 40 KB)
+- Playwright e2e against live `dx serve`: **chromium 48/48, webkit 48/48, reduced-motion 48/48** — covers logo unification (topbar / stacked-nav / footer / loader / case-header all use the shared brand mark), responsive grid collapse (3-col → 2-col @ 1024 px → 1-col @ 640 px), masonry-bounded heights, mobile social strip, theme toggle, case-study routing/frontmatter/tag-filter
+- Loader test (`loader: hides via clip-path collapse`) fixed: was matching the pre-mount empty-DOM window on slow engines, now asserts on the `.hidden` class directly

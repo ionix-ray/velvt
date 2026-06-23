@@ -1,5 +1,105 @@
 # Progress Log — Vaelvet Container + UI/UX Refactor
 
+## 2026-06-23
+
+### Completed Today
+
+1. **Brand mark + topbar layout unification** (`d9df0aa`).
+   - `footer_panel.rs` and `stacked_nav.rs` switched from a hardcoded
+     `asset!()` literal / text wordmark to the shared
+     `theme::brand::brand_mark()` helper. All six brand-mark slots
+     (topbar, loader, stacked-nav, footer, case-header,
+     `index.html` preload) now point at the same `velvet-square.png`
+     source, removing the last divergence flagged in yesterday's
+     review.
+   - Topbar logo moved from floating-badge (fixed top: 56 + s2,
+     left: s3, pointer-events: none) to inline-in-bar
+     (`clamp(2.4rem, 4.2vw, 3.25rem)` height, mobile override
+     2.35 rem). Topbar gains `min-height`, `justify-content:
+     space-between`, fluid horizontal padding.
+   - Scrollbars switched from hidden to themed-thin (8 px accent
+     thumb with hover state) on both `.v-panels` and `.v-panel`
+     vertical overflow — tall content (showcase grid above viewport
+     height) is now reachable instead of clipped.
+
+2. **Showcase grid redesign** (same commit).
+   - Full rename `.v-masonry__*` → `.v-showcase__*` across
+     `studio_panel.rs` (rendered classes + helper functions +
+     unit tests) and `theme.css`. New visual treatment:
+     `v-showcase-panel` red radial-gradient backdrop, per-card
+     260 px min-height, gradient media block underneath the
+     content layer, hover lift (-4 px translate, accent border,
+     stronger shadow), themed background per card. Incomplete
+     trailing row span logic preserved (wide / full).
+   - Mobile breakpoint (`@max-width: 1024px`) collapses 3-col →
+     2-col → 1-col. Confirmed in Playwright responsive spec.
+
+3. **Container build context fix** (`3e3fc7c`).
+   - `Containerfile` now copies `velvet-ui/build.rs` and
+     `docs/cse_studies/` into the build stage. `.containerignore`
+     replaces blanket `docs/` with `docs/*` + `!docs/cse_studies/`.
+     Required because the case-study `build.rs` codegen embeds
+     `docs/cse_studies/*.md` via `include_str!` at compile time —
+     without these paths in the container context, the release
+     image fails to build.
+
+4. **Playwright loader regression fix** (UI commit).
+   - `loader: hides via clip-path collapse, not display:none, and
+     stops blocking clicks` was failing under `webkit` and
+     `reduced-motion` (passed under `chromium`). Root cause:
+     `await page.waitForSelector(".v-loader", { state: "hidden" })`
+     is matched by "element not in DOM yet" too. On slower engines
+     the WASM mount window is long enough that playwright's first
+     poll sees an empty body, the wait returns immediately, and
+     the next-line `getComputedStyle().pointerEvents` reads `auto`
+     from the still-initial loader. Rewrote the assertion to
+     `expect(loader).toHaveClass(/\bhidden\b/, { timeout: 10000 })`
+     so the wait blocks on the actual `.hidden` modifier being
+     applied.
+
+5. **Brand-consistency tests** (UI commit).
+   - Added `brand: topbar uses the standard in-bar logo layout` —
+     asserts logo image is rendered inside topbar's bounding box,
+     no longer breakout-positioned.
+   - Added `brand: topbar and stacked navigation share the same
+     brand mark` — `src` attribute equality + `velvet-square` path
+     check, regression-tests the shared `brand_mark()` helper.
+
+### Verified
+
+- `cargo fmt --check`: clean
+- `cargo clippy --workspace --all-targets -- -D warnings`: clean
+- `cargo test --workspace`: **126 passed, 0 failed**
+- `cargo audit`: 0 advisories
+- `dx build --release --platform web`: 441 KB gz WASM (budget 1.5 MB),
+  11.8 KB gz `theme.css` (budget 40 KB)
+- Playwright against live `dx serve`:
+  - chromium: 48/48
+  - webkit: 48/48
+  - reduced-motion (Chrome + `prefers-reduced-motion: reduce`): 48/48
+  - One flaky case-studies failure observed under parallel-project
+    invocation; passed cleanly when each project ran sequentially —
+    not a regression, dev-server contention.
+
+### Discovered + flagged
+
+- Pre-existing gibberish commit messages on `main` (`jkl`, `gbgh`,
+  `ijhbvghj`) and the S3-01 commit on the branch (`hbhjb`,
+  authored 2026-06-22). Recommend squash-merge to `main` rather
+  than fast-forward so the deploy commit on `main` has a clean
+  Conventional Commit message.
+
+### To Do — Next Session
+
+- Squash-merge `feature/case-study-pages` → `main`, push, observe
+  GitHub Pages deploy workflow.
+- Once deployed, manual sanity check at the Pages URL
+  (`https://ionix-ray.github.io/velvt/`) for: logo unification,
+  showcase grid layout at 1280 / 1024 / 640 px, case-study
+  navigation (`/cases`, `/cases/:slug`, `/cases/tag/:tag`).
+- Address pre-existing branch's `unwrap_used` lint exemptions if
+  flagged in cargo-deny output during the deploy workflow.
+
 ## 2026-06-20
 
 ### Completed Today
