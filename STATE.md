@@ -1,11 +1,18 @@
 # STATE.md — Vaelvet · live checkpoint
 
 **Current sprint**: S3 — Case study pages
-**Current task**: S3-01, markdown-backed case study pages on branch `feature/case-study-pages` — pending merge to `main` + GitHub Pages deploy
-**Last action**: On top of yesterday's S3-01 data layer + sample case studies (commit `4795f78`), shipped a brand-consistency + showcase-grid visual refactor and a CI-build fix in two clean commits:
-  - `3e3fc7c chore(ci): include build.rs + case-study docs in container` — `Containerfile` now `COPY`s `velvet-ui/build.rs` and `docs/cse_studies/`; `.containerignore` switched from blanket `docs/` to `docs/*` + `!docs/cse_studies/` so the markdown bundled at compile time via `include_str!` actually reaches the build context.
-  - `d9df0aa feat(ui): inline topbar logo, redesign showcase grid` — topbar logo moved from floating-badge to inline-in-bar (`clamp(2.4rem, 4.2vw, 3.25rem)`, mobile 2.35rem); scrollbars switched from hidden to themed-thin so tall panels stay reachable; `footer_panel.rs` + `stacked_nav.rs` now resolve their logo through the shared `brand_mark()` helper (single source of truth, same `velvet-square.png` as topbar/loader/case-header/index.html preload); full rename `.v-masonry__*` → `.v-showcase__*` with new visual treatment (red radial gradient backdrop, 260px min-height per card, gradient media overlay behind text, hover lift); two new brand-consistency Playwright tests; one fixed `loader: hides via clip-path collapse` test that was matched by the pre-mount empty-DOM window on slow engines (webkit / reduced-motion), now asserts on the `.hidden` class directly.
-**Next action**: squash-merge `feature/case-study-pages` → `main`, push, GitHub Pages workflow auto-deploys. Awaiting user confirmation before the irreversible push.
+**Current task**: S3-01 merged to `main` (2026-06-23). Pending GitHub Pages deploy verification.
+**Last action**: Force-replaced `origin/main` (was `ac48174`, the pre-rebrand-to-Velvt history) with `feature/case-study-pages` head `04332d4` via `--force-with-lease`. Authorized by user after disjoint-history audit. Two pre-merge cleanup commits added:
+  - `3b44cf1 style(ui): restore alphabetic import order in stacked_nav` — rustfmt drift caught by `just lint`.
+  - `04332d4 chore(deps): bump quinn-proto + memmap2 for RUSTSEC advisories` — quinn-proto 0.11.14→0.11.15 (RUSTSEC-2026-0185), memmap2 0.9.10→0.9.11 (RUSTSEC-2026-0186). `just audit` now clean.
+**Pre-merge gates** (all green on `04332d4`):
+  - `just lint` clean (fmt + clippy `-D warnings`)
+  - `just test` 43 cargo tests pass
+  - `just audit` 0 advisories
+  - `just build` 441 KB gz WASM (budget 1.5 MB)
+  - `just e2e` 144/144 pass (chromium 48, webkit 48, reduced-motion 48)
+**Discarded**: `origin/main`'s 11 commits up to `ac48174` (rebrand-to-Velvt, binaryen install, Rust 1.88 bump, gh-pages deploy fixes). The "Velvt" rebrand conflicted with the Vaelvet brand of record; user chose force-replace.
+**Next action**: confirm GitHub Pages workflow runs on the new `main`. If the dropped CI fixes (binaryen install, dx out_dir) are still needed, port them as fresh commits on top of `04332d4`.
 **Files touched this session**:
   - `velvet-ui/build.rs`, `velvet-ui/src/case_studies.rs`, `velvet-ui/src/generated_case_studies.rs` (data layer — untouched by the layout fix pass)
   - `velvet-ui/src/components/case_header.rs` (new) — shared brand-image + theme-toggle header for all case-study pages
