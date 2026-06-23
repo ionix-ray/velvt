@@ -1,7 +1,7 @@
 //! Stacked right-side navigation panel.
 
-use crate::theme::brand::brand_mark;
 use crate::Site;
+use crate::theme::brand::brand_mark;
 use dioxus::prelude::*;
 
 #[component]
