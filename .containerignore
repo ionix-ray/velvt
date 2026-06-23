@@ -11,9 +11,12 @@ target/
 velvet-ui/target/
 dist/
 
-# Dev / test files (not needed for production build)
+# Dev / test files (not needed for production build).
+# docs/cse_studies/ is the exception — build.rs embeds it via include_str!
+# at compile time, so it must reach the build context.
 test-suite/
-docs/
+docs/*
+!docs/cse_studies/
 scripts/
 ops/
 debug_*.rs

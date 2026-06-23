@@ -64,10 +64,12 @@ RUN --mount=type=cache,id=velvet-cargo-registry,target=/usr/local/cargo/registry
 
 # Copy full source and build.
 COPY velvet-ui/src ./velvet-ui/src
+COPY velvet-ui/build.rs ./velvet-ui/build.rs
 COPY velvet-ui/assets ./velvet-ui/assets
 COPY velvet-ui/index.html ./velvet-ui/index.html
 COPY server/src ./server/src
 COPY content ./content
+COPY docs/cse_studies ./docs/cse_studies
 
 # Build WASM release + copy output to persistent /out dir.
 RUN --mount=type=cache,id=velvet-cargo-registry,target=/usr/local/cargo/registry,sharing=locked \
