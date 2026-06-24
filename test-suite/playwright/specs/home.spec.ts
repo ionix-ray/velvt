@@ -274,7 +274,7 @@ test("ui: glassmorphism cards and green tags render", async ({ page }) => {
   await expect(greenBtn).toBeAttached();
 });
 
-test("brand: topbar uses the standard in-bar logo layout", async ({ page }) => {
+test("brand: floating badge anchored top-left and overflows the topbar strip", async ({ page }) => {
   await page.goto("/");
   const topbar = page.locator(".v-topbar");
   const brand = topbar.locator(".v-topbar__brand");
@@ -291,11 +291,52 @@ test("brand: topbar uses the standard in-bar logo layout", async ({ page }) => {
   expect(brandBox).not.toBeNull();
 
   if (topbarBox && brandBox) {
+    // Anchored near the top-left corner with a small breathing inset.
     expect(brandBox.x).toBeGreaterThanOrEqual(topbarBox.x);
+    expect(brandBox.x - topbarBox.x).toBeLessThanOrEqual(20);
     expect(brandBox.y).toBeGreaterThanOrEqual(topbarBox.y);
-    expect(brandBox.y + brandBox.height).toBeLessThanOrEqual(
+    expect(brandBox.y - topbarBox.y).toBeLessThanOrEqual(20);
+    // Square mark.
+    expect(Math.abs(brandBox.width - brandBox.height)).toBeLessThanOrEqual(1);
+    // Badge overflows below the topbar strip — the strip's bottom border
+    // re-emerges to the right of the badge.
+    expect(brandBox.y + brandBox.height).toBeGreaterThan(
       topbarBox.y + topbarBox.height,
     );
+  }
+
+  // Sharp corners, not pill-rounded.
+  const radius = await logo.evaluate((el) =>
+    Number.parseFloat(getComputedStyle(el).borderTopLeftRadius),
+  );
+  expect(radius).toBeLessThanOrEqual(2);
+});
+
+test("brand: floating badge scales across desktop, tablet, and phone viewports", async ({ page }) => {
+  const viewports = [
+    { name: "desktop", w: 1440, h: 900, minSide: 72, maxSide: 90 },
+    { name: "tablet", w: 768, h: 1024, minSide: 46, maxSide: 58 },
+    { name: "phone", w: 380, h: 720, minSide: 40, maxSide: 50 },
+  ] as const;
+
+  for (const v of viewports) {
+    await page.setViewportSize({ width: v.w, height: v.h });
+    await page.goto("/");
+    const brand = page.locator(".v-topbar__brand");
+    const actions = page.locator(".v-topbar__actions");
+    await expect(brand).toBeVisible();
+    const brandBox = await brand.boundingBox();
+    const actionsBox = await actions.boundingBox();
+    expect(brandBox, `brand box on ${v.name}`).not.toBeNull();
+    expect(actionsBox, `actions box on ${v.name}`).not.toBeNull();
+    if (brandBox && actionsBox) {
+      expect(brandBox.width).toBeGreaterThanOrEqual(v.minSide);
+      expect(brandBox.width).toBeLessThanOrEqual(v.maxSide);
+      // Actions cluster never collides with the badge.
+      expect(actionsBox.x).toBeGreaterThan(brandBox.x + brandBox.width);
+      // Actions cluster sits inside the viewport.
+      expect(actionsBox.x + actionsBox.width).toBeLessThanOrEqual(v.w);
+    }
   }
 });
 
