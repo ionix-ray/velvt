@@ -658,18 +658,27 @@ test("spindle: every section label stays readable so the visitor can see what th
 
 test("spindle: active item is visually distinct (accent color + filled tick dot)", async ({ page }) => {
   await page.goto("/");
+  await page.waitForLoadState("networkidle");
   await page.waitForSelector(".v-spindle-item.active", { state: "visible" });
   const active = page.locator(".v-spindle-item.active").first();
   await expect(active).toBeVisible();
 
-  const color = await active.evaluate((el) => getComputedStyle(el).color);
-  // Accent rgb — accept either light- or dark-mode resolved value, just
-  // require it not be the muted neutral.
-  expect(color).not.toMatch(/rgba?\(255,\s*255,\s*255/);
+  // Accent color: not the muted neutral.
+  await expect
+    .poll(
+      async () => await active.evaluate((el) => getComputedStyle(el).color),
+      { timeout: 4000 },
+    )
+    .not.toMatch(/rgba?\(255,\s*255,\s*255/);
 
-  // The ::before dial tick exists and is filled with the accent.
-  const tickBg = await active.evaluate(
-    (el) => getComputedStyle(el, "::before").backgroundColor,
-  );
-  expect(tickBg).not.toMatch(/rgba?\(0,\s*0,\s*0,\s*0\)/);
+  // The ::before dial tick is filled (non-transparent background).
+  await expect
+    .poll(
+      async () =>
+        await active.evaluate(
+          (el) => getComputedStyle(el, "::before").backgroundColor,
+        ),
+      { timeout: 4000 },
+    )
+    .not.toMatch(/rgba?\(0,\s*0,\s*0,\s*0\)/);
 });
