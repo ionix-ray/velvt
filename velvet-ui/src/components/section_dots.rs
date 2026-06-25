@@ -19,16 +19,15 @@ pub fn SectionDots(
             let dist = dy.abs();
             let is_active = i == current;
 
-            // 28 degrees per step on the reel
-            let angle = -dy * 28.0;
-            // Fade items that are far away
-            let opacity = (1.0 - dist * 0.30).max(0.0);
-            // Disable pointer events on items too far away
-            let pe = if dist > 3.5 {
-                "pointer-events:none;"
-            } else {
-                ""
-            };
+            // 22 degrees per step on the reel — gentler tilt so far items
+            // still read as legible labels rather than edge-on slivers.
+            let angle = -dy * 22.0;
+            // Slow fade with a visibility floor so every section name stays
+            // readable from any panel — the dial is the site map.
+            let opacity = (1.0 - dist * 0.16).max(0.45);
+            // All items remain clickable; the dial is the primary
+            // discoverability surface for what the site has to offer.
+            let pe = "";
 
             let style = if is_active {
                 // Active item sits flat (no rotation)

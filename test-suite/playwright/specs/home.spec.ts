@@ -631,3 +631,45 @@ test("footer: services column reads Celebrity Management, not Celebrity Booking"
   expect(text).toContain("Celebrity Management");
   expect(text).not.toContain("Celebrity Booking");
 });
+
+// ── Spindle dial (section navigator on the left rail) ───────────────────────
+
+test("spindle: every section label stays readable so the visitor can see what the site offers", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto("/");
+  await page.waitForSelector(".v-spindle-item.active");
+
+  const items = page.locator(".v-spindle-item");
+  const count = await items.count();
+  expect(count).toBeGreaterThanOrEqual(6);
+
+  // Every dial item — even the ones furthest from the active panel — is
+  // readable (opacity >= 0.4) and accepts clicks (pointer-events != none).
+  for (let i = 0; i < count; i += 1) {
+    const it = items.nth(i);
+    const { opacity, pointerEvents } = await it.evaluate((el) => {
+      const cs = getComputedStyle(el);
+      return { opacity: Number.parseFloat(cs.opacity), pointerEvents: cs.pointerEvents };
+    });
+    expect(opacity, `item ${i} opacity`).toBeGreaterThanOrEqual(0.4);
+    expect(pointerEvents, `item ${i} pointer-events`).not.toBe("none");
+  }
+});
+
+test("spindle: active item is visually distinct (accent color + filled tick dot)", async ({ page }) => {
+  await page.goto("/");
+  await page.waitForSelector(".v-spindle-item.active", { state: "visible" });
+  const active = page.locator(".v-spindle-item.active").first();
+  await expect(active).toBeVisible();
+
+  const color = await active.evaluate((el) => getComputedStyle(el).color);
+  // Accent rgb — accept either light- or dark-mode resolved value, just
+  // require it not be the muted neutral.
+  expect(color).not.toMatch(/rgba?\(255,\s*255,\s*255/);
+
+  // The ::before dial tick exists and is filled with the accent.
+  const tickBg = await active.evaluate(
+    (el) => getComputedStyle(el, "::before").backgroundColor,
+  );
+  expect(tickBg).not.toMatch(/rgba?\(0,\s*0,\s*0,\s*0\)/);
+});
