@@ -153,6 +153,14 @@ body {
   width: 100vw;
   transition: background var(--d-med) var(--ease), color var(--d-med) var(--ease);
 }
+/* Case-study (and any other) vertical-flow page lifts the home page's
+   100vh / overflow:hidden window so the article body can scroll. */
+body:has(.v-case-page) {
+  overflow: auto;
+  height: auto;
+  width: auto;
+  min-height: 100vh;
+}
 img, picture { display: block; max-width: 100%; }
 a { color: inherit; text-decoration: none; }
 button { font: inherit; background: none; border: 0; color: inherit; cursor: pointer; }
@@ -551,68 +559,127 @@ ul { list-style: none; }
   z-index: 999;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 0;
+  align-items: stretch;
+  gap: 2px;
   /* 3D perspective for the reel effect */
-  perspective: 700px;
+  perspective: 900px;
   perspective-origin: center center;
-  width: clamp(7.5rem, 12vw, 12rem);
+  width: clamp(8.5rem, 13vw, 13rem);
   pointer-events: none;
-  /* Border separates spindle from content */
-  border-right: 1px solid var(--border-color);
-  padding: 0 0.75rem 0 var(--s3);
+  padding: var(--s3) var(--s3) var(--s3) var(--s4);
   background: linear-gradient(
     to right,
-    var(--bg-primary) 70%,
+    color-mix(in srgb, var(--bg-primary) 88%, transparent) 60%,
     transparent
   );
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+/* The rail — a thin vertical accent that visually connects every dial item
+   into one component instead of a stack of disjoint labels. */
+.v-spindle::before {
+  content: "";
+  position: absolute;
+  left: calc(var(--s4) - 1px);
+  top: var(--s4);
+  bottom: var(--s4);
+  width: 1px;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    var(--border-color) 18%,
+    var(--border-color) 82%,
+    transparent
+  );
+  pointer-events: none;
 }
 .v-spindle-item {
   pointer-events: auto;
-  padding: 8px 10px;
+  position: relative;
+  padding: 8px 10px 8px 22px;
   background: transparent;
-  color: var(--text-muted);
+  color: var(--text-secondary);
   font-family: var(--font-display);
-  font-size: 0.75rem;
+  font-size: 0.78rem;
   font-weight: 500;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   white-space: nowrap;
   cursor: pointer;
   line-height: 1.2;
   border: none;
-  /* CSS handles the animation — no JS coroutine needed */
+  border-radius: 6px;
   transition:
     transform var(--d-med) var(--ease),
     opacity var(--d-med) var(--ease),
     color var(--d-fast) var(--ease),
-    font-size var(--d-med) var(--ease);
-  transform-origin: center center;
+    font-size var(--d-med) var(--ease),
+    background-color var(--d-fast) var(--ease);
+  transform-origin: left center;
   will-change: transform, opacity;
   width: 100%;
   text-align: left;
 }
+/* Per-item dial tick — the dot that sits on the rail. Hollow by default,
+   filled and glowing for the active section. */
+.v-spindle-item::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 8px;
+  height: 8px;
+  translate: 0 -50%;
+  border-radius: 50%;
+  border: 1px solid var(--text-muted);
+  background: var(--bg-primary);
+  transition:
+    background var(--d-fast) var(--ease),
+    border-color var(--d-fast) var(--ease),
+    box-shadow var(--d-fast) var(--ease),
+    transform var(--d-fast) var(--ease);
+}
+.v-spindle-item:hover:not(.active) {
+  color: var(--text-primary);
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+}
+.v-spindle-item:hover:not(.active)::before {
+  border-color: var(--accent);
+  transform: translateY(-50%) scale(1.2);
+}
 .v-spindle-item.active {
   color: var(--accent);
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: 0.92rem;
   letter-spacing: 0.18em;
-  text-shadow: 0 0 20px rgba(184, 60, 43, 0.4);
+  text-shadow: 0 0 24px rgba(184, 60, 43, 0.45);
 }
-.v-spindle-item:hover:not(.active) { color: var(--text-secondary); }
+.v-spindle-item.active::before {
+  background: var(--accent);
+  border-color: var(--accent);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent),
+    0 0 16px color-mix(in srgb, var(--accent) 55%, transparent);
+  transform: translateY(-50%) scale(1.15);
+}
 .v-spindle-item__label {
   display: flex;
   gap: var(--s2);
   align-items: center;
 }
 .v-spindle-item__num {
-  font-size: 0.65rem;
-  opacity: 0.5;
-  font-weight: 400;
-  min-width: 18px;
+  font-size: 0.7rem;
+  opacity: 0.85;
+  font-weight: 500;
+  min-width: 22px;
   font-family: var(--font-mono);
+  color: var(--text-muted);
 }
-.v-spindle-item.active .v-spindle-item__num { opacity: 1; }
+.v-spindle-item.active .v-spindle-item__num { opacity: 1; color: var(--accent); }
+.v-spindle-item:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
 @media (prefers-reduced-motion: reduce) {
   .v-spindle-item { transition: none; }
   .v-loader__iris { display: none; }

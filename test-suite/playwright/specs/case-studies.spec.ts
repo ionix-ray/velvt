@@ -85,3 +85,30 @@ test("case detail layout: sidebar and main content stack vertically on narrow vi
     expect(mainBox.y).toBeGreaterThanOrEqual(sidebarBox.y + sidebarBox.height - 1);
   }
 });
+
+test("case study detail: article body scrolls vertically when content overflows", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 720 });
+  await page.goto("/cases/technova-full-funnel-growth");
+  await expect(page.locator(".v-case-article")).toBeVisible();
+
+  // Body must not be locked to 100vh/overflow:hidden the way Home is.
+  const bodyOverflow = await page.evaluate(
+    () => getComputedStyle(document.body).overflowY,
+  );
+  expect(["auto", "visible", "scroll"]).toContain(bodyOverflow);
+
+  // Scroll height genuinely exceeds the viewport on a real case study.
+  const scrollH = await page.evaluate(() => document.documentElement.scrollHeight);
+  const viewportH = await page.evaluate(() => window.innerHeight);
+  expect(scrollH).toBeGreaterThan(viewportH);
+
+  // The user can actually scroll the window down to read the rest of the
+  // article — the inline "Back to case studies" link sits below the article
+  // body and is reachable. (The header back link is a separate copy at the
+  // top of the page; pick the in-flow trailing one.)
+  const backLink = page.locator(".v-case-layout__main .v-case-page__back");
+  await backLink.scrollIntoViewIfNeeded();
+  await expect(backLink).toBeInViewport();
+  const scrolled = await page.evaluate(() => window.scrollY);
+  expect(scrolled).toBeGreaterThan(100);
+});
