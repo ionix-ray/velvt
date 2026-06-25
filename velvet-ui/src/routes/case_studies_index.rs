@@ -4,8 +4,10 @@
 //! follows the reference app's two-column (sidebar filter + main grid)
 //! structure, restyled with Vaelvet's own tokens.
 
+use crate::Site;
 use crate::case_studies::get_all_case_studies;
 use crate::components::case_header::CaseHeader;
+use crate::components::footer_panel::FooterPanel;
 use dioxus::prelude::*;
 
 /// All distinct tags across every case study, in first-seen order.
@@ -30,6 +32,7 @@ fn case_studies_grid(filter_tag: Option<&str>) -> Element {
         .collect();
     let tags = all_distinct_tags();
     let count = studies.len();
+    let site = Site::load().clone();
 
     rsx! {
         div { class: "v-case-page",
@@ -94,6 +97,7 @@ fn case_studies_grid(filter_tag: Option<&str>) -> Element {
                     }
                 }
             }
+            FooterPanel { site }
         }
     }
 }

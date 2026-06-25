@@ -41,9 +41,46 @@ test("case studies index: lists all sample studies and filters by tag", async ({
 
 test("case page header: shows the brand mark image, not text", async ({ page }) => {
   await page.goto("/cases/technova-full-funnel-growth");
-  const brandImg = page.locator(".v-case-topbar__brand img");
+  const brandImg = page.locator(".v-topbar__brand img");
   await expect(brandImg).toBeVisible();
   await expect(brandImg).toHaveAttribute("alt", /.+/);
+});
+
+test("case page header: shares the home page's floating-badge topbar layout", async ({ page }) => {
+  await page.goto("/cases/technova-full-funnel-growth");
+  const topbar = page.locator(".v-topbar");
+  const brand = topbar.locator(".v-topbar__brand");
+  const actions = topbar.locator(".v-topbar__actions");
+  const themeBtn = actions.locator(".v-theme-toggle");
+  await expect(topbar).toBeVisible();
+  await expect(brand).toBeVisible();
+  await expect(themeBtn).toBeVisible();
+
+  const topbarBox = await topbar.boundingBox();
+  const brandBox = await brand.boundingBox();
+  if (topbarBox && brandBox) {
+    // Same floating-badge pattern as Home: square, anchored top-left,
+    // overflows the topbar strip downward.
+    expect(Math.abs(brandBox.width - brandBox.height)).toBeLessThanOrEqual(1);
+    expect(brandBox.y + brandBox.height).toBeGreaterThan(
+      topbarBox.y + topbarBox.height,
+    );
+  }
+});
+
+test("case studies index: ships the home footer at the bottom of the page", async ({ page }) => {
+  await page.goto("/cases");
+  const footer = page.locator(".v-panel--footer");
+  await footer.scrollIntoViewIfNeeded();
+  await expect(footer).toBeVisible();
+  await expect(footer).toContainText(/Celebrity Management/i);
+});
+
+test("case study detail: also ships the home footer at the bottom of the page", async ({ page }) => {
+  await page.goto("/cases/technova-full-funnel-growth");
+  const footer = page.locator(".v-panel--footer");
+  await footer.scrollIntoViewIfNeeded();
+  await expect(footer).toBeVisible();
 });
 
 test("case page theme toggle: flips html[data-theme] between dark and light", async ({ page }) => {

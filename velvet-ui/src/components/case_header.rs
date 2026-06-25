@@ -35,11 +35,14 @@ pub fn CaseHeader(
     let theme_icon = theme_icon_for(&theme.read());
 
     rsx! {
-        header { class: "v-case-topbar",
-            a { class: "v-case-topbar__brand", href: "/",
+        header { class: "v-topbar v-topbar--standalone", id: "topbar",
+            a { class: "v-topbar__brand", href: "/",
                 img { src: brand_mark(), alt: "VELVT" }
             }
-            div { class: "v-case-topbar__actions",
+            div { class: "v-topbar__actions",
+                if let (Some(href), Some(label)) = (back_href.clone(), back_label.clone()) {
+                    a { class: "v-case-page__back", href: "{href}", "{label}" }
+                }
                 button {
                     class: "v-theme-toggle",
                     title: "Toggle theme",
@@ -48,9 +51,6 @@ pub fn CaseHeader(
                         theme.set(next);
                     },
                     "{theme_icon}"
-                }
-                if let (Some(href), Some(label)) = (back_href.clone(), back_label.clone()) {
-                    a { class: "v-case-page__back", href: "{href}", "{label}" }
                 }
             }
         }
