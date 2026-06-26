@@ -27,16 +27,16 @@ test("case study detail: renders frontmatter and markdown body", async ({ page }
 test("case study detail: unknown slug shows a not-found state, not a crash", async ({ page }) => {
   await page.goto("/cases/no-such-case-study");
   await expect(page.locator("h1")).toContainText(/not found/i);
-  await expect(page.locator("a.v-btn-glow")).toHaveAttribute("href", "/");
+  await expect(page.locator("a.v-btn-tile")).toHaveAttribute("href", "/");
 });
 
 test("case studies index: lists all sample studies and filters by tag", async ({ page }) => {
   await page.goto("/cases");
-  await expect(page.locator(".v-card-modern__client")).toHaveCount(3);
+  await expect(page.locator(".v-cases-grid .v-tile__eyebrow")).toHaveCount(3);
 
   await page.goto("/cases/tag/Beauty");
-  await expect(page.locator(".v-card-modern__client")).toHaveCount(1);
-  await expect(page.locator(".v-card-modern__client").first()).toContainText("Luxe Beauty");
+  await expect(page.locator(".v-cases-grid .v-tile__eyebrow")).toHaveCount(1);
+  await expect(page.locator(".v-cases-grid .v-tile__eyebrow").first()).toContainText("Luxe Beauty");
 });
 
 test("case page header: shows the brand mark image, not text", async ({ page }) => {

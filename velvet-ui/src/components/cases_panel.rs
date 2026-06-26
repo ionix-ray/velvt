@@ -1,5 +1,6 @@
-//! Cases panel — client case study cards (compact, fit within 100vh).
-//! Cards use v-card-modern with smaller height image sections.
+//! Cases panel — client case study cards on the home page.
+//! Cards use the unified `.v-tile` system (Carbon-inspired) shared with
+//! the showcase grid and the case-studies index page.
 
 use crate::Site;
 use dioxus::prelude::*;
@@ -59,6 +60,7 @@ pub fn CasesPanel(site: Site) -> Element {
                                         a {
                                             class: "v-btn-glow",
                                             href: "/cases/{case.slug}",
+                                            "data-spa": "true",
                                             "View Case Study"
                                         }
                                     }

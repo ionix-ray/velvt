@@ -8,6 +8,7 @@ use crate::Site;
 use crate::case_studies::get_all_case_studies;
 use crate::components::case_header::CaseHeader;
 use crate::components::footer_panel::FooterPanel;
+use crate::components::social_strip::SocialStrip;
 use dioxus::prelude::*;
 
 /// All distinct tags across every case study, in first-seen order.
@@ -37,6 +38,7 @@ fn case_studies_grid(filter_tag: Option<&str>) -> Element {
     rsx! {
         div { class: "v-case-page",
             CaseHeader {}
+            SocialStrip { is_last_panel: false }
             section { class: "v-case-hero",
                 div { class: "v-container",
                     span { class: "v-eyebrow", "Showcase" }
@@ -58,12 +60,14 @@ fn case_studies_grid(filter_tag: Option<&str>) -> Element {
                                 a {
                                     class: if filter_tag.is_none() { "v-case-tag-filter__item active" } else { "v-case-tag-filter__item" },
                                     href: "/cases",
+                                    "data-spa": "true",
                                     "All"
                                 }
                                 for tag in tags.iter() {
                                     a {
                                         class: if filter_tag == Some(tag.as_str()) { "v-case-tag-filter__item active" } else { "v-case-tag-filter__item" },
                                         href: "/cases/tag/{tag}",
+                                        "data-spa": "true",
                                         "{tag}"
                                     }
                                 }
@@ -78,18 +82,18 @@ fn case_studies_grid(filter_tag: Option<&str>) -> Element {
                             div { class: "v-cases-grid",
                                 for (slug , frontmatter , _body) in studies.iter() {
                                     a {
-                                        class: "v-card-modern v-reveal",
+                                        class: "v-tile v-tile--clickable v-reveal",
                                         href: "/cases/{slug}",
-                                        div { class: "v-card-modern__content",
-                                            div { class: "v-card-modern__client", "{frontmatter.client}" }
-                                            div { class: "v-card-modern__metric", "{frontmatter.metric}" }
-                                            p { class: "v-card-modern__desc", "{frontmatter.summary}" }
-                                            div { class: "v-tags",
-                                                for tag in frontmatter.tags.iter() {
-                                                    span { class: "v-tag--green", "{tag}" }
-                                                }
+                                        "data-spa": "true",
+                                        span { class: "v-tile__eyebrow", "{frontmatter.client}" }
+                                        div { class: "v-tile__metric", "{frontmatter.metric}" }
+                                        p { class: "v-tile__desc", "{frontmatter.summary}" }
+                                        div { class: "v-tags v-tile__tags",
+                                            for tag in frontmatter.tags.iter() {
+                                                span { class: "v-tag--green", "{tag}" }
                                             }
                                         }
+                                        span { class: "v-tile__chevron", "→" }
                                     }
                                 }
                             }

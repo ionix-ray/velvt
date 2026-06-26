@@ -99,6 +99,9 @@ container-up:
     rm -rf deployment/*
     cp -a target/dx/vaelvet-ui/release/web/public/. deployment/
     cp target/release/velvet-server deployment/
+    # SEO root files (robots.txt + sitemap.xml served at "/").
+    cp velvet-ui/assets/robots.txt deployment/robots.txt
+    cp velvet-ui/assets/sitemap.xml deployment/sitemap.xml
 
     # 4. Find free port.
     PORT=8080
@@ -141,6 +144,26 @@ container-up:
     echo "✅ Vaelvet running at http://localhost:${PORT}/"
     echo "   Stop: just container-stop"
     echo "   Logs: podman logs velvet"
+
+# Deploy build: cargo clean + podman build --no-cache so every deploy
+# starts from a known-fresh state. No layer reuse, no stale Cargo.lock
+# resolution, no surprise reused base images.
+container-build-fresh:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    echo "=== Vaelvet Fresh Build (no cache) ==="
+    cargo clean
+    rm -rf target/dx dist deployment/*
+    cd velvet-ui && dx build --release --platform web
+    cd ..
+    cargo build --release -p velvet-server
+    mkdir -p deployment
+    cp -a target/dx/vaelvet-ui/release/web/public/. deployment/
+    cp target/release/velvet-server deployment/
+    cp velvet-ui/assets/robots.txt deployment/robots.txt
+    cp velvet-ui/assets/sitemap.xml deployment/sitemap.xml
+    podman build --no-cache --pull=always -t localhost/velvet:latest .
+    echo "✅ Fresh image built — localhost/velvet:latest"
 
 # Run existing container image on :8080.
 container-run:

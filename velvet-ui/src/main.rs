@@ -3,10 +3,10 @@
 #![cfg_attr(not(test), forbid(clippy::unwrap_used, clippy::expect_used))]
 
 use dioxus::prelude::*;
-use dioxus_router::Routable;
 use dioxus_router::components::Router;
-use vaelvet_ui::routes::{CaseStudiesByTag, CaseStudiesIndex, CaseStudy, Home};
+use vaelvet_ui::routes::Route;
 use vaelvet_ui::scroll;
+use vaelvet_ui::spa;
 use vaelvet_ui::theme::brand::brand_mark;
 
 fn main() {
@@ -17,9 +17,10 @@ fn main() {
 
 #[component]
 fn App() -> Element {
-    // Install reveal observer after first render.
+    // Install reveal observer + SPA link interceptor after first render.
     use_effect(move || {
         let _ = scroll::install_reveal();
+        let _ = spa::install_spa_link_interceptor();
     });
 
     rsx! {
@@ -32,17 +33,4 @@ fn App() -> Element {
                   href: brand_mark() }
         Router::<Route> {}
     }
-}
-
-#[derive(Routable, Clone, PartialEq, Eq)]
-#[rustfmt::skip]
-pub enum Route {
-    #[route("/")]
-    Home {},
-    #[route("/cases")]
-    CaseStudiesIndex {},
-    #[route("/cases/tag/:tag")]
-    CaseStudiesByTag { tag: String },
-    #[route("/cases/:slug")]
-    CaseStudy { slug: String },
 }

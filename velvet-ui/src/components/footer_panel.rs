@@ -4,22 +4,37 @@
 //! content panel, giving the "rolling reel" effect the user requested.
 
 use crate::Site;
+use crate::components::icons::Icon;
 use crate::theme::brand::brand_mark;
 use dioxus::prelude::*;
+
+/// Capitalize the first character — used to turn the lowercase social slug
+/// (`twitter`, `linkedin`, `instagram`) into a presentable aria-label
+/// (`Twitter`, `Linkedin`, `Instagram`) without pulling in a casing crate.
+fn pretty_label(label: &str) -> String {
+    let mut chars = label.chars();
+    match chars.next() {
+        Some(first) => first.to_uppercase().chain(chars).collect(),
+        None => String::new(),
+    }
+}
 
 #[component]
 pub fn FooterPanel(site: Site) -> Element {
     rsx! {
         section { class: "v-panel v-panel--footer", id: "footer",
             div { class: "v-footer-panel",
-                // ── Top: Brand + tagline ─────────────────────────────
+                // ── Top: Brand wordmark image (no text letters) + tagline
                 div { class: "v-footer-panel__brand",
-                    img { class: "v-footer-panel__logo", src: brand_mark(), alt: "VELVT" }
-                    span { class: "v-footer-panel__name", "{site.brand.name}" }
+                    img {
+                        class: "v-footer-panel__wordmark",
+                        src: brand_mark(),
+                        alt: "{site.brand.name}",
+                    }
                     p { class: "v-footer-panel__tagline", "{site.brand.tagline}" }
                     p { class: "v-footer-panel__desc", "{site.footer.brand_desc}" }
 
-                    // Social icons
+                    // Social icons (SVG via shared Icon component)
                     div { class: "v-footer-panel__socials",
                         for social in site.footer.socials.iter() {
                             a {
@@ -27,8 +42,8 @@ pub fn FooterPanel(site: Site) -> Element {
                                 target: "_blank",
                                 rel: "noopener noreferrer",
                                 class: "v-footer-panel__social-btn",
-                                aria_label: "Velvt on {social.label}",
-                                "{social.label}"
+                                aria_label: "Velvt on {pretty_label(&social.label)}",
+                                Icon { name: social.label.to_string() }
                             }
                         }
                     }

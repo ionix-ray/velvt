@@ -18,7 +18,10 @@ fn render_home() -> String {
 fn site_config_parses() {
     let s = Site::load();
     assert_eq!(s.brand.name.as_ref(), "Velvt");
-    assert_eq!(s.brand.tagline.as_ref(), "elevate your Presence.");
+    assert_eq!(
+        s.brand.tagline.as_ref(),
+        "We shape stories. You make history."
+    );
     assert!(!s.nav.is_empty(), "nav must have items");
     assert!(!s.services.items.is_empty(), "services must have items");
     assert!(!s.cases.items.is_empty(), "case-studies must have items");

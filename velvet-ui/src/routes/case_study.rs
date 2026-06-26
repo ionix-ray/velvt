@@ -8,6 +8,7 @@ use crate::case_studies::get_case_study;
 use crate::components::case_header::CaseHeader;
 use crate::components::footer_panel::FooterPanel;
 use crate::components::markdown_renderer::MarkdownRenderer;
+use crate::components::social_strip::SocialStrip;
 use dioxus::prelude::*;
 
 /// Estimated reading time in whole minutes, at 200 words/minute, rounded up,
@@ -27,6 +28,7 @@ pub fn CaseStudy(slug: String) -> Element {
             rsx! {
                 div { class: "v-case-page",
                     CaseHeader { back_href: "/cases".to_string(), back_label: "All case studies".to_string() }
+                    SocialStrip { is_last_panel: false }
                     section { class: "v-case-hero",
                         div { class: "v-container",
                             span { class: "v-eyebrow", "{frontmatter.client}" }
@@ -41,6 +43,7 @@ pub fn CaseStudy(slug: String) -> Element {
                                     a {
                                         class: "v-tag--green",
                                         href: "/cases/tag/{tag}",
+                                        "data-spa": "true",
                                         "{tag}"
                                     }
                                 }
@@ -49,7 +52,7 @@ pub fn CaseStudy(slug: String) -> Element {
                     }
                     div { class: "v-container",
                         nav { class: "v-case-breadcrumb", aria_label: "Breadcrumb",
-                            a { href: "/cases", "Case Studies" }
+                            a { href: "/cases", "data-spa": "true", "Case Studies" }
                             span { class: "v-case-breadcrumb__sep", "/" }
                             span { class: "v-case-breadcrumb__current", "{frontmatter.title}" }
                         }
@@ -66,6 +69,7 @@ pub fn CaseStudy(slug: String) -> Element {
                                             a {
                                                 class: "v-tag--green",
                                                 href: "/cases/tag/{tag}",
+                                                "data-spa": "true",
                                                 "{tag}"
                                             }
                                         }
@@ -80,7 +84,12 @@ pub fn CaseStudy(slug: String) -> Element {
                                 article { class: "v-case-article",
                                     MarkdownRenderer { content: body }
                                 }
-                                a { class: "v-case-page__back", href: "/cases", "Back to case studies" }
+                                a {
+                                    class: "v-case-page__back",
+                                    href: "/cases",
+                                    "data-spa": "true",
+                                    "Back to case studies"
+                                }
                             }
                         }
                     }
@@ -96,7 +105,7 @@ pub fn CaseStudy(slug: String) -> Element {
                     p { class: "v-panel-header__sub",
                         "We couldn't find a case study at this address."
                     }
-                    a { class: "v-btn-glow", href: "/", "Back to Vaelvet" }
+                    a { class: "v-btn-tile", href: "/", "data-spa": "true", "Back to Velvt" }
                 }
             }
         },

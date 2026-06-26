@@ -42,6 +42,37 @@ pub struct Site {
     pub footer: Footer,
     #[serde(default)]
     pub client_banner: ClientBanner,
+    #[serde(default)]
+    pub founder: Founder,
+}
+
+#[derive(Deserialize, Debug, Clone, Default, PartialEq)]
+pub struct Founder {
+    #[serde(default)]
+    pub name: Box<str>,
+    #[serde(default)]
+    pub eyebrow: Box<str>,
+    #[serde(default)]
+    pub bio: Box<str>,
+    /// Optional path under `velvet-ui/assets/` to the founder portrait.
+    /// Leave empty (or omit) to render the monogram placeholder tile.
+    #[serde(default)]
+    pub photo: Box<str>,
+    /// Single-character fallback shown inside the placeholder tile when
+    /// `photo` is empty (or 404s).
+    #[serde(default)]
+    pub monogram: Box<str>,
+    #[serde(default)]
+    pub handles: Vec<SocialHandle>,
+}
+
+#[derive(Deserialize, Debug, Clone, Default, PartialEq)]
+pub struct SocialHandle {
+    /// Icon name resolved by `Icon { name }` — e.g. "instagram", "linkedin".
+    pub icon: Box<str>,
+    /// Display text rendered next to the icon — e.g. "@thearpitaparhi_official".
+    pub label: Box<str>,
+    pub href: Box<str>,
 }
 
 #[derive(Deserialize, Debug, Clone, Default, PartialEq)]

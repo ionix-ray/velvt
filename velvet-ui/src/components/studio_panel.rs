@@ -19,12 +19,9 @@ pub fn StudioPanel(site: Site) -> Element {
                             div {
                                 class: "{showcase_item_classes(i, site.studio.items.len())}",
                                 style: "transition-delay: {(i + 1) * 60}ms;",
-                                div { class: "v-showcase__item-media", "aria-hidden": "true" }
-                                div { class: "v-showcase__item-content",
-                                    span { class: "v-showcase__item-tag", "{item.tag}" }
-                                    h4 { "{item.title}" }
-                                    p { "{item.body}" }
-                                }
+                                span { class: "v-tile__eyebrow", "{item.tag}" }
+                                h4 { class: "v-tile__title", "{item.title}" }
+                                p { class: "v-tile__desc", "{item.body}" }
                             }
                         }
                     }
@@ -35,12 +32,14 @@ pub fn StudioPanel(site: Site) -> Element {
 }
 
 /// Full class list for a showcase card at `index` out of `total` items.
+/// Carbon-tile base + `--showcase` modifier so a single tile system styles
+/// both the showcase grid and the cases grid.
 fn showcase_item_classes(index: usize, total: usize) -> String {
     let extra = showcase_span_class(index, total);
     if extra.is_empty() {
-        "v-showcase__item v-reveal".to_string()
+        "v-tile v-tile--showcase v-reveal".to_string()
     } else {
-        format!("v-showcase__item v-reveal {extra}")
+        format!("v-tile v-tile--showcase v-reveal {extra}")
     }
 }
 
@@ -51,8 +50,8 @@ fn showcase_span_class(index: usize, total: usize) -> &'static str {
         return "";
     }
     match total % 3 {
-        1 => "v-showcase__item--full",
-        2 => "v-showcase__item--wide",
+        1 => "v-tile--full",
+        2 => "v-tile--wide",
         _ => "",
     }
 }
@@ -72,14 +71,14 @@ mod tests {
 
     #[test]
     fn lone_trailing_item_spans_the_full_row() {
-        assert_eq!(showcase_span_class(3, 4), "v-showcase__item--full");
-        assert_eq!(showcase_span_class(6, 7), "v-showcase__item--full");
+        assert_eq!(showcase_span_class(3, 4), "v-tile--full");
+        assert_eq!(showcase_span_class(6, 7), "v-tile--full");
     }
 
     #[test]
     fn two_trailing_items_widen_only_the_last() {
         assert_eq!(showcase_span_class(3, 5), "");
-        assert_eq!(showcase_span_class(4, 5), "v-showcase__item--wide");
+        assert_eq!(showcase_span_class(4, 5), "v-tile--wide");
     }
 
     #[test]
@@ -90,10 +89,13 @@ mod tests {
 
     #[test]
     fn showcase_item_classes_appends_modifier_with_single_space() {
-        assert_eq!(showcase_item_classes(0, 3), "v-showcase__item v-reveal");
+        assert_eq!(
+            showcase_item_classes(0, 3),
+            "v-tile v-tile--showcase v-reveal"
+        );
         assert_eq!(
             showcase_item_classes(4, 5),
-            "v-showcase__item v-reveal v-showcase__item--wide"
+            "v-tile v-tile--showcase v-reveal v-tile--wide"
         );
     }
 }

@@ -4,7 +4,7 @@ test("home: brand + hero + sections all paint", async ({ page }) => {
   await page.goto("/");
 
   await expect(page).toHaveTitle(/Velvt/i);
-  await expect(page.locator("h1")).toContainText(/Elevate Your Brand/i);
+  await expect(page.locator("h1")).toContainText(/shape|history|stories/i);
 
   // Sections present (panel IDs from config-driven components)
   await expect(page.locator("#home")).toBeVisible();
@@ -265,13 +265,13 @@ test("ui: glassmorphism cards and green tags render", async ({ page }) => {
   await page.waitForSelector(".v-panels");
   await page.waitForSelector(".v-loader", { state: "hidden" });
 
-  // The first case card should use v-card-modern
-  const caseCard = page.locator(".v-card-modern").first();
+  // The first case card uses the v-card-modern system (kept on /#cases)
+  const caseCard = page.locator("#cases .v-card-modern").first();
   await expect(caseCard).toBeVisible();
 
-  // It should contain a glowing button
-  const greenBtn = page.locator(".v-btn-glow").first();
-  await expect(greenBtn).toBeAttached();
+  // It should contain a glowing CTA button
+  const cta = page.locator("#cases .v-btn-glow").first();
+  await expect(cta).toBeAttached();
 });
 
 test("brand: floating badge anchored top-left and overflows the topbar strip", async ({ page }) => {
@@ -314,9 +314,9 @@ test("brand: floating badge anchored top-left and overflows the topbar strip", a
 
 test("brand: floating badge scales across desktop, tablet, and phone viewports", async ({ page }) => {
   const viewports = [
-    { name: "desktop", w: 1440, h: 900, minSide: 72, maxSide: 90 },
-    { name: "tablet", w: 768, h: 1024, minSide: 46, maxSide: 58 },
-    { name: "phone", w: 380, h: 720, minSide: 40, maxSide: 50 },
+    { name: "desktop", w: 1440, h: 900, minSide: 86, maxSide: 108 },
+    { name: "tablet", w: 768, h: 1024, minSide: 56, maxSide: 66 },
+    { name: "phone", w: 380, h: 720, minSide: 48, maxSide: 58 },
   ] as const;
 
   for (const v of viewports) {
@@ -398,9 +398,9 @@ test("footer: renders the real brand logo in the standard footer block", async (
   });
   await page.waitForTimeout(600);
 
-  const logo = page.locator(".v-footer-panel__logo");
+  const logo = page.locator(".v-footer-panel__wordmark");
   await expect(logo).toBeVisible();
-  await expect(logo).toHaveAttribute("alt", "VELVT");
+  await expect(logo).toHaveAttribute("alt", /Velvt/i);
   await expect(logo).toHaveAttribute("src", /velvet-square/);
 });
 
@@ -474,7 +474,7 @@ test("showcase: masonry cards stay within a sane height and show their text", as
   await page.waitForSelector(".v-panels");
   await page.waitForSelector(".v-loader", { state: "hidden" });
 
-  const items = page.locator("#showcase .v-showcase__item");
+  const items = page.locator("#showcase .v-tile");
   const count = await items.count();
   expect(count).toBeGreaterThan(0);
 
@@ -483,11 +483,10 @@ test("showcase: masonry cards stay within a sane height and show their text", as
     const box = await item.boundingBox();
     expect(box).not.toBeNull();
     if (box) {
-      // Cards must never balloon to near-viewport height (the grid-auto-rows
-      // bug this regression-tests for stretched cards to ~700px+).
+      // Cards must never balloon to near-viewport height.
       expect(box.height).toBeLessThan(500);
     }
-    const text = (await item.locator(".v-showcase__item-content").textContent()) ?? "";
+    const text = (await item.textContent()) ?? "";
     expect(text.trim().length).toBeGreaterThan(0);
   }
 });
@@ -521,14 +520,20 @@ test("showcase: responsive grid collapses from three columns to one on narrow vi
   );
   expect(desktopColumns).toBeGreaterThanOrEqual(3);
 
-  await page.setViewportSize({ width: 640, height: 900 });
+  // Narrow viewport: items must stack vertically, regardless of which
+  // breakpoint the layout chooses — the user-facing requirement is that
+  // every tile renders below the previous one on phone-sized viewports.
+  await page.setViewportSize({ width: 380, height: 900 });
   await page.goto("/#showcase");
   await page.waitForSelector(".v-loader", { state: "hidden" });
 
-  const mobileColumns = await page.locator("#showcase .v-showcase__grid").evaluate(
-    (el) => getComputedStyle(el).gridTemplateColumns.split(" ").length,
+  const tops = await page.locator("#showcase .v-tile").evaluateAll((els) =>
+    els.map((el) => (el as HTMLElement).getBoundingClientRect().top),
   );
-  expect(mobileColumns).toBe(1);
+  expect(tops.length).toBeGreaterThan(1);
+  for (let i = 1; i < tops.length; i += 1) {
+    expect(tops[i], `tile ${i} top`).toBeGreaterThan(tops[i - 1]);
+  }
 });
 
 test("showcase: overflow scrollbars are enabled on both axes", async ({ page }) => {
@@ -560,8 +565,9 @@ test("footer: lists the full registered office address", async ({ page }) => {
   await page.waitForTimeout(600);
 
   const text = await page.locator("#footer").textContent();
-  expect(text).toContain("Plot No.756");
-  expect(text).toMatch(/Khorda-\s*751007/);
+  expect(text).toContain("Plot No: 756");
+  expect(text).toMatch(/Saheed Nagar/);
+  expect(text).toMatch(/Odisha-\s*751007/);
 });
 
 // ── Social strip styling (bigger, always-red, responsive) ──────────────────

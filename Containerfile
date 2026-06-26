@@ -85,6 +85,10 @@ RUN mkdir -p /out/assets/images \
  && cp /app/velvet-ui/assets/images/* /out/assets/images/ \
  && cp /app/velvet-ui/assets/images/* /out/assets/ 2>/dev/null || true
 
+# SEO root files served at "/" — robots.txt + sitemap.xml.
+RUN cp /app/velvet-ui/assets/robots.txt /out/robots.txt \
+ && cp /app/velvet-ui/assets/sitemap.xml /out/sitemap.xml
+
 # Build server binary.
 RUN --mount=type=cache,id=velvet-cargo-registry,target=/usr/local/cargo/registry,sharing=locked \
     --mount=type=cache,id=velvet-target,target=/app/target,sharing=locked \

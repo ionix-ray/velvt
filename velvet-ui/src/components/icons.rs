@@ -17,10 +17,21 @@ pub fn Icon(name: String) -> Element {
         "facebook" => rsx!(IconFacebook {}),
         "instagram" => rsx!(IconInstagram {}),
         "youtube" => rsx!(IconYoutube {}),
-        "linkedin" => rsx!(IconLinkedin {}),
+        "linkedin" | "in" => rsx!(IconLinkedin {}),
+        "twitter" | "x" => rsx!(IconTwitter {}),
         "chevron" => rsx!(IconChevron {}),
         _ => rsx!(IconDot {}),
     }
+}
+
+#[component]
+fn IconTwitter() -> Element {
+    // X / Twitter glyph — two diagonal strokes meeting at the centre.
+    rsx!(
+        svg { view_box: "0 0 32 32", fill: "currentColor",
+            path { d: "M22.4 4h4.6L18.6 14.2 28.8 28h-8.2l-6.4-8.4L6.6 28H2l9.1-10.9L1.2 4h8.4l5.8 7.7L22.4 4zm-1.4 21.3h2.5L11.1 6.6H8.4l12.6 18.7z" }
+        }
+    )
 }
 
 #[component]

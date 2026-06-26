@@ -36,12 +36,17 @@ pub fn CaseHeader(
 
     rsx! {
         header { class: "v-topbar v-topbar--standalone", id: "topbar",
-            a { class: "v-topbar__brand", href: "/",
+            a { class: "v-topbar__brand", href: "/", "data-spa": "true",
                 img { src: brand_mark(), alt: "VELVT" }
             }
             div { class: "v-topbar__actions",
                 if let (Some(href), Some(label)) = (back_href.clone(), back_label.clone()) {
-                    a { class: "v-case-page__back", href: "{href}", "{label}" }
+                    a {
+                        class: "v-case-page__back",
+                        href: "{href}",
+                        "data-spa": "true",
+                        "{label}"
+                    }
                 }
                 button {
                     class: "v-theme-toggle",

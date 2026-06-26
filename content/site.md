@@ -9,7 +9,7 @@ straight onto the matching field of the `Site` struct in `velvet-ui/src/config.r
 ```toml
 [brand]
 name      = "Velvt"
-tagline   = "elevate your Presence."
+tagline   = "We shape stories. You make history."
 short     = "Velvt"
 copyright = "© 2026 Velvt. All rights reserved."
 ```
@@ -18,8 +18,8 @@ copyright = "© 2026 Velvt. All rights reserved."
 
 ```toml
 [meta]
-title       = "Velvt — Elevate Your Brand Experiences"
-description = "Leading event management, celebrity talent booking, influencer marketing & custom gifting agency. Transforming brands through immersive experiences from concept to execution."
+title       = "Velvt — We Shape Stories. You Make History."
+description = "PR, event, celebrity, branding, advertising, digital and photography & videography agency. From powerful connections to unforgettable moments, we build brands that inspire, influence and leave a lasting impact."
 og_image    = "/assets/images/logo.jpg"
 theme_color = "#5A0A0F"
 twitter     = "@velvt"
@@ -52,12 +52,12 @@ href = "#contact"
 
 ```toml
 [hero]
-badge     = "Premium Experiences Since 2026"
-headline1 = "Elevate Your Brand Through"
-headline2 = "Unforgettable"
-headline3 = "Experiences"
-sub       = "We engineer immersive events, strategic celebrity partnerships, and data-driven influencer campaigns that captivate audiences and deliver measurable ROI. From concept to execution, your vision, flawlessly realized."
-cta_primary   = "Start Your Campaign"
+badge     = "Building Brands. Creating Impact."
+headline1 = "We shape"
+headline2 = "stories."
+headline3 = "You make history."
+sub       = "From powerful connections to unforgettable moments, we build brands that inspire, influence and leave a lasting impact. Your vision. Our strategy. Unmatched impact."
+cta_primary   = "Start Your Story"
 cta_primary_href = "#contact"
 cta_secondary = "Explore Our Work"
 cta_secondary_href = "#showcase"
@@ -80,37 +80,41 @@ label = "Celebrity Partnerships"
 
 ```toml
 [services]
-title = "Specialized Capabilities. Scalable Solutions."
-sub   = "End-to-end experiential marketing powered by creative strategy, talent connections, and operational precision."
+title = "Our Services."
+sub   = "End-to-end communications, talent and venue capabilities under one roof."
 
 [[services.items]]
 num    = "01"
-title  = "Event Management"
-body   = "End-to-end production from concept to crowd control. Venue sourcing, technical staging, compliance, and seamless execution for corporate, public, and private activations."
+title  = "PR Management"
+body   = "Strategic communication that builds reputation, strengthens relationships and amplifies your voice."
 [[services.items]]
 num    = "02"
-title  = "Celebrity Management"
-body   = "Strategic talent booking, contract negotiation, itinerary coordination, and brand-aligned appearances that amplify visibility and credibility."
+title  = "Event Management"
+body   = "Creating memorable experiences that engage audiences and leave a lasting impression."
 [[services.items]]
 num    = "03"
-title  = "Custom Branding"
-body   = "Identity-driven spatial design, tactile activations, and immersive brand environments that turn passive audiences into active advocates."
+title  = "Celebrity Management"
+body   = "Building powerful associations and managing relationships that elevate your brand."
 [[services.items]]
 num    = "04"
-title  = "Influencer Management"
-body   = "Data-backed creator matchmaking, campaign structuring, content governance, and performance tracking for authentic, high-converting reach."
+title  = "Advertising"
+body   = "Creative campaigns that capture attention, tell your story and drive results."
 [[services.items]]
 num    = "05"
-title  = "Seasonal Events"
-body   = "Culturally resonant celebrations engineered for engagement, community impact, and strategic brand integration."
+title  = "Digital Marketing"
+body   = "Data-driven strategies to grow your online presence and connect with the right audience."
 [[services.items]]
 num    = "06"
-title  = "Personalized Gifts"
-body   = "Thoughtful, brand-enhanced gifting solutions. Scalable production, premium customization, and timely delivery that strengthen loyalty and recall."
+title  = "Branding"
+body   = "Crafting unique identities that define your brand and set you apart in the competitive world."
 [[services.items]]
 num    = "07"
-title  = "Gift Card Management"
-body   = "Full-lifecycle digital and physical gift solutions. Secure code generation, dynamic loading, redemption tracking, fraud prevention, and actionable analytics."
+title  = "Photography & Videography"
+body   = "Capturing moments that tell your story through powerful visuals."
+[[services.items]]
+num    = "08"
+title  = "Venue"
+body   = "Our colocation space for podcasts, with a full suite for hosting small meetings, co-working sessions and shooting short films."
 ```
 
 ## Story
@@ -118,12 +122,12 @@ body   = "Full-lifecycle digital and physical gift solutions. Secure code genera
 ```toml
 [story]
 title = "Where Strategy Meets Spectacle"
-sub   = "A results-driven experiential agency specializing in end-to-end event production, talent curation, and brand activation. Backed by industry veterans and creative innovators, we turn moments into movements."
+sub   = "A results-driven agency specialising in PR, events, celebrity and influencer work, brand identity and content production. Backed by industry veterans and creative innovators, we turn moments into movements."
 
 [[story.items]]
 year  = "01"
 title = "Precision Planning"
-body  = "End-to-end orchestration of every detail, timeline, and stakeholder for flawless, on-budget delivery."
+body  = "End-to-end orchestration of every detail, timeline and stakeholder for flawless, on-budget delivery."
 [[story.items]]
 year  = "02"
 title = "Talent Curation"
@@ -206,7 +210,7 @@ desc   = "SaaS platform achieved 3x lead generation through our full-funnel expe
 tags   = ["B2B", "Experiential", "Lead Gen"]
 logo_image = "/assets/images/logo.jpg"
 button_link = "#"
-footer_label = "Developed by 🍐 Community"
+footer_label = "Velvt Studio"
 slug = "technova-full-funnel-growth"
 
 [[cases.items]]
@@ -216,7 +220,7 @@ desc   = "Premium beauty brand broke sales records with our celebrity-driven lau
 tags   = ["Beauty", "Celebrity", "Launch"]
 logo_image = "/assets/images/logo.jpg"
 button_link = "#"
-footer_label = "Developed by Velvt"
+footer_label = "Velvt Studio"
 slug = "luxe-beauty-celebrity-launch"
 
 [[cases.items]]
@@ -226,7 +230,7 @@ desc   = "Eco-tech startup dominated their market with our immersive brand story
 tags   = ["Tech", "Sustainability", "Immersive"]
 logo_image = "/assets/images/logo.jpg"
 button_link = "#"
-footer_label = "Developed by 🍐 Community"
+footer_label = "Velvt Studio"
 slug = "greenfuture-immersive-storytelling"
 ```
 
@@ -254,17 +258,25 @@ tag   = "Product"
 title = "Interactive Launch"
 body  = "AR-powered product launch event blending digital immersion with live attendee engagement."
 [[studio.items]]
-tag   = "Gifting"
-title = "Corporate Gifting Suite"
-body  = "Scalable personalized gift program for 5,000+ employees across 12 locations globally."
+tag   = "Venue"
+title = "Velvt Venue"
+body  = "Colocation space built for podcasts, co-working, intimate meetings and small film shoots."
+[[studio.items]]
+tag   = "Celebrity"
+title = "Celebrity & Influencer Management"
+body  = "End-to-end celebrity and influencer partnerships — talent discovery, deal-making and on-brand activations that turn famous faces into measurable lift for your brand."
+[[studio.items]]
+tag   = "Creators"
+title = "Creator Seeding"
+body  = "Authentic product seeding to a vetted creator network. We match the right makers with your story so the conversation starts where your audience already lives."
 ```
 
 ## CTA
 
 ```toml
 [cta]
-title   = "Ready To Elevate Your Brand?"
-body    = "Let's engineer immersive campaigns that capture attention, engage audiences, and grow your business."
+title   = "Ready To Make History?"
+body    = "Let's shape a story your audience won't forget — strategy, talent, production and venue under one roof."
 btn_primary   = "Launch Your Campaign"
 btn_secondary = "Book a Consultation"
 btn_ghost     = "View Our Work"
@@ -276,8 +288,8 @@ btn_ghost     = "View Our Work"
 [contact]
 email_general = "connect@velvt.live"
 email_press   = "connect@velvt.live"
-ateliers      = ["3rd floor, Plot No.756, G+2 Storied GA, Rev Plot No. 317, Saheed Nagar, Bhubaneswar, Khorda- 751007, Orissa, India", "Bandra West, Mumbai"]
-cta           = "Tell us who you want to become."
+ateliers      = ["Plot No: 756, 3rd Floor, Saheed Nagar, BBSR, Odisha- 751007"]
+cta           = "Tell us the story you want to tell."
 ```
 
 ## Client Banner
@@ -287,45 +299,65 @@ cta           = "Tell us who you want to become."
 title = "Trusted by Industry Leaders"
 ```
 
+## Founder
+
+```toml
+[founder]
+name     = "Arpita"
+eyebrow  = "Founder · Star Gazer"
+bio      = "An Odishi dancer with a quiet observer's eye, Arpita reads a room before she enters it. Her soft spot is the stardom her work moves around every day — and the warmth of hospitality she insists every guest leaves with. Velvt is built on both: an artist's attention to detail, and a host's instinct for people."
+# Drop the founder portrait at velvet-ui/assets/images/arpita.jpg and
+# point `photo` at it. Empty `photo` renders the monogram tile.
+photo    = ""
+monogram = "A"
+
+[[founder.handles]]
+icon  = "instagram"
+label = "@thearpitaparhi_official"
+href  = "https://instagram.com/thearpitaparhi_official"
+```
+
 ## Footer
 
 ```toml
 [footer]
-brand_desc = "A premium experiential agency that turns brands into movements. We engineer immersive events, forge celebrity partnerships, and craft data-driven influencer campaigns that captivate audiences and deliver measurable ROI."
+brand_desc = "From powerful connections to unforgettable moments, we build brands that inspire, influence and leave a lasting impact. Building brands. Creating impact."
 
 [[footer.columns]]
 title = "Services"
 links = [
+  { label = "PR Management", href = "#" },
   { label = "Event Management", href = "#" },
   { label = "Celebrity Management", href = "#" },
-  { label = "Influencer Campaigns", href = "#" },
-  { label = "Custom Branding", href = "#" },
-  { label = "Gift Solutions", href = "#" },
+  { label = "Advertising", href = "#" },
+  { label = "Digital Marketing", href = "#" },
+  { label = "Branding", href = "#" },
+  { label = "Photography & Videography", href = "#" },
+  { label = "Venue", href = "#" },
 ]
 [[footer.columns]]
 title = "Company"
 links = [
   { label = "About Us", href = "#about" },
   { label = "Our Work", href = "#showcase" },
-  { label = "Careers", href = "#" },
-  { label = "Blog", href = "#" },
+  { label = "Case Studies", href = "/cases" },
   { label = "Contact", href = "#contact" },
 ]
 [[footer.columns]]
 title = "Contact"
 links = [
   { label = "connect@velvt.live", href = "mailto:connect@velvt.live" },
-  { label = "+91 (555) 000-0000", href = "tel:+915550000000" },
-  { label = "3rd floor, Plot No.756, G+2 Storied GA, Rev Plot No. 317, Saheed Nagar, Bhubaneswar, Khorda- 751007, Orissa, India", href = "#" },
-  { label = "Bandra West, Mumbai", href = "#" },
+  { label = "+91 93484 04970", href = "tel:+919348404970" },
+  { label = "www.velvt.live", href = "https://www.velvt.live" },
+  { label = "Plot No: 756, 3rd Floor, Saheed Nagar, BBSR, Odisha- 751007", href = "#" },
 ]
 [[footer.socials]]
-label = "X"
+label = "twitter"
 href  = "https://x.com/velvt"
 [[footer.socials]]
-label = "in"
+label = "linkedin"
 href  = "https://linkedin.com/company/velvt"
 [[footer.socials]]
-label = "IG"
+label = "instagram"
 href  = "https://instagram.com/velvt"
 ```

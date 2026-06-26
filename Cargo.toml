@@ -20,7 +20,7 @@ tracing-subscriber  = { version = "0.3", features = ["env-filter"] }
 tracing-wasm        = "0.2"
 thiserror           = "2"
 gloo-timers         = "0.3"
-web-sys             = { version = "0.3", features = ["Window", "Document", "Element", "HtmlElement", "CssStyleDeclaration", "DomTokenList", "NodeList", "KeyboardEvent", "ScrollToOptions", "ScrollBehavior", "Event", "Performance", "IntersectionObserver", "IntersectionObserverInit", "IntersectionObserverEntry"] }
+web-sys             = { version = "0.3", features = ["Window", "Document", "Element", "HtmlElement", "HtmlAnchorElement", "CssStyleDeclaration", "DomTokenList", "NodeList", "KeyboardEvent", "MouseEvent", "ScrollToOptions", "ScrollBehavior", "Event", "EventTarget", "History", "Performance", "IntersectionObserver", "IntersectionObserverInit", "IntersectionObserverEntry"] }
 wasm-bindgen        = "0.2"
 console_error_panic_hook = "0.1"
 # js-sys removed — access via web-sys::js_sys re-export only
