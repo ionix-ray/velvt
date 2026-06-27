@@ -24,8 +24,9 @@ pub fn FooterPanel(site: Site) -> Element {
     rsx! {
         section { class: "v-panel v-panel--footer", id: "footer",
             div { class: "v-footer-panel",
-                // ── Top: Brand wordmark image (no text letters) + tagline
-                div { class: "v-footer-panel__brand",
+                // ── Main Top Row: Brand & Columns ────────────────────────
+                div { class: "v-footer-panel__main",
+                    div { class: "v-footer-panel__brand",
                     img {
                         class: "v-footer-panel__wordmark",
                         src: brand_mark(),
@@ -83,8 +84,9 @@ pub fn FooterPanel(site: Site) -> Element {
                             }
                         }
                     }
-                }
-
+                    }
+                } // End v-footer-panel__main
+                
                 // ── Bottom: Legal + copyright ────────────────────────
                 div { class: "v-footer-panel__bottom",
                     p { class: "v-footer-panel__copyright", "{site.brand.copyright}" }

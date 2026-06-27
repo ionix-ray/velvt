@@ -15,13 +15,13 @@ use wasm_bindgen::JsCast;
 /// Panel labels — displayed in the spindle navigator.
 /// The 7th panel is the footer; SocialStrip hides on it.
 const PANEL_LABELS: &[&str] = &[
-    "01 HOME",
-    "02 ABOUT",
-    "03 STORIES",
-    "04 SHOWCASE",
-    "05 PORTFOLIO",
-    "06 CONTACT",
-    "07 FOOTER",
+    "HOME",
+    "ABOUT",
+    "STORIES",
+    "SHOWCASE",
+    "PORTFOLIO",
+    "CONTACT",
+    "FOOTER",
 ];
 
 /// URL-hash anchors, one per panel, in render order. Mirrors each panel

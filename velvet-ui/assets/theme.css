@@ -2382,6 +2382,15 @@ ul { list-style: none; }
   gap: var(--s3);
   padding-top: calc(var(--s4) + 56px); /* clear topbar */
 }
+.v-footer-panel__main {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 100%;
+  gap: var(--s5);
+  flex-wrap: wrap;
+}
 .v-footer-panel__brand {
   display: flex;
   flex-direction: column;

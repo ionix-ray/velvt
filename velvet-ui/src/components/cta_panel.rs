@@ -41,7 +41,7 @@ pub fn CtaPanel(site: Site) -> Element {
     rsx! {
         section { class: "v-panel", id: "contact",
             div { class: "v-section",
-                div { class: "v-container",
+                div { class: "v-container v-cta",
                     if *submitted.read() {
                         div { class: "v-cta__inner v-reveal",
                             span { class: "v-eyebrow", "Thank You" }
