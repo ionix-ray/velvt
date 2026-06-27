@@ -7,6 +7,7 @@ use dioxus::prelude::*;
 pub fn CtaPanel(site: Site) -> Element {
     let mut name = use_signal(String::new);
     let mut email = use_signal(String::new);
+    let mut service = use_signal(|| "General".to_string());
     let mut message = use_signal(String::new);
     let mut submitted = use_signal(|| false);
     let mut error = use_signal(String::new);
@@ -22,12 +23,13 @@ pub fn CtaPanel(site: Site) -> Element {
 
         let n = name.read().trim().to_string();
         let e = email.read().trim().to_string();
+        let s = service.read().clone();
         let m = message.read().trim().to_string();
 
         match validate_inquiry(&n, &e, &m) {
             Err(msg) => error.set(msg.to_string()),
             Ok(()) => {
-                let mailto = build_mailto(&email_general, &n, &e, &m);
+                let mailto = build_mailto(&email_general, &n, &e, &s, &m);
                 if let Some(win) = web_sys::window() {
                     let _ = win.location().set_href(&mailto);
                 }
@@ -77,6 +79,17 @@ pub fn CtaPanel(site: Site) -> Element {
                                         placeholder: "your@email.com",
                                         value: "{email}",
                                         oninput: move |evt| email.set(evt.value()),
+                                    }
+                                }
+                                div { class: "v-form-row",
+                                    label { "Service" }
+                                    select {
+                                        value: "{service}",
+                                        onchange: move |evt| service.set(evt.value()),
+                                        option { value: "General", "General" }
+                                        for srv in site.services.items.iter() {
+                                            option { value: "{srv.title}", "{srv.title}" }
+                                        }
                                     }
                                 }
                                 div { class: "v-form-row",
@@ -136,9 +149,9 @@ fn validate_inquiry(name: &str, email: &str, message: &str) -> Result<(), &'stat
 }
 
 /// Build a `mailto:` URL carrying the inquiry as subject/body.
-fn build_mailto(to: &str, name: &str, email: &str, message: &str) -> String {
-    let subject = format!("Inquiry from {name}");
-    let body = format!("{message}\n\nFrom: {name} <{email}>");
+fn build_mailto(to: &str, name: &str, email: &str, service: &str, message: &str) -> String {
+    let subject = format!("Inquiry from {name}: {service}");
+    let body = format!("{message}\n\nFrom: {name} <{email}>\nService Area: {service}");
     format!(
         "mailto:{to}?subject={}&body={}",
         encode_mailto(&subject),
@@ -205,10 +218,11 @@ mod tests {
 
     #[test]
     fn build_mailto_embeds_subject_and_body() {
-        let url = build_mailto("hello@vaelvet.com", "Sam", "sam@x.com", "Let's talk");
-        assert!(url.starts_with("mailto:hello@vaelvet.com?subject=Inquiry%20from%20Sam&body="));
+        let url = build_mailto("hello@vaelvet.com", "Sam", "sam@x.com", "PR", "Let's talk");
+        assert!(url.starts_with("mailto:hello@vaelvet.com?subject=Inquiry%20from%20Sam:%20PR&body="));
         assert!(url.contains("Let's%20talk"));
         assert!(url.contains("From:%20Sam%20<sam@x.com>"));
+        assert!(url.contains("Service%20Area:%20PR"));
     }
 
     #[test]

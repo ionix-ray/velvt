@@ -9,7 +9,7 @@ base_path = "/"
 
 [web.watcher]
 reload_html = true
-watch       = ["assets", "src", "../content"]
+watch       = ["assets", "src", "../content", "../docs"]
 
 [web.wasm_opt]
 level = "z"

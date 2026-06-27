@@ -17,8 +17,27 @@ fn monogram(client: &str) -> String {
         .unwrap_or_else(|| "•".to_string())
 }
 
+use crate::case_studies::get_all_case_studies;
+use crate::config::CaseItem;
+
 #[component]
 pub fn CasesPanel(site: Site) -> Element {
+    let mut all_cases = site.cases.items.clone();
+    for (slug, fm, _) in get_all_case_studies() {
+        if !all_cases.iter().any(|c| c.slug.as_ref() == slug) {
+            all_cases.push(CaseItem {
+                client: fm.client.clone(),
+                metric: fm.metric.clone(),
+                desc: fm.summary.clone(),
+                tags: fm.tags.clone(),
+                logo_image: "".into(),
+                button_link: "".into(),
+                footer_label: "Velvt Studio".into(),
+                slug: slug.into(),
+            });
+        }
+    }
+
     rsx! {
         section { class: "v-panel", id: "cases",
             div { class: "v-section",
@@ -29,7 +48,7 @@ pub fn CasesPanel(site: Site) -> Element {
                         p { class: "v-panel-header__sub", "{site.cases.sub}" }
                     }
                     div { class: "v-cases-grid",
-                        for (i, case) in site.cases.items.iter().enumerate() {
+                        for (i, case) in all_cases.iter().enumerate() {
                             div {
                                 class: "v-card-modern v-reveal",
                                 style: "transition-delay: {(i + 1) * 80}ms;",

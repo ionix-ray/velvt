@@ -42,7 +42,7 @@ label = "Showcase"
 href = "#showcase"
 [[nav]]
 label = "Portfolio"
-href = "#portfolio"
+href = "#cases"
 [[nav]]
 label = "Contact"
 href = "#contact"
@@ -115,6 +115,10 @@ body   = "Capturing moments that tell your story through powerful visuals."
 num    = "08"
 title  = "Venue"
 body   = "Our colocation space for podcasts, with a full suite for hosting small meetings, co-working sessions and shooting short films."
+[[services.items]]
+num    = "09"
+title  = "Gift Card Solution"
+body   = "End-to-end generation and lifecycle management of custom coupons and gift cards."
 ```
 
 ## Story
@@ -308,7 +312,7 @@ eyebrow  = "Founder · Star Gazer"
 bio      = "An Odishi dancer with a quiet observer's eye, Arpita reads a room before she enters it. Her soft spot is the stardom her work moves around every day — and the warmth of hospitality she insists every guest leaves with. Velvt is built on both: an artist's attention to detail, and a host's instinct for people."
 # Drop the founder portrait at velvet-ui/assets/images/arpita.jpg and
 # point `photo` at it. Empty `photo` renders the monogram tile.
-photo    = ""
+photo    = "/assets/images/arpita.png"
 monogram = "A"
 
 [[founder.handles]]
@@ -343,14 +347,7 @@ links = [
   { label = "Case Studies", href = "/cases" },
   { label = "Contact", href = "#contact" },
 ]
-[[footer.columns]]
-title = "Contact"
-links = [
-  { label = "connect@velvt.live", href = "mailto:connect@velvt.live" },
-  { label = "+91 93484 04970", href = "tel:+919348404970" },
-  { label = "www.velvt.live", href = "https://www.velvt.live" },
-  { label = "Plot No: 756, 3rd Floor, Saheed Nagar, BBSR, Odisha- 751007", href = "#" },
-]
+
 [[footer.socials]]
 label = "twitter"
 href  = "https://x.com/velvt"

@@ -32,7 +32,7 @@ test("case study detail: unknown slug shows a not-found state, not a crash", asy
 
 test("case studies index: lists all sample studies and filters by tag", async ({ page }) => {
   await page.goto("/cases");
-  await expect(page.locator(".v-cases-grid .v-tile__eyebrow")).toHaveCount(3);
+  await expect(page.locator(".v-cases-grid .v-tile__eyebrow")).toHaveCount(4);
 
   await page.goto("/cases/tag/Beauty");
   await expect(page.locator(".v-cases-grid .v-tile__eyebrow")).toHaveCount(1);

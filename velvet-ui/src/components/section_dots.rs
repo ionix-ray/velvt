@@ -11,31 +11,14 @@ pub fn SectionDots(
     labels: Vec<String>,
     on_navigate: EventHandler<usize>,
 ) -> Element {
-    // Compute per-item transform/opacity purely in Rust.
-    // CSS `transition` handles smooth interpolation — zero JS animation.
     let states: Vec<_> = (0..count)
         .map(|i| {
-            let dy = i as f64 - current as f64;
-            let dist = dy.abs();
             let is_active = i == current;
-
-            // 22 degrees per step on the reel — gentler tilt so far items
-            // still read as legible labels rather than edge-on slivers.
-            let angle = -dy * 22.0;
-            // Slow fade with a visibility floor so every section name stays
-            // readable from any panel — the dial is the site map.
-            let opacity = (1.0 - dist * 0.16).max(0.45);
-            // All items remain clickable; the dial is the primary
-            // discoverability surface for what the site has to offer.
-            let pe = "";
-
             let style = if is_active {
-                // Active item sits flat (no rotation)
-                format!("opacity:1;transform:rotateX(0deg);{pe}")
+                "opacity: 1;"
             } else {
-                format!("transform:rotateX({angle:.1}deg);opacity:{opacity:.2};{pe}")
+                "opacity: 0.5;"
             };
-
             (i, is_active, style)
         })
         .collect();

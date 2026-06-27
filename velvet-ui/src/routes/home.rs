@@ -60,50 +60,9 @@ fn set_url_anchor(idx: usize) {
     }
 }
 
-/// Next panel index for an `ArrowRight`/`ArrowLeft` (etc.) keypress, or
-/// `None` if the key is unrecognized or would move out of range.
-fn keyboard_nav_index(key: &str, current: usize, len: usize) -> Option<usize> {
-    match key {
-        "ArrowRight" | "ArrowDown" => {
-            if current < len.saturating_sub(1) {
-                Some(current + 1)
-            } else {
-                None
-            }
-        }
-        "ArrowLeft" | "ArrowUp" => {
-            if current > 0 {
-                Some(current - 1)
-            } else {
-                None
-            }
-        }
-        _ => None,
-    }
-}
-
-/// Next panel index for a wheel/trackpad scroll, or `None` if the delta is
-/// too small to count as a deliberate gesture, or would move out of range.
-fn wheel_nav_index(delta_y: f64, current: usize, len: usize) -> Option<usize> {
-    if delta_y.abs() < 8.0 {
-        return None;
-    }
-    if delta_y > 0.0 {
-        if current < len.saturating_sub(1) {
-            Some(current + 1)
-        } else {
-            None
-        }
-    } else if current > 0 {
-        Some(current - 1)
-    } else {
-        None
-    }
-}
-
-/// Panel index implied by the panels container's current scroll position.
-fn scroll_sync_index(scroll_left: f64, client_width: f64, len: usize) -> usize {
-    let idx = (scroll_left / client_width).round() as usize;
+/// Panel index implied by the window's vertical scroll position.
+fn scroll_sync_index(scroll_top: f64, client_height: f64, len: usize) -> usize {
+    let idx = (scroll_top / client_height).round() as usize;
     if len == 0 { 0 } else { idx.min(len - 1) }
 }
 
@@ -116,17 +75,19 @@ fn progress_for(current: usize, count: usize) -> f64 {
     }
 }
 
-/// Smooth-scroll `.v-panels` to the panel at `idx` and sync the URL hash.
+/// Smooth-scroll to the panel at `idx` and sync the URL hash.
 fn scroll_to_panel(idx: usize) {
     set_url_anchor(idx);
     if let Some(win) = web_sys::window() {
         if let Some(doc) = win.document() {
-            if let Some(panels) = doc.query_selector(".v-panels").ok().flatten() {
-                let target = idx as f64 * panels.client_width() as f64;
+            let id = anchor_for(idx);
+            if let Some(panel) = doc.get_element_by_id(id) {
+                let rect = panel.get_bounding_client_rect();
+                let top = rect.top() + win.scroll_y().unwrap_or(0.0);
                 let opts = web_sys::ScrollToOptions::new();
-                opts.set_left(target);
+                opts.set_top(top);
                 opts.set_behavior(web_sys::ScrollBehavior::Smooth);
-                panels.scroll_to_with_scroll_to_options(&opts);
+                win.scroll_to_with_scroll_to_options(&opts);
             }
         }
     }
@@ -186,76 +147,35 @@ pub fn Home() -> Element {
         scroll_to_panel(idx);
     };
 
-    // Keyboard arrow navigation + scroll-position sync
+    // Window vertical scroll listener to update current_panel
     {
         use_effect(move || {
             if let Some(win) = web_sys::window() {
-                if let Some(doc) = win.document() {
-                    let doc_scroll = doc.clone();
-
-                    // ── Keyboard handler ─────────────────────────────────
-                    let kbd =
-                        wasm_bindgen::closure::Closure::<dyn FnMut(web_sys::KeyboardEvent)>::new(
-                            move |ev: web_sys::KeyboardEvent| {
-                                let cur = *current_panel.read();
-                                let len = PANEL_LABELS.len();
-                                let Some(idx) = keyboard_nav_index(&ev.key(), cur, len) else {
-                                    return;
-                                };
-                                ev.prevent_default();
-                                current_panel.set(idx);
-                                menu_open.set(false);
-                                scroll_to_panel(idx);
-                            },
-                        );
-
-                    // ── Wheel / trackpad handler ─────────────────────────
-                    let wheel =
-                        wasm_bindgen::closure::Closure::<dyn FnMut(web_sys::WheelEvent)>::new(
-                            move |ev: web_sys::WheelEvent| {
-                                let cur = *current_panel.read();
-                                let len = PANEL_LABELS.len();
-                                let Some(idx) = wheel_nav_index(ev.delta_y(), cur, len) else {
-                                    return;
-                                };
-                                ev.prevent_default();
-                                ev.stop_propagation();
-                                current_panel.set(idx);
-                                menu_open.set(false);
-                                scroll_to_panel(idx);
-                            },
-                        );
-
-                    // ── Scroll listener — keeps spindle in sync with touch/scroll ─
-                    let scroll = wasm_bindgen::closure::Closure::<dyn FnMut()>::new(move || {
-                        if let Some(panels) = doc_scroll.query_selector(".v-panels").ok().flatten()
-                        {
-                            let idx = scroll_sync_index(
-                                panels.scroll_left() as f64,
-                                panels.client_width() as f64,
-                                PANEL_LABELS.len(),
-                            );
-                            if idx != *current_panel.read() {
-                                current_panel.set(idx);
-                                set_url_anchor(idx);
-                            }
-                        }
-                    });
-
-                    let kbd_js = kbd.as_ref().unchecked_ref();
-                    let _ = win.add_event_listener_with_callback("keydown", kbd_js);
-                    kbd.forget();
-
-                    let wheel_js = wheel.as_ref().unchecked_ref();
-                    let _ = win.add_event_listener_with_callback("wheel", wheel_js);
-                    wheel.forget();
-
-                    if let Some(panels) = doc.query_selector(".v-panels").ok().flatten() {
-                        let scroll_js = scroll.as_ref().unchecked_ref();
-                        let _ = panels.add_event_listener_with_callback("scroll", scroll_js);
+                let win_clone = win.clone();
+                let scroll = wasm_bindgen::closure::Closure::<dyn FnMut()>::new(move || {
+                    let scroll_top = win_clone.scroll_y().unwrap_or(0.0);
+                    let client_height = win_clone.inner_height().ok().and_then(|h| h.as_f64()).unwrap_or(800.0);
+                    let scroll_height = win_clone.document().and_then(|d| d.document_element()).map(|e| e.scroll_height() as f64).unwrap_or(0.0);
+                    
+                    let mut idx = scroll_sync_index(
+                        scroll_top,
+                        client_height,
+                        PANEL_LABELS.len(),
+                    );
+                    
+                    // If we are at the very bottom, force the last panel (footer)
+                    if scroll_top + client_height >= scroll_height - 150.0 {
+                        idx = PANEL_LABELS.len().saturating_sub(1);
                     }
-                    scroll.forget();
-                }
+                    if idx != *current_panel.read() {
+                        current_panel.set(idx);
+                        set_url_anchor(idx);
+                    }
+                });
+
+                let scroll_js = scroll.as_ref().unchecked_ref();
+                let _ = win.add_event_listener_with_callback("scroll", scroll_js);
+                scroll.forget();
             }
         });
     }
@@ -289,29 +209,7 @@ pub fn Home() -> Element {
         // Social icons — visible on all panels except the footer
         SocialStrip { is_last_panel: is_footer_panel }
 
-        // Next hint shows on panels 0..n-2, Previous shows on panels 1..n-1
-        NextHint {
-            label: "Next",
-            hidden: *current_panel.read() >= panel_count - 1,
-            direction: "right",
-            onclick: move |_| {
-                let cur = *current_panel.read();
-                if cur < panel_count - 1 {
-                    on_navigate(cur + 1);
-                }
-            }
-        }
-        NextHint {
-            label: "Previous",
-            hidden: *current_panel.read() == 0,
-            direction: "left",
-            onclick: move |_| {
-                let cur = *current_panel.read();
-                if cur > 0 {
-                    on_navigate(cur - 1);
-                }
-            }
-        }
+        // Next and Previous hints removed as per user request
 
         // ── Mobile bottom nav (≤768px) ───────────────────────────────────
         MobileNav {
@@ -339,25 +237,6 @@ pub fn Home() -> Element {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    #[test]
-    fn keyboard_nav_advances_and_clamps_at_bounds() {
-        assert_eq!(keyboard_nav_index("ArrowRight", 0, 3), Some(1));
-        assert_eq!(keyboard_nav_index("ArrowDown", 1, 3), Some(2));
-        assert_eq!(keyboard_nav_index("ArrowRight", 2, 3), None);
-        assert_eq!(keyboard_nav_index("ArrowLeft", 2, 3), Some(1));
-        assert_eq!(keyboard_nav_index("ArrowUp", 0, 3), None);
-        assert_eq!(keyboard_nav_index("Enter", 1, 3), None);
-    }
-
-    #[test]
-    fn wheel_nav_ignores_small_deltas_and_clamps_at_bounds() {
-        assert_eq!(wheel_nav_index(2.0, 0, 3), None);
-        assert_eq!(wheel_nav_index(10.0, 0, 3), Some(1));
-        assert_eq!(wheel_nav_index(10.0, 2, 3), None);
-        assert_eq!(wheel_nav_index(-10.0, 1, 3), Some(0));
-        assert_eq!(wheel_nav_index(-10.0, 0, 3), None);
-    }
 
     #[test]
     fn scroll_sync_index_rounds_and_caps_at_last_panel() {

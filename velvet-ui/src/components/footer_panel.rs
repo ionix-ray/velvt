@@ -66,7 +66,7 @@ pub fn FooterPanel(site: Site) -> Element {
 
                     // Contact column from site.contact
                     div { class: "v-footer-panel__col",
-                        h4 { class: "v-footer-panel__col-title", "Ateliers" }
+                        h4 { class: "v-footer-panel__col-title", "Locate us" }
                         for atelier in site.contact.ateliers.iter() {
                             span { class: "v-footer-panel__address", "{atelier}" }
                         }
@@ -75,10 +75,12 @@ pub fn FooterPanel(site: Site) -> Element {
                             class: "v-footer-panel__col-link",
                             "{site.contact.email_general}"
                         }
-                        a {
-                            href: "mailto:{site.contact.email_press}",
-                            class: "v-footer-panel__col-link",
-                            "{site.contact.email_press}"
+                        if site.contact.email_press != site.contact.email_general {
+                            a {
+                                href: "mailto:{site.contact.email_press}",
+                                class: "v-footer-panel__col-link",
+                                "{site.contact.email_press}"
+                            }
                         }
                     }
                 }
@@ -93,6 +95,11 @@ pub fn FooterPanel(site: Site) -> Element {
                         span { class: "v-footer-panel__legal-sep", "·" }
                         a { href: "#", class: "v-footer-panel__legal-link", "Cookie Policy" }
                     }
+                }
+                
+                // ── Giant brand mark at the bottom ────────────────────────
+                div { class: "v-footer-panel__giant-brand",
+                    "VELVT"
                 }
             }
         }

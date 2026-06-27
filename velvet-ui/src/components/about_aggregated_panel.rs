@@ -35,23 +35,25 @@ pub fn AboutAggregatedPanel(site: Site) -> Element {
                                     }
                                 }
                             }
-
-                            // Founder — config-driven (see content/site.md `[founder]`).
-                            FounderCard { founder: site.founder.clone() }
                         }
 
-                        // ── Right: Stats (bento) ──────────────────────────────
-                        div { class: "v-about-grid__stats",
-                            span { class: "v-eyebrow", "By the Numbers" }
-                            h3 { class: "v-about-grid__stats-title",
-                                "{site.analytics.title}"
-                            }
-                            div { class: "v-about-stats",
-                                for stat in site.analytics.stats.iter() {
-                                    div { class: "v-about-stat",
-                                        div { class: "v-about-stat__value", "{stat.value}" }
-                                        div { class: "v-about-stat__label", "{stat.label}" }
-                                        span { class: "v-tag--green", "{stat.change}" }
+                        // ── Right: Stats (bento) & Founder ────────────────────────
+                        div { class: "v-about-grid__right",
+                            // Founder — config-driven (see content/site.md `[founder]`).
+                            FounderCard { founder: site.founder.clone() }
+                            
+                            div { class: "v-about-grid__stats",
+                                span { class: "v-eyebrow", "By the Numbers" }
+                                h3 { class: "v-about-grid__stats-title",
+                                    "{site.analytics.title}"
+                                }
+                                div { class: "v-about-stats",
+                                    for stat in site.analytics.stats.iter() {
+                                        div { class: "v-about-stat",
+                                            div { class: "v-about-stat__value", "{stat.value}" }
+                                            div { class: "v-about-stat__label", "{stat.label}" }
+                                            span { class: "v-tag--green", "{stat.change}" }
+                                        }
                                     }
                                 }
                             }
@@ -87,7 +89,7 @@ fn FounderCard(founder: Founder) -> Element {
                     class: "v-founder__photo",
                     src: "{founder.photo}",
                     alt: "{founder.name} — founder of Velvt",
-                    loading: "eager",
+                    loading: "lazy",
                     width: "200",
                     height: "200",
                 }

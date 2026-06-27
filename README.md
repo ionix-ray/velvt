@@ -76,6 +76,7 @@ CTA: **Book a private consultation →**
 3. **Talent Curation** — actor, athlete, founder positioning across global press.
 4. **Event Direction** — premieres, listening sessions, runway after-parties.
 5. **Editorial Placement** — long-lead features in Vogue, GQ, Vanity Fair, Hollywood Reporter, Variety.
+6. **Gift Card Solution** — End-to-end generation and lifecycle management of custom coupons and gift cards.
 
 ## Case Studies
 
