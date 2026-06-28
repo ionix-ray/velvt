@@ -47,8 +47,8 @@ fn panel_2_about_renders() {
 fn panel_3_process_renders() {
     let html = render_home();
     assert!(
-        html.contains(r#"id="stories""#),
-        "panel #stories must appear"
+        html.contains(r#"id="ideology""#),
+        "panel #ideology must appear"
     );
     assert!(html.contains("v-process"), "process class must appear");
 }
@@ -56,7 +56,7 @@ fn panel_3_process_renders() {
 #[test]
 fn panel_4_cases_renders() {
     let html = render_home();
-    assert!(html.contains(r#"id="cases""#), "panel #cases must appear");
+    assert!(html.contains(r#"id="achivements""#), "panel #achivements must appear");
     assert!(html.contains("v-cases"), "cases class must appear");
 }
 
@@ -64,7 +64,7 @@ fn panel_4_cases_renders() {
 fn panel_5_showcase_renders() {
     let html = render_home();
     assert!(
-        html.contains(r#"id="showcase""#)
+        html.contains(r#"id="experience""#)
             || html.contains(r#"id="studio""#)
             || html.contains("v-masonry"),
         "showcase or studio panel must appear"
@@ -93,7 +93,7 @@ fn footer_renders() {
 #[test]
 fn home_includes_all_case_studies() {
     let html = render_home();
-    for client in ["TechNova", "Luxe Beauty", "GreenFuture"] {
+    for client in ["Be the first to be showcased here", "Luxe Beauty", "GreenFuture"] {
         assert!(html.contains(client), "case study {client} must render");
     }
 }

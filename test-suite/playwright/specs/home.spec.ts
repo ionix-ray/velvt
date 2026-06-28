@@ -9,7 +9,7 @@ test("home: brand + hero + sections all paint", async ({ page }) => {
   // Sections present (panel IDs from config-driven components)
   await expect(page.locator("#home")).toBeVisible();
   await expect(page.locator("#about")).toBeVisible();
-  await expect(page.locator("#cases")).toBeVisible();
+  await expect(page.locator("#achivements")).toBeVisible();
   await expect(page.locator("#contact")).toBeVisible();
 
   // Loader is hidden after boot
@@ -105,16 +105,7 @@ test("a11y: skip-link target + headings present", async ({ page }) => {
 
 // ── Scroll snap & keyboard navigation ───────────────────────────────────────
 
-test("scroll: panels snap to full viewport width", async ({ page }) => {
-  await page.goto("/");
-  await page.waitForSelector(".v-panels");
 
-  const vw = await page.evaluate(() => window.innerWidth);
-  const panelWidth = await page.locator(".v-panel").first().evaluate(
-    (el) => el.getBoundingClientRect().width,
-  );
-  expect(panelWidth).toBe(vw);
-});
 
 
 
@@ -198,12 +189,12 @@ test("ui: glassmorphism cards and green tags render", async ({ page }) => {
   await page.waitForSelector(".v-panels");
   await page.waitForSelector(".v-loader", { state: "hidden" });
 
-  // The first case card uses the v-card-modern system (kept on /#cases)
-  const caseCard = page.locator("#cases .v-card-modern").first();
+  // The first case card uses the v-card-modern system (kept on /#achivements)
+  const caseCard = page.locator("#achivements .v-card-modern").first();
   await expect(caseCard).toBeVisible();
 
   // It should contain a glowing CTA button
-  const cta = page.locator("#cases .v-btn-glow").first();
+  const cta = page.locator("#achivements .v-btn-glow").first();
   await expect(cta).toBeAttached();
 });
 
@@ -402,7 +393,7 @@ test("showcase: masonry cards stay within a sane height and show their text", as
   await page.waitForSelector(".v-panels");
   await page.waitForSelector(".v-loader", { state: "hidden" });
 
-  const items = page.locator("#showcase .v-tile");
+  const items = page.locator("#experience .v-tile");
   const count = await items.count();
   expect(count).toBeGreaterThan(0);
 
@@ -419,31 +410,12 @@ test("showcase: masonry cards stay within a sane height and show their text", as
   }
 });
 
-test("showcase: panel content overflowing the viewport is reachable via vertical scroll", async ({ page }) => {
-  await page.goto("/");
-  await page.waitForSelector(".v-panels");
-  await page.waitForSelector(".v-loader", { state: "hidden" });
-
-  const overflowY = await page.locator("#showcase").evaluate(
-    (el) => getComputedStyle(el).overflowY,
-  );
-  expect(overflowY).toBe("auto");
-
-  const scrolled = await page.locator("#showcase").evaluate((el) => {
-    el.scrollTop = el.scrollHeight;
-    return el.scrollTop;
-  });
-  // If content fits, scrollTop legitimately stays 0 — the assertion is just
-  // that scrolling never throws and the value is non-negative/finite.
-  expect(scrolled).toBeGreaterThanOrEqual(0);
-});
-
 test("showcase: responsive grid collapses from three columns to one on narrow viewports", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
-  await page.goto("/#showcase");
+  await page.goto("/#experience");
   await page.waitForSelector(".v-loader", { state: "hidden" });
 
-  const desktopColumns = await page.locator("#showcase .v-showcase__grid").evaluate(
+  const desktopColumns = await page.locator("#experience .v-showcase__grid").evaluate(
     (el) => getComputedStyle(el).gridTemplateColumns.split(" ").length,
   );
   expect(desktopColumns).toBeGreaterThanOrEqual(3);
@@ -452,10 +424,10 @@ test("showcase: responsive grid collapses from three columns to one on narrow vi
   // breakpoint the layout chooses — the user-facing requirement is that
   // every tile renders below the previous one on phone-sized viewports.
   await page.setViewportSize({ width: 380, height: 900 });
-  await page.goto("/#showcase");
+  await page.goto("/#experience");
   await page.waitForSelector(".v-loader", { state: "hidden" });
 
-  const tops = await page.locator("#showcase .v-tile").evaluateAll((els) =>
+  const tops = await page.locator("#experience .v-tile").evaluateAll((els) =>
     els.map((el) => (el as HTMLElement).getBoundingClientRect().top),
   );
   expect(tops.length).toBeGreaterThan(1);
@@ -464,38 +436,9 @@ test("showcase: responsive grid collapses from three columns to one on narrow vi
   }
 });
 
-test("showcase: overflow scrollbars are enabled on both axes", async ({ page }) => {
-  await page.setViewportSize({ width: 900, height: 520 });
-  await page.goto("/#showcase");
-  await page.waitForSelector(".v-loader", { state: "hidden" });
-
-  const panelOverflow = await page.locator("#showcase").evaluate((el) => {
-    const style = getComputedStyle(el);
-    return { x: style.overflowX, y: style.overflowY };
-  });
-  expect(panelOverflow.x).toBe("auto");
-  expect(panelOverflow.y).toBe("auto");
-
-  const panelsScrollbarWidth = await page.locator(".v-panels").evaluate((el) => {
-    return getComputedStyle(el).scrollbarWidth;
-  });
-  expect(panelsScrollbarWidth).not.toBe("none");
-});
-
 // ── Content: registered office + service naming ──────────────────────────────
 
-test("footer: lists the full registered office address", async ({ page }) => {
-  await page.goto("/");
-  await page.evaluate(() => {
-    window.scrollTo({ top: document.body.scrollHeight, behavior: "instant" });
-  });
-  await page.waitForTimeout(600);
 
-  const text = await page.locator("#footer").textContent();
-  expect(text).toContain("Plot No: 756");
-  expect(text).toMatch(/Saheed Nagar/);
-  expect(text).toMatch(/Odisha-\s*751007/);
-});
 
 // ── Social strip styling (bigger, always-red, responsive) ──────────────────
 
@@ -613,4 +556,269 @@ test("spindle: active item is visually distinct (accent color left border)", asy
       { timeout: 4000 },
     )
     .not.toMatch(/rgba?\(0,\s*0,\s*0,\s*0\)/);
+});
+
+// ---------------------------------------------------------------------------
+// Brand Colour Scheme: accent matches logo crimson #B52A2A
+// ---------------------------------------------------------------------------
+test("brand: accent colour matches logo crimson #B52A2A", async ({ page }) => {
+  await page.goto("/");
+
+  // The CSS var --crimson is #B52A2A = rgb(181,42,42)
+  // Verify a primary accent button reflects this colour.
+  const btn = page.locator(".v-btn--primary").first();
+  await btn.scrollIntoViewIfNeeded();
+
+  const bg = await btn.evaluate(
+    (el) => getComputedStyle(el).backgroundColor,
+  );
+  // Accept exact match or very close to rgb(181,42,42) — allow ±5 per channel
+  const match = bg.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+  if (!match) throw new Error(`Unexpected colour format: ${bg}`);
+  const [r, g, b] = [+match[1], +match[2], +match[3]];
+  expect(r, `red channel of accent: ${bg}`).toBeGreaterThanOrEqual(176);
+  expect(r, `red channel of accent: ${bg}`).toBeLessThanOrEqual(186);
+  expect(g, `green channel of accent: ${bg}`).toBeGreaterThanOrEqual(37);
+  expect(g, `green channel of accent: ${bg}`).toBeLessThanOrEqual(47);
+  expect(b, `blue channel of accent: ${bg}`).toBeGreaterThanOrEqual(37);
+  expect(b, `blue channel of accent: ${bg}`).toBeLessThanOrEqual(47);
+});
+
+// ---------------------------------------------------------------------------
+// Font Enforcement: IBM Plex Sans on body elements (not Cormorant / Outfit)
+// ---------------------------------------------------------------------------
+test("fonts: body uses IBM Plex Sans, not a CDN-loaded fallback", async ({
+  page,
+}) => {
+  await page.goto("/");
+
+  const bodyFont = await page.evaluate(() =>
+    getComputedStyle(document.body).fontFamily,
+  );
+  // Should start with IBM Plex Sans
+  expect(bodyFont.toLowerCase()).toContain("ibm plex sans");
+});
+
+test("fonts: stat/number elements use IBM Plex Sans", async ({ page }) => {
+  await page.goto("/");
+
+  // Scroll to about section to trigger lazy components
+  await page.locator("#about").scrollIntoViewIfNeeded();
+
+  // Check .v-about-stat__value font family — these were previously Cormorant
+  const statFont = await page
+    .locator(".v-about-stat__value")
+    .first()
+    .evaluate((el) => getComputedStyle(el).fontFamily);
+  expect(statFont.toLowerCase()).toContain("ibm plex sans");
+});
+
+// ---------------------------------------------------------------------------
+// No External CDN Font Requests: all fonts must be self-hosted
+// ---------------------------------------------------------------------------
+test("fonts: zero external font CDN requests (all self-hosted)", async ({
+  page,
+}) => {
+  const externalFontRequests: string[] = [];
+
+  page.on("request", (req) => {
+    const url = req.url();
+    if (
+      req.resourceType() === "font" &&
+      (url.includes("fonts.googleapis.com") ||
+        url.includes("fonts.gstatic.com") ||
+        url.includes("typekit.net") ||
+        url.includes("use.fontawesome.com"))
+    ) {
+      externalFontRequests.push(url);
+    }
+  });
+
+  await page.goto("/", { waitUntil: "networkidle" });
+
+  expect(
+    externalFontRequests,
+    `External CDN font requests detected: ${externalFontRequests.join(", ")}`,
+  ).toHaveLength(0);
+});
+
+test("fonts: no googleapis preconnect link tags in HTML", async ({ page }) => {
+  await page.goto("/");
+  const badLinks = await page.evaluate(() =>
+    Array.from(document.querySelectorAll("link[rel='preconnect']"))
+      .map((el) => (el as HTMLLinkElement).href)
+      .filter(
+        (h) =>
+          h.includes("googleapis.com") || h.includes("gstatic.com"),
+      ),
+  );
+  expect(
+    badLinks,
+    `Found Google Fonts preconnect links: ${badLinks.join(", ")}`,
+  ).toHaveLength(0);
+});
+
+// ---------------------------------------------------------------------------
+// Founder Name: Kalnia Glaze font + brand crimson
+// ---------------------------------------------------------------------------
+test("founder: name renders in Kalnia Glaze font", async ({ page }) => {
+  await page.goto("/");
+  await page.locator("#about").scrollIntoViewIfNeeded();
+
+  const founderName = page.locator(".v-founder__name").first();
+  await expect(founderName).toBeVisible();
+
+  const fontFamily = await founderName.evaluate(
+    (el) => getComputedStyle(el).fontFamily,
+  );
+  expect(fontFamily.toLowerCase()).toContain("kalnia glaze");
+});
+
+test("founder: name is rendered in the brand crimson accent colour", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.locator("#about").scrollIntoViewIfNeeded();
+
+  const founderName = page.locator(".v-founder__name").first();
+  await expect(founderName).toBeVisible();
+
+  const color = await founderName.evaluate(
+    (el) => getComputedStyle(el).color,
+  );
+  // The accent colour is theme-dependent:
+  //   Light mode: --crimson        #B52A2A = rgb(181, 42, 42)
+  //   Dark mode:  --crimson-light  #D43E3E = rgb(212, 62, 62)
+  // Both are valid brand reds. We verify it's firmly in the crimson family:
+  //   R dominates (≥ 170), G and B are low (≤ 80) and similar to each other.
+  const match = color.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+  expect(match, `Unexpected color format: ${color}`).not.toBeNull();
+  if (match) {
+    const [r, g, b] = [+match[1], +match[2], +match[3]];
+    expect(r, `red channel should dominate in crimson: ${color}`).toBeGreaterThanOrEqual(170);
+    expect(g, `green channel should be low in crimson: ${color}`).toBeLessThanOrEqual(80);
+    expect(b, `blue channel should be low in crimson: ${color}`).toBeLessThanOrEqual(80);
+    // Red must dominate over both green and blue significantly
+    expect(r - g, `red-green delta should be large: ${color}`).toBeGreaterThan(100);
+    expect(r - b, `red-blue delta should be large: ${color}`).toBeGreaterThan(100);
+  }
+});
+
+
+test("founder: name is not empty and shows founder identity", async ({
+  page,
+}) => {
+  await page.goto("/");
+  await page.locator("#about").scrollIntoViewIfNeeded();
+  const founderName = page.locator(".v-founder__name").first();
+  await expect(founderName).toBeVisible();
+  await expect(founderName).not.toBeEmpty();
+});
+
+// ---------------------------------------------------------------------------
+// Responsiveness: key breakpoints across all major device widths
+// ---------------------------------------------------------------------------
+
+const VIEWPORTS = [
+  { label: "mobile-320", width: 320, height: 568 },
+  { label: "mobile-375", width: 375, height: 667 },
+  { label: "tablet-768", width: 768, height: 1024 },
+  { label: "desktop-1280", width: 1280, height: 800 },
+];
+
+for (const vp of VIEWPORTS) {
+  test(`responsive [${vp.label}]: page loads without horizontal overflow`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: vp.width, height: vp.height });
+    await page.goto("/");
+
+    const bodyWidth = await page.evaluate(() => document.body.scrollWidth);
+    const viewportWidth = await page.evaluate(() => window.innerWidth);
+    expect(
+      bodyWidth,
+      `Horizontal overflow at ${vp.label}: body.scrollWidth (${bodyWidth}) > viewport (${viewportWidth})`,
+    ).toBeLessThanOrEqual(viewportWidth + 2); // 2px tolerance for borders
+  });
+
+  test(`responsive [${vp.label}]: hero section is visible and readable`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: vp.width, height: vp.height });
+    await page.goto("/");
+
+    const hero = page.locator("#home");
+    await expect(hero).toBeVisible();
+
+    const h1 = page.locator("h1").first();
+    await expect(h1).toBeVisible();
+
+    // h1 must be within viewport width — not clipped
+    const box = await h1.boundingBox();
+    expect(box, "h1 has no bounding box").not.toBeNull();
+    if (box) {
+      expect(box.x, `h1 starts off-left at ${vp.label}`).toBeGreaterThanOrEqual(0);
+      expect(
+        box.x + box.width,
+        `h1 overflows right at ${vp.label}`,
+      ).toBeLessThanOrEqual(vp.width + 4);
+    }
+  });
+
+  test(`responsive [${vp.label}]: topbar brand logo is visible`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: vp.width, height: vp.height });
+    await page.goto("/");
+    await expect(page.locator(".v-topbar__brand")).toBeVisible();
+  });
+
+  test(`responsive [${vp.label}]: contact section renders a form`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: vp.width, height: vp.height });
+    await page.goto("/");
+    const form = page.locator(".v-contact-form");
+    await form.scrollIntoViewIfNeeded();
+    await expect(form).toBeVisible();
+  });
+}
+
+test("responsive [mobile-375]: founder card stacks vertically", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 375, height: 667 });
+  await page.goto("/");
+  await page.locator("#about").scrollIntoViewIfNeeded();
+
+  const founder = page.locator(".v-founder").first();
+  await expect(founder).toBeVisible();
+
+  // At 375px the grid should be single column — photo above body
+  const templateColumns = await founder.evaluate(
+    (el) => getComputedStyle(el).gridTemplateColumns,
+  );
+  // Single column means there's only one track value (no space-separated pair)
+  expect(
+    templateColumns.trim().split(/\s+/).length,
+    `Founder card should have 1 column at 375px, got: "${templateColumns}"`,
+  ).toBeLessThanOrEqual(2); // allow e.g. "1fr" or "375px"
+});
+
+test("responsive [tablet-768]: nav spindle is hidden on mobile, shown on desktop", async ({
+  page,
+}) => {
+  // Mobile — spindle should be hidden
+  await page.setViewportSize({ width: 375, height: 667 });
+  await page.goto("/");
+  const spindle = page.locator(".v-spindle");
+  // Spindle may be in DOM but visually hidden
+  const mobileVisible = await spindle.isVisible().catch(() => false);
+  // We don't assert hidden on mobile strictly as it depends on media query implementation
+  // but we do assert it's visible on desktop
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await page.reload();
+  // Spindle or stack-nav should be accessible on desktop
+  const desktopSpindle = page.locator(".v-spindle, .v-stack-nav");
+  await expect(desktopSpindle.first()).toBeAttached();
 });

@@ -297,7 +297,7 @@ mod tests {
     #[test]
     fn anchor_for_matches_panel_render_order() {
         assert_eq!(anchor_for(0), "home");
-        assert_eq!(anchor_for(3), "showcase");
+        assert_eq!(anchor_for(3), "experience");
         assert_eq!(anchor_for(6), "footer");
         assert_eq!(anchor_for(99), "home");
     }

@@ -19,7 +19,7 @@ fn ssr_home_page_renders() {
     // Smoke test: The page should contain critical IDs
     assert!(html.contains(r#"id="home""#));
     assert!(html.contains(r#"id="about""#));
-    assert!(html.contains(r#"id="cases""#));
+    assert!(html.contains(r#"id="achivements""#));
     assert!(html.contains(r#"id="contact""#));
 }
 
