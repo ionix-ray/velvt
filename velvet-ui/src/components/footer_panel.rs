@@ -31,6 +31,8 @@ pub fn FooterPanel(site: Site) -> Element {
                         class: "v-footer-panel__wordmark",
                         src: brand_mark(),
                         alt: "{site.brand.name}",
+                        loading: "lazy",
+                        decoding: "async",
                     }
                     p { class: "v-footer-panel__tagline", "{site.brand.tagline}" }
                     p { class: "v-footer-panel__desc", "{site.footer.brand_desc}" }
@@ -63,27 +65,7 @@ pub fn FooterPanel(site: Site) -> Element {
                                 }
                             }
                         }
-                    }
-
-                    // Contact column from site.contact
-                    div { class: "v-footer-panel__col",
-                        h4 { class: "v-footer-panel__col-title", "Locate us" }
-                        for atelier in site.contact.ateliers.iter() {
-                            span { class: "v-footer-panel__address", "{atelier}" }
                         }
-                        a {
-                            href: "mailto:{site.contact.email_general}",
-                            class: "v-footer-panel__col-link",
-                            "{site.contact.email_general}"
-                        }
-                        if site.contact.email_press != site.contact.email_general {
-                            a {
-                                href: "mailto:{site.contact.email_press}",
-                                class: "v-footer-panel__col-link",
-                                "{site.contact.email_press}"
-                            }
-                        }
-                    }
                     }
                 } // End v-footer-panel__main
                 

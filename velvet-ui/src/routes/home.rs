@@ -157,7 +157,7 @@ pub fn Home() -> Element {
                     let win_clone = win.clone();
                     let scroll = wasm_bindgen::closure::Closure::<dyn FnMut()>::new(move || {
                         // Guard: only update panel state when we are on the home route.
-                        // Without this check, the listener fires on /cases/:slug pages
+                        // Without this check, the listener fires on /achivements/:slug pages
                         // and races with window.scrollTo(0,0) causing a jump to the footer.
                         let on_home = win_clone
                             .location()

@@ -39,11 +39,13 @@ pub fn CasesPanel(site: Site) -> Element {
     }
 
     rsx! {
-        section { class: "v-panel", id: "cases",
+        section { class: "v-panel", id: "achivements",
             div { class: "v-section",
                 div { class: "v-container",
                     div { class: "v-panel-header v-reveal",
-                        span { class: "v-eyebrow", "Showcase" }
+                        if !site.cases.eyebrow.is_empty() {
+                            span { class: "v-eyebrow", "{site.cases.eyebrow}" }
+                        }
                         h2 { class: "v-display-2", "{site.cases.title}" }
                         p { class: "v-panel-header__sub", "{site.cases.sub}" }
                     }
@@ -73,14 +75,14 @@ pub fn CasesPanel(site: Site) -> Element {
                                             href: "{case.button_link}",
                                             target: "_blank",
                                             rel: "noopener noreferrer",
-                                            "View Case Study"
+                                            "{site.cases.view_case_study}"
                                         }
                                     } else {
                                         a {
                                             class: "v-btn-glow",
-                                            href: "/cases/{case.slug}",
+                                            href: "/achivements/{case.slug}",
                                             "data-spa": "true",
-                                            "View Case Study"
+                                            "{site.cases.view_case_study}"
                                         }
                                     }
                                 }
@@ -157,7 +159,7 @@ mod tests {
     #[test]
     fn case_with_slug_links_to_internal_case_study_page() {
         let html = render(WrapWithSlug);
-        assert!(html.contains("href=\"/cases/technova-full-funnel-growth\""));
+        assert!(html.contains("href=\"/achivements/technova-full-funnel-growth\""));
         assert!(!html.contains("target=\"_blank\""));
     }
 

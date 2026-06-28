@@ -128,9 +128,9 @@ mod tests {
     #[test]
     fn internal_paths_match_the_in_app_subset() {
         assert!(is_internal_path("/"));
-        assert!(is_internal_path("/cases"));
-        assert!(is_internal_path("/cases/technova-full-funnel-growth"));
-        assert!(is_internal_path("/cases/tag/B2B"));
+        assert!(is_internal_path("/achivements"));
+        assert!(is_internal_path("/achivements/technova-full-funnel-growth"));
+        assert!(is_internal_path("/achivements/tag/B2B"));
     }
 
     #[test]

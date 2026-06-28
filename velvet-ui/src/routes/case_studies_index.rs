@@ -1,4 +1,4 @@
-//! Case studies index — `/cases` (all) and `/cases/tag/:tag` (filtered).
+//! Case studies index — `/achivements` (all) and `/achivements/tag/:tag` (filtered).
 //! Cards link into the detail page; tag chips on the detail page link back
 //! into the filtered view here, so visitors can browse by category. Layout
 //! follows the reference app's two-column (sidebar filter + main grid)
@@ -87,14 +87,14 @@ fn case_studies_grid(filter_tag: Option<&str>) -> Element {
                             nav { class: "v-case-tag-filter",
                                 a {
                                     class: if filter_tag.is_none() { "v-case-tag-filter__item active" } else { "v-case-tag-filter__item" },
-                                    href: "/cases",
+                                    href: "/achivements",
                                     "data-spa": "true",
                                     "All"
                                 }
                                 for tag in tags.iter() {
                                     a {
                                         class: if filter_tag == Some(tag.as_str()) { "v-case-tag-filter__item active" } else { "v-case-tag-filter__item" },
-                                        href: "/cases/tag/{tag}",
+                                        href: "/achivements/tag/{tag}",
                                         "data-spa": "true",
                                         "{tag}"
                                     }
@@ -111,7 +111,7 @@ fn case_studies_grid(filter_tag: Option<&str>) -> Element {
                                 for (slug , frontmatter , _body) in studies.iter() {
                                     a {
                                         class: "v-tile v-tile--clickable v-reveal",
-                                        href: "/cases/{slug}",
+                                        href: "/achivements/{slug}",
                                         "data-spa": "true",
                                         span { class: "v-tile__eyebrow", "{frontmatter.client}" }
                                         div { class: "v-tile__metric", "{frontmatter.metric}" }
@@ -182,7 +182,7 @@ mod tests {
         assert!(html.contains("TechNova"));
         assert!(html.contains("Luxe Beauty"));
         assert!(html.contains("GreenFuture"));
-        assert!(html.contains("href=\"/cases/technova-full-funnel-growth\""));
+        assert!(html.contains("href=\"/achivements/technova-full-funnel-growth\""));
     }
 
     #[test]
@@ -216,9 +216,9 @@ mod tests {
     fn sidebar_lists_every_distinct_tag_with_an_all_link() {
         let html = render(WrapIndex);
         assert!(html.contains("v-case-layout__sidebar"));
-        assert!(html.contains("href=\"/cases\""));
-        assert!(html.contains("href=\"/cases/tag/B2B\""));
-        assert!(html.contains("href=\"/cases/tag/Beauty\""));
+        assert!(html.contains("href=\"/achivements\""));
+        assert!(html.contains("href=\"/achivements/tag/B2B\""));
+        assert!(html.contains("href=\"/achivements/tag/Beauty\""));
     }
 
     #[test]

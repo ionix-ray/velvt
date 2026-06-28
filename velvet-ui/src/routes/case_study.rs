@@ -1,4 +1,4 @@
-//! Case study detail page — `/cases/:slug`. Renders one markdown-backed
+//! Case study detail page — `/achivements/:slug`. Renders one markdown-backed
 //! case study outside the home page's horizontal-panel flow, using a
 //! two-column (sidebar + main content) layout matching the reference
 //! app's blog-post structure, restyled with Vaelvet's own tokens.
@@ -55,7 +55,7 @@ pub fn CaseStudy(slug: String) -> Element {
             });
             rsx! {
                 div { class: "v-case-page",
-                    CaseHeader { back_href: "/cases".to_string(), back_label: "All case studies".to_string() }
+                    CaseHeader { back_href: "/achivements".to_string(), back_label: "All case studies".to_string() }
                     SocialStrip { is_last_panel: false }
                     section { class: "v-case-hero",
                         div { class: "v-container",
@@ -70,7 +70,7 @@ pub fn CaseStudy(slug: String) -> Element {
                                 for tag in frontmatter.tags.iter() {
                                     a {
                                         class: "v-tag--green",
-                                        href: "/cases/tag/{tag}",
+                                        href: "/achivements/tag/{tag}",
                                         "data-spa": "true",
                                         "{tag}"
                                     }
@@ -80,7 +80,7 @@ pub fn CaseStudy(slug: String) -> Element {
                     }
                     div { class: "v-container",
                         nav { class: "v-case-breadcrumb", aria_label: "Breadcrumb",
-                            a { href: "/cases", "data-spa": "true", "Case Studies" }
+                            a { href: "/achivements", "data-spa": "true", "Case Studies" }
                             span { class: "v-case-breadcrumb__sep", "/" }
                             span { class: "v-case-breadcrumb__current", "{frontmatter.title}" }
                         }
@@ -96,7 +96,7 @@ pub fn CaseStudy(slug: String) -> Element {
                                         for tag in frontmatter.tags.iter() {
                                             a {
                                                 class: "v-tag--green",
-                                                href: "/cases/tag/{tag}",
+                                                href: "/achivements/tag/{tag}",
                                                 "data-spa": "true",
                                                 "{tag}"
                                             }
@@ -114,7 +114,7 @@ pub fn CaseStudy(slug: String) -> Element {
                                 }
                                 a {
                                     class: "v-case-page__back",
-                                    href: "/cases",
+                                    href: "/achivements",
                                     "data-spa": "true",
                                     "Back to case studies"
                                 }
@@ -191,7 +191,7 @@ mod tests {
     #[test]
     fn known_slug_tag_links_point_to_the_tag_filtered_index() {
         let html = render(WrapKnownSlug);
-        assert!(html.contains("href=\"/cases/tag/B2B\""));
+        assert!(html.contains("href=\"/achivements/tag/B2B\""));
     }
 
     #[test]
@@ -221,7 +221,7 @@ mod tests {
         assert!(html.contains("Published"));
         assert!(html.contains("2026") || html.contains("date"));
         assert!(html.contains("Topics"));
-        assert!(html.contains("href=\"/cases/tag/B2B\""));
+        assert!(html.contains("href=\"/achivements/tag/B2B\""));
     }
 
     #[test]
@@ -229,7 +229,7 @@ mod tests {
         let html = render(WrapKnownSlug);
         assert!(html.contains("v-case-breadcrumb"));
         assert!(html.contains("Case Studies"));
-        assert!(html.contains("href=\"/cases\""));
+        assert!(html.contains("href=\"/achivements\""));
     }
 
     #[test]

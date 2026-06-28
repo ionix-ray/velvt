@@ -176,6 +176,8 @@ pub struct Process {
     pub title: String,
     pub sub: String,
     #[serde(default)]
+    pub eyebrow: String,
+    #[serde(default)]
     pub steps: Vec<ProcessStep>,
 }
 
@@ -190,6 +192,10 @@ pub struct ProcessStep {
 pub struct Cases {
     pub title: String,
     pub sub: String,
+    #[serde(default)]
+    pub eyebrow: String,
+    #[serde(default)]
+    pub view_case_study: String,
     #[serde(default)]
     pub items: Vec<CaseItem>,
 }
@@ -208,7 +214,7 @@ pub struct CaseItem {
     #[serde(default)]
     pub footer_label: String,
     /// Slug of a markdown file under `docs/cse_studies/` — when set, "View
-    /// Case Study" links to `/cases/{slug}` instead of `button_link`.
+    /// Case Study" links to `/achivements/{slug}` instead of `button_link`.
     #[serde(default)]
     pub slug: String,
 }
@@ -232,6 +238,8 @@ pub struct PrItem {
 pub struct Studio {
     pub title: String,
     pub sub: String,
+    #[serde(default)]
+    pub eyebrow: String,
     #[serde(default)]
     pub items: Vec<StudioItem>,
 }

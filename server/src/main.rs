@@ -2,7 +2,25 @@ use velvet_server::config::{CliArgs, Config};
 
 #[tokio::main]
 async fn main() {
-    tracing_subscriber::fmt::init();
+    let default_level = if std::env::var("DEBUG").is_ok() {
+        "debug"
+    } else {
+        "error,velvet_server=info"
+    };
+
+    let env_filter = tracing_subscriber::EnvFilter::try_from_default_env()
+        .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new(default_level));
+
+    if std::env::var("DEBUG").is_ok() {
+        tracing_subscriber::fmt()
+            .with_env_filter(env_filter)
+            .init();
+    } else {
+        tracing_subscriber::fmt()
+            .json()
+            .with_env_filter(env_filter)
+            .init();
+    }
 
     let args = parse_args();
     let config = Config::default().with_cli(args);

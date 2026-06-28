@@ -6,11 +6,13 @@ use dioxus::prelude::*;
 #[component]
 pub fn ProcessPanel(site: Site) -> Element {
     rsx! {
-        section { class: "v-panel", id: "stories",
+        section { class: "v-panel", id: "ideology",
             div { class: "v-section",
                 div { class: "v-container",
                     div { class: "v-panel-header v-reveal",
-                        span { class: "v-eyebrow", "How We Work" }
+                        if !site.process.eyebrow.is_empty() {
+                            span { class: "v-eyebrow", "{site.process.eyebrow}" }
+                        }
                         h2 { class: "v-display-2", "{site.process.title}" }
                         p { class: "v-panel-header__sub", "{site.process.sub}" }
                     }

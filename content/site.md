@@ -175,6 +175,7 @@ change = "Deployed"
 
 ```toml
 [process]
+eyebrow = "How We Work"
 title = "Our Proven Workflow."
 sub   = "Every successful campaign starts with deep strategy and ends with measurable growth."
 
@@ -204,13 +205,15 @@ body  = "Data-backed measurement, ROI reporting, and insights to optimize your n
 
 ```toml
 [cases]
+eyebrow = "Showcase"
 title = "Brands That Trusted Our Vision."
 sub   = "We help startups, enterprises, and cultural pioneers build unforgettable market presence."
+view_case_study = "View Case Study"
 
 [[cases.items]]
-client = "TechNova"
-metric = "+240%"
-desc   = "SaaS platform achieved 3x lead generation through our full-funnel experiential strategy."
+client = "Be the first to be showcased here"
+metric = "—"
+desc   = "Partner with us to create history and have your brand featured here."
 tags   = ["B2B", "Experiential", "Lead Gen"]
 logo_image = "/assets/images/logo.jpg"
 button_link = "#"
@@ -242,6 +245,7 @@ slug = "greenfuture-immersive-storytelling"
 
 ```toml
 [studio]
+eyebrow = "Experience"
 title = "Experience Design. Flawlessly Delivered."
 sub   = "Where creativity meets logistics. We orchestrate high-stakes events with precision engineering, immersive storytelling, and real-time adaptability."
 
@@ -330,21 +334,18 @@ brand_desc = "From powerful connections to unforgettable moments, we build brand
 [[footer.columns]]
 title = "Services"
 links = [
-  { label = "PR Management", href = "#" },
   { label = "Event Management", href = "#" },
   { label = "Celebrity Management", href = "#" },
-  { label = "Advertising", href = "#" },
-  { label = "Digital Marketing", href = "#" },
-  { label = "Branding", href = "#" },
-  { label = "Photography & Videography", href = "#" },
-  { label = "Venue", href = "#" },
+  { label = "Influencer Campaigns", href = "#" },
+  { label = "Custom Branding", href = "#" },
+  { label = "Gift Card Solutions", href = "#" },
 ]
 [[footer.columns]]
 title = "Company"
 links = [
   { label = "About Us", href = "#about" },
   { label = "Our Work", href = "#showcase" },
-  { label = "Case Studies", href = "/cases" },
+  { label = "Case Studies", href = "/achivements" },
   { label = "Contact", href = "#contact" },
 ]
 

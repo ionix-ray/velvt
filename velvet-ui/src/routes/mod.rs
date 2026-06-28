@@ -19,10 +19,10 @@ pub use home::Home;
 pub enum Route {
     #[route("/")]
     Home {},
-    #[route("/cases")]
+    #[route("/achivements")]
     CaseStudiesIndex {},
-    #[route("/cases/tag/:tag")]
+    #[route("/achivements/tag/:tag")]
     CaseStudiesByTag { tag: String },
-    #[route("/cases/:slug")]
+    #[route("/achivements/:slug")]
     CaseStudy { slug: String },
 }

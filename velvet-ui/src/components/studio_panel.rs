@@ -6,11 +6,13 @@ use dioxus::prelude::*;
 #[component]
 pub fn StudioPanel(site: Site) -> Element {
     rsx! {
-        section { class: "v-panel v-showcase-panel", id: "showcase",
+        section { class: "v-panel v-showcase-panel", id: "experience",
             div { class: "v-section v-showcase__section",
                 div { class: "v-container",
                     div { class: "v-panel-header v-showcase__header v-reveal",
-                        span { class: "v-eyebrow", "Event Showcase" }
+                        if !site.studio.eyebrow.is_empty() {
+                            span { class: "v-eyebrow", "{site.studio.eyebrow}" }
+                        }
                         h2 { class: "v-display-2", "{site.studio.title}" }
                         p { class: "v-panel-header__sub", "{site.studio.sub}" }
                     }

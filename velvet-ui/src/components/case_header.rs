@@ -1,5 +1,5 @@
-//! Shared header for the standalone case-study pages (`/cases`,
-//! `/cases/tag/:tag`, `/cases/:slug`). These pages are reached via full
+//! Shared header for the standalone case-study pages (`/achivements`,
+//! `/achivements/tag/:tag`, `/achivements/:slug`). These pages are reached via full
 //! page navigation (fresh WASM boot), so unlike `Home` they never inherit
 //! the `data-theme` attribute set by `Home`'s own signal/effect — this
 //! component owns its own copy of that exact mechanism so dark/light mode
@@ -83,7 +83,7 @@ mod tests {
     #[component]
     fn WrapWithBack() -> Element {
         rsx! {
-            CaseHeader { back_href: "/cases".to_string(), back_label: "All case studies".to_string() }
+            CaseHeader { back_href: "/achivements".to_string(), back_label: "All case studies".to_string() }
         }
     }
 
@@ -112,7 +112,7 @@ mod tests {
     fn renders_back_link_when_provided() {
         let html = render(WrapWithBack);
         assert!(html.contains("v-case-page__back"));
-        assert!(html.contains("href=\"/cases\""));
+        assert!(html.contains("href=\"/achivements\""));
         assert!(html.contains("All case studies"));
     }
 }
