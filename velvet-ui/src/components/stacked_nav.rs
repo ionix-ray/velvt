@@ -25,27 +25,16 @@ pub fn StackedNav(
                 button {
                     class: if i == current_panel { "v-stack-nav__item active" } else { "v-stack-nav__item" },
                     onclick: move |_| on_navigate.call(i),
-                    span { class: "v-stack-nav__num", "{format_item_num(i)}" }
-                    span { "{item.label}" }
+                    span { class: "v-stack-nav__text", "{item.label}" }
+
                 }
             }
         }
     }
 }
 
-fn format_item_num(i: usize) -> String {
-    format!("{:02}", i + 1)
-}
-
 #[cfg(test)]
 mod tests {
-    use super::*;
 
-    #[test]
-    fn format_item_num_is_one_indexed_and_zero_padded() {
-        assert_eq!(format_item_num(0), "01");
-        assert_eq!(format_item_num(8), "09");
-        assert_eq!(format_item_num(9), "10");
-        assert_eq!(format_item_num(99), "100");
-    }
+
 }

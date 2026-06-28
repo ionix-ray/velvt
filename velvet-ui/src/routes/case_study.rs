@@ -10,6 +10,7 @@ use crate::components::footer_panel::FooterPanel;
 use crate::components::markdown_renderer::MarkdownRenderer;
 use crate::components::social_strip::SocialStrip;
 use dioxus::prelude::*;
+use wasm_bindgen::JsCast;
 
 /// Estimated reading time in whole minutes, at 200 words/minute, rounded up,
 /// with a floor of 1 minute (so an empty or very short body still reads as
@@ -25,6 +26,33 @@ pub fn CaseStudy(slug: String) -> Element {
         Some((frontmatter, body)) => {
             let site = Site::load().clone();
             let read_time = read_time_minutes(&body);
+            use_effect(move || {
+                // Scroll to top without using eval() so the CSP needn't allow unsafe-eval.
+                // Instant + deferred call wins any race with Dioxus re-rendering.
+                if let Some(win) = web_sys::window() {
+                    let opts = web_sys::ScrollToOptions::new();
+                    opts.set_top(0.0);
+                    opts.set_left(0.0);
+                    opts.set_behavior(web_sys::ScrollBehavior::Instant);
+                    win.scroll_to_with_scroll_to_options(&opts);
+
+                    // Deferred second call to override any post-render scroll restoration.
+                    if let Some(win2) = web_sys::window() {
+                        let cb = wasm_bindgen::closure::Closure::<dyn FnMut()>::new(move || {
+                            let opts2 = web_sys::ScrollToOptions::new();
+                            opts2.set_top(0.0);
+                            opts2.set_left(0.0);
+                            opts2.set_behavior(web_sys::ScrollBehavior::Instant);
+                            win2.scroll_to_with_scroll_to_options(&opts2);
+                        });
+                        let _ = win.set_timeout_with_callback_and_timeout_and_arguments_0(
+                            cb.as_ref().unchecked_ref(),
+                            50,
+                        );
+                        cb.forget();
+                    }
+                }
+            });
             rsx! {
                 div { class: "v-case-page",
                     CaseHeader { back_href: "/cases".to_string(), back_label: "All case studies".to_string() }
@@ -97,7 +125,17 @@ pub fn CaseStudy(slug: String) -> Element {
                 }
             }
         }
-        None => rsx! {
+        None => {
+            use_effect(move || {
+                if let Some(win) = web_sys::window() {
+                    let opts = web_sys::ScrollToOptions::new();
+                    opts.set_top(0.0);
+                    opts.set_left(0.0);
+                    opts.set_behavior(web_sys::ScrollBehavior::Instant);
+                    win.scroll_to_with_scroll_to_options(&opts);
+                }
+            });
+            rsx! {
             div { class: "v-case-page v-case-page--missing",
                 CaseHeader {}
                 div { class: "v-container",
@@ -107,6 +145,7 @@ pub fn CaseStudy(slug: String) -> Element {
                     }
                     a { class: "v-btn-tile", href: "/", "data-spa": "true", "Back to Velvt" }
                 }
+            }
             }
         },
     }
@@ -166,7 +205,7 @@ mod tests {
     fn renders_the_brand_image_via_shared_case_header() {
         let html = render(WrapKnownSlug);
         assert!(html.contains("<img"));
-        assert!(html.contains("velvet-square"));
+        assert!(html.contains("new-logo-1"));
     }
 
     #[test]

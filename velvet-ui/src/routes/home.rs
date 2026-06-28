@@ -5,7 +5,7 @@ use crate::Site;
 use crate::components::{
     about_aggregated_panel::AboutAggregatedPanel, cases_panel::CasesPanel, cta_panel::CtaPanel,
     footer_panel::FooterPanel, hero_panel::HeroPanel, loader::Loader, mobile_nav::MobileNav,
-    next_hint::NextHint, process_panel::ProcessPanel, scroll_progress::ScrollProgress,
+    process_panel::ProcessPanel, scroll_progress::ScrollProgress,
     section_dots::SectionDots, social_strip::SocialStrip, stacked_nav::StackedNav,
     studio_panel::StudioPanel, topbar::TopBar,
 };
@@ -149,33 +149,71 @@ pub fn Home() -> Element {
 
     // Window vertical scroll listener to update current_panel
     {
-        use_effect(move || {
-            if let Some(win) = web_sys::window() {
-                let win_clone = win.clone();
-                let scroll = wasm_bindgen::closure::Closure::<dyn FnMut()>::new(move || {
-                    let scroll_top = win_clone.scroll_y().unwrap_or(0.0);
-                    let client_height = win_clone.inner_height().ok().and_then(|h| h.as_f64()).unwrap_or(800.0);
-                    let scroll_height = win_clone.document().and_then(|d| d.document_element()).map(|e| e.scroll_height() as f64).unwrap_or(0.0);
-                    
-                    let mut idx = scroll_sync_index(
-                        scroll_top,
-                        client_height,
-                        PANEL_LABELS.len(),
-                    );
-                    
-                    // If we are at the very bottom, force the last panel (footer)
-                    if scroll_top + client_height >= scroll_height - 150.0 {
-                        idx = PANEL_LABELS.len().saturating_sub(1);
-                    }
-                    if idx != *current_panel.read() {
-                        current_panel.set(idx);
-                        set_url_anchor(idx);
-                    }
-                });
+        let mut scroll_listener = use_signal(|| None::<wasm_bindgen::closure::Closure<dyn FnMut()>>);
 
-                let scroll_js = scroll.as_ref().unchecked_ref();
-                let _ = win.add_event_listener_with_callback("scroll", scroll_js);
-                scroll.forget();
+        use_effect(move || {
+            if scroll_listener.peek().is_none() {
+                if let Some(win) = web_sys::window() {
+                    let win_clone = win.clone();
+                    let scroll = wasm_bindgen::closure::Closure::<dyn FnMut()>::new(move || {
+                        // Guard: only update panel state when we are on the home route.
+                        // Without this check, the listener fires on /cases/:slug pages
+                        // and races with window.scrollTo(0,0) causing a jump to the footer.
+                        let on_home = win_clone
+                            .location()
+                            .pathname()
+                            .map(|p| p == "/" || p.is_empty())
+                            .unwrap_or(false);
+                        if !on_home {
+                            return;
+                        }
+
+                        let scroll_top = win_clone.scroll_y().unwrap_or(0.0);
+                        let client_height = win_clone
+                            .inner_height()
+                            .ok()
+                            .and_then(|h| h.as_f64())
+                            .unwrap_or(800.0);
+                        let scroll_height = win_clone
+                            .document()
+                            .and_then(|d| d.document_element())
+                            .map(|e| e.scroll_height() as f64)
+                            .unwrap_or(0.0);
+
+                        let mut idx = scroll_sync_index(
+                            scroll_top,
+                            client_height,
+                            PANEL_LABELS.len(),
+                        );
+
+                        // If we are at the very bottom, force the last panel (footer)
+                        if scroll_height > 0.0
+                            && scroll_top + client_height >= scroll_height - 150.0
+                        {
+                            idx = PANEL_LABELS.len().saturating_sub(1);
+                        }
+                        if idx != *current_panel.peek() {
+                            current_panel.set(idx);
+                            set_url_anchor(idx);
+                        }
+                    });
+
+                    let scroll_js = scroll.as_ref().unchecked_ref();
+                    let _ = win.add_event_listener_with_callback("scroll", scroll_js);
+                    *scroll_listener.write() = Some(scroll);
+                }
+            }
+        });
+
+        use_drop(move || {
+            #[cfg(target_arch = "wasm32")]
+            if let Some(win) = web_sys::window() {
+                if let Some(scroll) = scroll_listener.write().take() {
+                    let _ = win.remove_event_listener_with_callback(
+                        "scroll",
+                        scroll.as_ref().unchecked_ref(),
+                    );
+                }
             }
         });
     }

@@ -10,6 +10,7 @@ use crate::components::case_header::CaseHeader;
 use crate::components::footer_panel::FooterPanel;
 use crate::components::social_strip::SocialStrip;
 use dioxus::prelude::*;
+use wasm_bindgen::JsCast;
 
 /// All distinct tags across every case study, in first-seen order.
 fn all_distinct_tags() -> Vec<String> {
@@ -34,6 +35,33 @@ fn case_studies_grid(filter_tag: Option<&str>) -> Element {
     let tags = all_distinct_tags();
     let count = studies.len();
     let site = Site::load().clone();
+
+    use_effect(move || {
+        // Scroll to top without eval() — CSP-safe.
+        if let Some(win) = web_sys::window() {
+            let opts = web_sys::ScrollToOptions::new();
+            opts.set_top(0.0);
+            opts.set_left(0.0);
+            opts.set_behavior(web_sys::ScrollBehavior::Instant);
+            win.scroll_to_with_scroll_to_options(&opts);
+
+            // Deferred second call to override any post-render scroll restoration.
+            if let Some(win2) = web_sys::window() {
+                let cb = wasm_bindgen::closure::Closure::<dyn FnMut()>::new(move || {
+                    let opts2 = web_sys::ScrollToOptions::new();
+                    opts2.set_top(0.0);
+                    opts2.set_left(0.0);
+                    opts2.set_behavior(web_sys::ScrollBehavior::Instant);
+                    win2.scroll_to_with_scroll_to_options(&opts2);
+                });
+                let _ = win.set_timeout_with_callback_and_timeout_and_arguments_0(
+                    cb.as_ref().unchecked_ref(),
+                    50,
+                );
+                cb.forget();
+            }
+        }
+    });
 
     rsx! {
         div { class: "v-case-page",
@@ -175,7 +203,7 @@ mod tests {
     fn renders_the_brand_image_via_shared_case_header() {
         let html = render(WrapIndex);
         assert!(html.contains("<img"));
-        assert!(html.contains("velvet-square"));
+        assert!(html.contains("new-logo-1"));
     }
 
     #[test]

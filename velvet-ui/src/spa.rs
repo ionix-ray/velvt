@@ -64,9 +64,33 @@ pub fn install_spa_link_interceptor() -> Option<()> {
                 .map(|w| w.dispatch_event(&popstate))
                 .transpose();
         }
-        // Scroll to top on route change so the next page starts at its hero.
+        // Always scroll to the very top on every SPA route change.
+        // Use both instant-scroll and a deferred scroll to win any race with
+        // Dioxus re-rendering, which can briefly restore a previous scroll
+        // position before the new route content paints.
         if let Some(win) = web_sys::window() {
-            win.scroll_to_with_x_and_y(0.0, 0.0);
+            let opts = web_sys::ScrollToOptions::new();
+            opts.set_top(0.0);
+            opts.set_left(0.0);
+            opts.set_behavior(web_sys::ScrollBehavior::Instant);
+            win.scroll_to_with_scroll_to_options(&opts);
+
+            // Defer a second scroll to override any post-render restoration.
+            if let Some(win2) = web_sys::window() {
+                let cb = wasm_bindgen::closure::Closure::<dyn FnMut()>::new(move || {
+                    let opts2 = web_sys::ScrollToOptions::new();
+                    opts2.set_top(0.0);
+                    opts2.set_left(0.0);
+                    opts2.set_behavior(web_sys::ScrollBehavior::Instant);
+                    win2.scroll_to_with_scroll_to_options(&opts2);
+                });
+                let _ = win
+                    .set_timeout_with_callback_and_timeout_and_arguments_0(
+                        cb.as_ref().unchecked_ref(),
+                        50,
+                    );
+                cb.forget();
+            }
         }
     });
 

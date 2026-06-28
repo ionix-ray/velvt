@@ -34,14 +34,7 @@ pub fn SectionDots(
                     "aria-current": if is_active { "page" } else { "false" },
                     onclick: move |_| on_navigate.call(i),
                     span { class: "v-spindle-item__label",
-                        if let Some((num, text)) = labels.get(i)
-                            .map(|l| l.as_str())
-                            .unwrap_or("")
-                            .split_once(' ')
-                        {
-                            span { class: "v-spindle-item__num", "{num}" }
-                            span { class: "v-spindle-item__text", "{text}" }
-                        } else {
+                        span { class: "v-spindle-item__text",
                             "{labels.get(i).map(|l| l.as_str()).unwrap_or(\"\")}"
                         }
                     }

@@ -91,7 +91,7 @@ mod tests {
     fn renders_the_brand_image_not_text() {
         let html = render(WrapNoBack);
         assert!(html.contains("<img"));
-        assert!(html.contains("velvet-square"));
+        assert!(html.contains("new-logo-1"));
         assert!(!html.contains(">VAELVET<"));
     }
 

@@ -7,7 +7,7 @@ use dioxus::prelude::*;
 
 /// The square brand mark (crimson card, "Velvt" wordmark + leaf glyph).
 pub fn brand_mark() -> Asset {
-    asset!("/assets/images/velvet-square.png")
+    asset!("/assets/images/new-logo-1.png")
 }
 
 #[cfg(test)]
@@ -17,6 +17,6 @@ mod tests {
     #[test]
     fn brand_mark_resolves_to_the_square_asset() {
         let resolved = format!("{}", brand_mark());
-        assert!(resolved.contains("velvet-square"), "got: {resolved}");
+        assert!(resolved.contains("new-logo-1"), "got: {resolved}");
     }
 }
