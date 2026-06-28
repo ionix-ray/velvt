@@ -42,13 +42,24 @@ pedantic = { level = "allow", priority = -1 }
 nursery  = { level = "allow", priority = -1 }
 
 [profile.release]
+opt-level       = "z"      # minimise binary size (WASM payload over the wire)
+lto             = "fat"    # cross-crate dead-code elimination
+codegen-units   = 1        # single CGU maximises LLVM optimisation window
+panic           = "abort"  # strips unwinding tables → smaller WASM
+strip           = true     # strip debug symbols from native binary
+overflow-checks = false    # UI code: no numeric overflow risk
+
+[profile.wasm-dev]
+inherits  = "dev"
+opt-level = 1
+
+# wasm-release: identical to release but with debug info stripped in DWARF too.
+# dx build --release already uses [profile.release]; this exists as a named
+# alias so CI scripts can reference it explicitly if the toolchain changes.
+[profile.wasm-release]
+inherits        = "release"
 opt-level       = "z"
 lto             = "fat"
 codegen-units   = 1
 panic           = "abort"
 strip           = true
-overflow-checks = false   # UI code: no numeric overflow risk
-
-[profile.wasm-dev]
-inherits  = "dev"
-opt-level = 1

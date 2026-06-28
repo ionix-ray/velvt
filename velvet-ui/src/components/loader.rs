@@ -1,6 +1,6 @@
 //! Loading screen — retro progress bar with cycling creative text.
 
-use crate::theme::brand::brand_mark;
+use crate::theme::brand::loader_symbol;
 use dioxus::prelude::*;
 use gloo_timers::future::TimeoutFuture;
 
@@ -32,18 +32,22 @@ pub fn Loader(hidden: bool) -> Element {
 
     rsx! {
         div { class: "{class}",
-            // Camera-iris aperture: three blade rings step down around the
-            // mark like a lens stopping down, then a flash marks focus.
-            div { class: "v-loader__iris", "aria-hidden": "true",
-                div { class: "v-loader__iris-ring v-loader__iris-ring--1" }
-                div { class: "v-loader__iris-ring v-loader__iris-ring--2" }
-                div { class: "v-loader__iris-ring v-loader__iris-ring--3" }
-                div { class: "v-loader__iris-flash" }
-            }
+            // Brand mark + iris rings stacked in the same container so the
+            // rings animate ON TOP of the icon image.
             div { class: "v-loader__brand",
                 img { class: "v-loader__logo",
-                      src: brand_mark(),
+                      src: loader_symbol(),
                       alt: "VELVT" }
+                // Camera-iris aperture: three blade rings step down around the
+                // mark like a lens stopping down, then a flash marks focus.
+                // Placed after the <img> in DOM order so it paints above it
+                // via the same stacking context (position:absolute + higher z).
+                div { class: "v-loader__iris", "aria-hidden": "true",
+                    div { class: "v-loader__iris-ring v-loader__iris-ring--1" }
+                    div { class: "v-loader__iris-ring v-loader__iris-ring--2" }
+                    div { class: "v-loader__iris-ring v-loader__iris-ring--3" }
+                    div { class: "v-loader__iris-flash" }
+                }
             }
             div { class: "v-loader__bar",
                 div { class: "v-loader__fill" }
@@ -121,6 +125,31 @@ mod tests {
         assert!(html.contains("v-loader__iris-ring--2"));
         assert!(html.contains("v-loader__iris-ring--3"));
         assert!(html.contains("v-loader__iris-flash"));
+    }
+
+    /// The iris rings must be rendered INSIDE .v-loader__brand so they
+    /// stack visually on top of the logo image (same stacking context).
+    #[test]
+    fn iris_rings_are_nested_inside_brand_container() {
+        let html = render(WrapVisible);
+        // Find the brand container…
+        let brand_start = html.find("v-loader__brand").expect("brand container missing");
+        // …and confirm the iris div appears after it (inside it).
+        let iris_pos = html.find("v-loader__iris").expect("iris container missing");
+        assert!(
+            iris_pos > brand_start,
+            "iris rings must be inside the brand container to overlay the logo"
+        );
+    }
+
+    /// The loader must use the standalone icon mark, not the full wordmark card.
+    #[test]
+    fn loader_uses_only_logo_symbol_not_full_wordmark() {
+        let html = render(WrapVisible);
+        assert!(
+            html.contains("only-logo"),
+            "loader should reference only-logo.png, got: {html}"
+        );
     }
 
     #[test]

@@ -134,5 +134,16 @@ fn home_renders_navigation_elements() {
     assert!(html.contains("v-topbar"), "topbar must exist");
     assert!(html.contains("v-stack-nav"), "stacked nav must exist");
     assert!(html.contains("v-spindle"), "section spindle must exist");
-    assert!(html.contains("v-next-hint"), "next hint must exist");
+    // Note: next-hint component was removed per user request; no longer asserted.
+}
+
+#[test]
+fn home_loader_uses_icon_mark_not_full_wordmark() {
+    let html = render_home();
+    // The loader must reference only-logo.png (the standalone icon) rather than
+    // the full velvet-square wordmark card.
+    assert!(
+        html.contains("only-logo"),
+        "loader must use only-logo.png as the loading symbol"
+    );
 }

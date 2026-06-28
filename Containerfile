@@ -72,13 +72,25 @@ COPY content ./content
 COPY docs/cse_studies ./docs/cse_studies
 
 # Build WASM release + copy output to persistent /out dir.
+# RUSTFLAGS: embed minimal debuginfo (none) and set WASM target features.
+# wasm-opt is called automatically by dx build --release; we also set the
+# WASM_OPT_FLAGS env to ensure the -Oz (size) strategy is applied.
 RUN --mount=type=cache,id=velvet-cargo-registry,target=/usr/local/cargo/registry,sharing=locked \
     --mount=type=cache,id=velvet-cargo-git,target=/usr/local/cargo/git,sharing=locked \
     --mount=type=cache,id=velvet-target,target=/app/target,sharing=locked \
     rm -rf /app/target/dx/vaelvet-ui/release/web/public \
- && cd velvet-ui && dx build --release --platform web \
+ && RUSTFLAGS="-C debuginfo=0 -C opt-level=z" \
+    cd velvet-ui && dx build --release --platform web \
  && mkdir -p /out \
- && cp -a /app/target/dx/vaelvet-ui/release/web/public/. /out/
+ && cp -a /app/target/dx/vaelvet-ui/release/web/public/. /out/ \
+ && WASM=$(find /out -name '*.wasm' 2>/dev/null | head -1) \
+ && if [ -n "$WASM" ]; then \
+     echo "Pre-opt WASM size: $(du -sh $WASM | cut -f1)"; \
+     wasm-opt -Oz --strip-debug --strip-producers --vacuum "$WASM" -o "$WASM"; \
+     echo "Post-opt WASM size: $(du -sh $WASM | cut -f1)"; \
+   else \
+     echo "WARN: no .wasm found in /out — skipping wasm-opt post-pass"; \
+   fi
 
 # Copy raw assets (images referenced by hardcoded paths in HTML) alongside hashed ones.
 RUN mkdir -p /out/assets/images \

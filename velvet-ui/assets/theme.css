@@ -263,14 +263,23 @@ ul { list-style: none; }
   display: flex;
   align-items: center;
   justify-content: center;
+  /* Give the brand container an explicit size matching the logo so the
+     absolutely-positioned iris rings have a well-defined origin to orbit. */
+  width: 280px;
+  height: 280px;
+  max-width: 80vw;
+  max-height: 80vw;
 }
 
 /* Camera-iris aperture: three blade rings step down around the mark like a
-   lens stopping down, then a single flash marks the moment focus lands. */
+   lens stopping down, then a single flash marks the moment focus lands.
+   Lives inside .v-loader__brand so all coordinates are relative to the logo
+   container, ensuring the rings always orbit the icon regardless of viewport. */
 .v-loader__iris {
   position: absolute;
   inset: 0;
   pointer-events: none;
+  z-index: 2; /* paint above the logo image (z-index: 1) */
 }
 .v-loader__iris-ring {
   position: absolute;
@@ -308,13 +317,16 @@ ul { list-style: none; }
   90%, 100% { opacity: 0; transform: scale(1); }
 }
 .v-loader__logo {
-  width: 280px;
-  max-width: 80vw;
+  position: relative;
+  z-index: 1; /* iris rings (z:2) paint above this */
+  width: 160px;  /* smaller than the rings so they frame it */
+  max-width: 60vw;
   height: auto;
   object-fit: contain;
   border-radius: 0;
   animation: v-loader-logo 2.2s var(--ease-out) forwards;
-  filter: drop-shadow(0 8px 22px color-mix(in srgb, var(--crimson) 35%, transparent));
+  /* Soft crimson halo so the icon pops against any background */
+  filter: drop-shadow(0 0 28px color-mix(in srgb, var(--crimson) 50%, transparent));
 }
 @keyframes v-loader-logo {
   0%   { filter: grayscale(0.6) blur(8px) brightness(0.7); opacity: 0; transform: scale(0.92); }

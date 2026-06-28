@@ -17,9 +17,9 @@ use wasm_bindgen::JsCast;
 const PANEL_LABELS: &[&str] = &[
     "HOME",
     "ABOUT",
-    "STORIES",
-    "SHOWCASE",
-    "PORTFOLIO",
+    "IDEOLOGY",
+    "EXPERIENCE",
+    "ACHIVEMENTS",
     "CONTACT",
     "FOOTER",
 ];
@@ -27,7 +27,7 @@ const PANEL_LABELS: &[&str] = &[
 /// URL-hash anchors, one per panel, in render order. Mirrors each panel
 /// section's own `id` attribute so `#showcase` etc. is shareable/bookmarkable.
 const PANEL_ANCHORS: &[&str] = &[
-    "home", "about", "stories", "showcase", "cases", "contact", "footer",
+    "home", "about", "ideology", "experience", "achivements", "contact", "footer",
 ];
 
 /// Anchor slug for a panel index. Falls back to the first anchor for an
