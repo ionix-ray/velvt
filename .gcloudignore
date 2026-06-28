@@ -5,7 +5,6 @@ ops/gcp/.terraform/
 ops/gcp/.terraform.lock.hcl
 ops/gcp/terraform.tfstate*
 test-suite/
-docs/
 dist/
 node_modules/
 PROGRESS.md
