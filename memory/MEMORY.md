@@ -9,10 +9,11 @@
 ## Design Rationale
 - Dioxus 0.7.6 chosen (dx CLI 0.7.6 requires matching dioxus version)
 - Single WASM bundle (no chunking) — site is content-heavy, not logic-heavy
-- Self-hosted fonts to eliminate CDN dependency and improve privacy
+- Self-hosted fonts (`IBM Plex Sans` and `Kalnia Glaze`) eliminate CDN dependency and improve privacy.
 - CSS-only animations (no Three.js) — keeps bundle under 1.5MB
 - IntersectionObserver for scroll triggers (native, no JS library)
 - Navbar uses `<a>` tags instead of dioxus-router `Link` for SSR testability
+- Strict viewport responsiveness enforced from 320px ultra-narrow up to 1440px desktop utilizing CSS `clamp()` and media queries for fluid scaling.
 
 ## Rollback Points
 - If WASM bundle exceeds 1.5MB: strip unused Dioxus features, enable `opt-level = "z"`

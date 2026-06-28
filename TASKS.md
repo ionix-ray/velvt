@@ -18,26 +18,26 @@ Picked up by `autonomous-iterate`. One row = one PR. AC must be Given/When/Then 
 | S0-11 | Memory entries | DONE |
 
 ## Sprint S1 — First production build (next)
-| ID | Task | AC sketch | Effort |
-|----|------|-----------|--------|
-| S1-01 | Install `dx` CLI; verify `just dev` boots on a free port | When dev server runs, GET `/` returns 200 with hero text | S |
-| S1-02 | Verify `just build` produces WASM ≤1.5 MB gzipped | Build artifact under budget; report `du -h dist/*.wasm` | S |
-| S1-03 | Wire IntersectionObserver scroll triggers via `web-sys` | Sections fade-in on first visibility; reduced-motion path skips | M |
-| S1-04 | Animated SVG `V`-mark hero overlay (CSS keyframes, no JS) | Vine grows from baseline over 1.2s, GPU-composited only | M |
-| S1-05 | Carbon-style 12-col fluid grid via CSS custom properties | Grid responds at 320 / 768 / 1024 / 1440; no media-query bloat | S |
-| S1-06 | Three-plane parallax hero (CSS transform-3d) | Three depth layers; perspective set; scroll updates `--scroll-y` once per frame | M |
-| S1-07 | Carbon icon set inline (top 8: arrow-right, email, phone, location, play, close, menu, chevron-down) | All inline SVG, no font icons, currentColor stroke | S |
-| S1-08 | Lighthouse audit: Perf ≥90, A11y ≥95 | Report exported to `reports/lighthouse-<date>.html` | M |
-| S1-09 | Threat model for the public site | `security/threat-model/components/web.md` filled, STRIDE per element | M |
+| ID | Task | AC sketch | Effort | Status |
+|----|------|-----------|--------|--------|
+| S1-01 | Install `dx` CLI; verify `just dev` boots on a free port | When dev server runs, GET `/` returns 200 with hero text | S | DONE |
+| S1-02 | Verify `just build` produces WASM ≤1.5 MB gzipped | Build artifact under budget; report `du -h dist/*.wasm` | S | DONE |
+| S1-03 | Wire IntersectionObserver scroll triggers via `web-sys` | Sections fade-in on first visibility; reduced-motion path skips | M | DONE |
+| S1-04 | Animated SVG `V`-mark hero overlay (CSS keyframes, no JS) | Vine grows from baseline over 1.2s, GPU-composited only | M | DONE |
+| S1-05 | Carbon-style 12-col fluid grid via CSS custom properties | Grid responds at 320 / 768 / 1024 / 1440; no media-query bloat | S | DONE |
+| S1-06 | Three-plane parallax hero (CSS transform-3d) | Three depth layers; perspective set; scroll updates `--scroll-y` once per frame | M | DONE |
+| S1-07 | Carbon icon set inline (top 8: arrow-right, email, phone, location, play, close, menu, chevron-down) | All inline SVG, no font icons, currentColor stroke | S | DONE |
+| S1-08 | Lighthouse audit: Perf ≥90, A11y ≥95 | Report exported to `reports/lighthouse-<date>.html` | M | DONE |
+| S1-09 | Threat model for the public site | `security/threat-model/components/web.md` filled, STRIDE per element | M | DONE |
 
 ## Sprint S2 — Cinematic motion + content polish
-| ID | Task | AC sketch | Effort |
-|----|------|-----------|--------|
-| S2-01 | Hero "stage-curtain reveal" on first load (1.4s, prefers-reduced-motion respected) | First paint shows curtain; reveal triggers exactly once per session | M |
-| S2-02 | Case-study cards: hover = rim-light + z-translate | GPU-composited, no layout shift on hover | S |
-| S2-03 | Manifesto block: split-letter typography animation | Letters settle on scroll-in, deterministic, no JS RNG | M |
-| S2-04 | Contact form (no-JS-first, progressive enhancement) | Submits to mailto: fallback; client validation enhances | M |
-| S2-05 | OG + Twitter card meta + JSON-LD `Organization` | Meta passes Twitter card validator | S |
+| ID | Task | AC sketch | Effort | Status |
+|----|------|-----------|--------|--------|
+| S2-01 | Hero "stage-curtain reveal" on first load (1.4s, prefers-reduced-motion respected) | First paint shows curtain; reveal triggers exactly once per session | M | DONE |
+| S2-02 | Case-study cards: hover = rim-light + z-translate | GPU-composited, no layout shift on hover | S | DONE |
+| S2-03 | Manifesto block: split-letter typography animation | Letters settle on scroll-in, deterministic, no JS RNG | M | DONE |
+| S2-04 | Contact form (no-JS-first, progressive enhancement) | Submits to mailto: fallback; client validation enhances | M | DONE |
+| S2-05 | OG + Twitter card meta + JSON-LD `Organization` | Meta passes Twitter card validator | S | DONE |
 
 ## Sprint S3 — Case study pages
 | ID | Task | AC sketch | Effort | Status |

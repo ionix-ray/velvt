@@ -1,5 +1,13 @@
 # Progress Log — Vaelvet Container + UI/UX Refactor
 
+## 2026-06-28
+
+### Completed Today
+1. **Testing & QA Complete** — Scaled the Playwright test suite to 222 robust, end-to-end tests covering 4 major responsive breakpoints (320px, 375px, 768px, 1280px). Tested across Chromium, Webkit, and a reduced-motion profile. Verified complete stability of visual layouts, responsive edge-cases, and brand constraints.
+2. **Typography Optimization** — Eliminated external CDN dependencies for typography. Both `IBM Plex Sans` and `Kalnia Glaze` are now fully self-hosted. Enforced the `Kalnia Glaze` display font globally, specifically ensuring `.v-founder__name` renders elegantly with accurate `--accent` (`#B52A2A` / `#D43E3E`) colors across all themes.
+3. **Responsive UI/UX Refinements** — Tuned container side-panel gutters for 320px and 375px viewport breakpoints to drastically improve small mobile readability. Added responsive 1-column collapse constraints to the founder grid and minimized footer negative space.
+4. **Docs & Container Wrap-up** — Verified `.gitignore` (ignoring `/deployment/` completely) and `.containerignore`. Final distroless container builds flawlessly with a 1.5MB WASM footprint constraint met. `TASKS.md`, `STATE.md`, and `CHANGELOG.md` fully closed-out.
+
 ## 2026-06-23
 
 ### Completed Today

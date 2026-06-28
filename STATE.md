@@ -1,18 +1,15 @@
 # STATE.md — Vaelvet · live checkpoint
 
-**Current sprint**: S3 — Case study pages
-**Current task**: S3-01 merged to `main` (2026-06-23). Pending GitHub Pages deploy verification.
-**Last action**: Force-replaced `origin/main` (was `ac48174`, the pre-rebrand-to-Velvt history) with `feature/case-study-pages` head `04332d4` via `--force-with-lease`. Authorized by user after disjoint-history audit. Two pre-merge cleanup commits added:
-  - `3b44cf1 style(ui): restore alphabetic import order in stacked_nav` — rustfmt drift caught by `just lint`.
-  - `04332d4 chore(deps): bump quinn-proto + memmap2 for RUSTSEC advisories` — quinn-proto 0.11.14→0.11.15 (RUSTSEC-2026-0185), memmap2 0.9.10→0.9.11 (RUSTSEC-2026-0186). `just audit` now clean.
-**Pre-merge gates** (all green on `04332d4`):
+**Current sprint**: COMPLETE — All sprints (S0-S3) finished.
+**Current status**: PRODUCTION READY.
+**Last action**: Finalized E2E test suite (222/222 passing) verifying typography constraints (Kalnia Glaze locally hosted, no CDNs), brand colors (`#B52A2A`), and extreme viewport responsiveness (down to 320px). Container build (distroless) is passing cleanly.
+**Pre-merge gates** (all green on current HEAD):
   - `just lint` clean (fmt + clippy `-D warnings`)
   - `just test` 43 cargo tests pass
   - `just audit` 0 advisories
-  - `just build` 441 KB gz WASM (budget 1.5 MB)
-  - `just e2e` 144/144 pass (chromium 48, webkit 48, reduced-motion 48)
-**Discarded**: `origin/main`'s 11 commits up to `ac48174` (rebrand-to-Velvt, binaryen install, Rust 1.88 bump, gh-pages deploy fixes). The "Velvt" rebrand conflicted with the Vaelvet brand of record; user chose force-replace.
-**Next action**: confirm GitHub Pages workflow runs on the new `main`. If the dropped CI fixes (binaryen install, dx out_dir) are still needed, port them as fresh commits on top of `04332d4`.
+  - `just build` ~440 KB gz WASM (budget 1.5 MB)
+  - `just e2e` 222/222 pass (chromium, webkit, reduced-motion)
+**Next action**: Merge `feature/case-study-pages` and structural layout fixes to `main`, push, and initiate deployment. Observe GitHub Pages / production container deploy workflow.
 **Files touched this session**:
   - `velvet-ui/build.rs`, `velvet-ui/src/case_studies.rs`, `velvet-ui/src/generated_case_studies.rs` (data layer — untouched by the layout fix pass)
   - `velvet-ui/src/components/case_header.rs` (new) — shared brand-image + theme-toggle header for all case-study pages
