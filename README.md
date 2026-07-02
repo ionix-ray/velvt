@@ -1,4 +1,4 @@
-# Vaelvet — *elevate your Presence.*
+# Velvt — *Elevate Your Presence.*
 
 A cinematic PR agency website. Built in Dioxus (Rust → WASM). Config-driven: edit `content/site.md` and rebuild — no code changes needed for copy.
 
@@ -53,8 +53,8 @@ The sections below mirror that file so you can read the site at a glance.
 
 ## Brand
 
-- **Name**: Vaelvet
-- **Tagline**: *elevate your Presence.*
+- **Name**: Velvt
+- **Tagline**: *Elevate Your Presence.*
 - **Promise**: We craft the room before you walk into it.
 
 ## Navigation
@@ -65,7 +65,7 @@ The sections below mirror that file so you can read the site at a glance.
 
 > *We don't write press releases. We compose entrances.*
 
-Vaelvet is a premium public-relations house for film, music, fashion, and founders who refuse to be ordinary. Every campaign is staged like a third-act reveal.
+Velvt is a premium public-relations house for film, music, fashion, and founders who refuse to be ordinary. Every campaign is staged like a third-act reveal.
 
 CTA: **Book a private consultation →**
 
