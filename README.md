@@ -114,4 +114,4 @@ See [`CLAUDE.md`](CLAUDE.md) for the engineering rulebook.
 
 ## License
 
-© Vaelvet. All rights reserved. Brand marks are not licensed.
+© Velvt. All rights reserved. Brand marks are not licensed.
