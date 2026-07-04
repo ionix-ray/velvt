@@ -11,7 +11,15 @@ use tokio::fs;
 #[derive(Debug, Clone)]
 pub struct AppState {
     pub static_root: PathBuf,
-    pub index_html: PathBuf,
+    pub index_html_content: String,
+}
+
+#[derive(serde::Deserialize)]
+pub struct InquiryPayload {
+    pub name: String,
+    pub email: String,
+    pub service: String,
+    pub message: String,
 }
 
 /// Insert a header built from a trusted, hardcoded `&'static str` pair.
@@ -21,6 +29,44 @@ fn set_header(response: &mut Response, name: &'static str, value: &'static str) 
     response
         .headers_mut()
         .insert(name, HeaderValue::from_static(value));
+}
+
+pub async fn submit_inquiry(
+    State(_state): State<AppState>,
+    axum::Json(payload): axum::Json<InquiryPayload>,
+) -> impl IntoResponse {
+    tracing::info!("Received inquiry from {}", payload.name);
+
+    if let Ok(token) = std::env::var("GITHUB_TOKEN") {
+        let repo = std::env::var("GITHUB_REPO").unwrap_or_else(|_| "velvet-inquiries".to_string());
+        let owner = std::env::var("GITHUB_OWNER").unwrap_or_else(|_| "velvt".to_string());
+        
+        let client = reqwest::Client::new();
+        let api_url = format!("https://api.github.com/repos/{owner}/{repo}/dispatches");
+
+        let body = serde_json::json!({
+            "event_type": "new_inquiry",
+            "client_payload": {
+                "name": payload.name,
+                "email": payload.email,
+                "service": payload.service,
+                "message": payload.message
+            }
+        });
+
+        // We use a repository dispatch event here. The GitHub action can then append to a CSV/JSON file securely.
+        let _ = client.post(&api_url)
+            .header("Authorization", format!("Bearer {token}"))
+            .header("Accept", "application/vnd.github.v3+json")
+            .header("User-Agent", "velvet-server")
+            .json(&body)
+            .send()
+            .await;
+    }
+
+    let mut response = Response::new(Body::from(r#"{"status":"ok"}"#));
+    set_header(&mut response, "content-type", "application/json");
+    response
 }
 
 pub async fn health_check() -> impl IntoResponse {
@@ -63,9 +109,7 @@ pub async fn serve_request(
         return Ok(response);
     }
 
-    let content = fs::read_to_string(&state.index_html)
-        .await
-        .map_err(|e| ServerError::AssetRead(format!("index.html: {e}")))?;
+    let content = state.index_html_content.clone();
 
     let mut response = Response::new(Body::from(content));
     set_header(&mut response, "content-type", "text/html; charset=utf-8");

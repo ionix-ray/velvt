@@ -12,6 +12,8 @@ tower-http = { version = "0.5", features = ["fs", "trace", "cors"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
 serde = { version = "1", features = ["derive"] }
+reqwest = { version = "0.13.4", features = ["json"] }
+serde_json = "1.0.150"
 
 [dev-dependencies]
 tower = { version = "0.4", features = ["util"] }

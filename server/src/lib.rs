@@ -7,13 +7,48 @@ use axum::Router;
 use std::net::SocketAddr;
 
 pub fn app(config: config::Config) -> Router {
+    let index_html = std::path::PathBuf::from(&config.static_root).join("index.html");
+    let mut index_html_content = std::fs::read_to_string(&index_html).unwrap_or_default();
+
+    // Dynamically inject hashed assets for preloading to avoid lazy loading pop-in
+    let assets_dir = std::path::PathBuf::from(&config.static_root).join("assets");
+    let mut theme_css = String::new();
+    let mut brand_png = String::new();
+    let mut favicon_png = String::new();
+
+    if let Ok(entries) = std::fs::read_dir(&assets_dir) {
+        for entry in entries.flatten() {
+            let name = entry.file_name().to_string_lossy().to_string();
+            if name.starts_with("theme-") && name.ends_with(".css") {
+                theme_css = name;
+            } else if name.starts_with("velvet-square-") && name.ends_with(".png") {
+                brand_png = name;
+            } else if name.starts_with("favicon-") && name.ends_with(".png") {
+                favicon_png = name;
+            }
+        }
+    }
+
+    if !theme_css.is_empty() {
+        let preload = format!(
+            r#"<link rel="stylesheet" href="/assets/{}">
+<link rel="preload" as="image" fetchpriority="high" href="/assets/{}">
+<link rel="icon" type="image/png" href="/assets/{}">
+<link rel="apple-touch-icon" href="/assets/{}">
+</head>"#,
+            theme_css, brand_png, favicon_png, favicon_png
+        );
+        index_html_content = index_html_content.replace("</head>", &preload);
+    }
+
     let state = handlers::AppState {
         static_root: std::path::PathBuf::from(&config.static_root),
-        index_html: std::path::PathBuf::from(&config.static_root).join("index.html"),
+        index_html_content,
     };
 
     Router::new()
         .route("/health", axum::routing::get(handlers::health_check))
+        .route("/api/inquiry", axum::routing::post(handlers::submit_inquiry))
         .fallback(axum::routing::get(handlers::serve_request))
         .layer(axum::middleware::from_fn(middleware::security_headers))
         .layer(axum::middleware::from_fn(middleware::log_request))

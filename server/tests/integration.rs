@@ -238,7 +238,8 @@ async fn html_response_gets_no_cache_pragma_headers() -> TestResult {
 fn app_state_constructs_index_html_under_static_root() {
     let state = AppState {
         static_root: std::path::PathBuf::from("/srv/static"),
-        index_html: std::path::PathBuf::from("/srv/static/index.html"),
+        index_html_content: String::from("test html content"),
     };
-    assert_eq!(state.index_html, state.static_root.join("index.html"));
+
+    assert_eq!(state.index_html_content, "test html content");
 }

@@ -9,10 +9,7 @@ steps:
       - runtime
       - -f
       - Containerfile
-      - --cache-from
-      - us-central1-docker.pkg.dev/theionixinference/velvet/velvet-web:latest
-      - --build-arg
-      - BUILDKIT_INLINE_CACHE=1
+      - --no-cache
       - -t
       - us-central1-docker.pkg.dev/theionixinference/velvet/velvet-web:v2
       - -t

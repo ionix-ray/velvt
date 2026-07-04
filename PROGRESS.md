@@ -342,3 +342,6 @@ call sites today and both first-party).
 All three user-reported bugs (logo, theme, layout) confirmed fixed and
 gated. Still uncommitted on `feature/case-study-pages`, awaiting user
 review/merge decision.
+- Deployed to Google Kubernetes Engine (GKE) via Terraform.
+- Reserved Static IP for LoadBalancer: `136.114.185.50`
+- Configured Cloud Build to compile and push the container natively for x86_64 to avoid QEMU emulation bugs.
