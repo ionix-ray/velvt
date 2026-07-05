@@ -21,9 +21,15 @@ pub fn StudioPanel(site: Site) -> Element {
                             div {
                                 class: "{showcase_item_classes(i, site.studio.items.len())}",
                                 style: "transition-delay: {(i + 1) * 60}ms;",
-                                span { class: "v-tile__eyebrow", "{item.tag}" }
-                                h4 { class: "v-tile__title", "{item.title}" }
-                                p { class: "v-tile__desc", "{item.body}" }
+                                div { class: "v-sparkle-border" }
+                                img {
+                                    class: "v-experience-badge",
+                                    src: "{site.hero.logo}",
+                                    alt: "Velvt Badge",
+                                }
+                                span { class: "v-eyebrow", "{item.tag}" }
+                                h4 { "{item.title}" }
+                                p { "{item.body}" }
                             }
                         }
                     }
@@ -39,9 +45,9 @@ pub fn StudioPanel(site: Site) -> Element {
 fn showcase_item_classes(index: usize, total: usize) -> String {
     let extra = showcase_span_class(index, total);
     if extra.is_empty() {
-        "v-tile v-tile--showcase v-reveal v-glass-effect v-border-sparkle".to_string()
+        "v-process__step v-tile--showcase v-reveal".to_string()
     } else {
-        format!("v-tile v-tile--showcase v-reveal v-glass-effect v-border-sparkle {extra}")
+        format!("v-process__step v-tile--showcase v-reveal {extra}")
     }
 }
 
@@ -93,11 +99,11 @@ mod tests {
     fn showcase_item_classes_appends_modifier_with_single_space() {
         assert_eq!(
             showcase_item_classes(0, 3),
-            "v-tile v-tile--showcase v-reveal v-glass-effect v-border-sparkle"
+            "v-process__step v-tile--showcase v-reveal"
         );
         assert_eq!(
             showcase_item_classes(4, 5),
-            "v-tile v-tile--showcase v-reveal v-glass-effect v-border-sparkle v-tile--wide"
+            "v-process__step v-tile--showcase v-reveal v-tile--wide"
         );
     }
 }

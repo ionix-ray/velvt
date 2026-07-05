@@ -381,3 +381,9 @@ call sites today and both first-party).
 All three user-reported bugs (logo, theme, layout) confirmed fixed and
 gated. Still uncommitted on `feature/case-study-pages`, awaiting user
 review/merge decision.
+
+### Experience Section Polish — same day
+- **Refactored Studio/Experience cards** to fully mirror the "How We Work" section (`v-process__step`).
+- **Running Glowing Borders**: Replaced generic backgrounds with `.v-sparkle-border` implementation.
+- **Added Logo Badges**: Injected the site logo securely into the top-left corner of each card using an absolute positioned `.v-experience-badge` class.
+- **TDD Enforcement**: Re-wrote Playwright integration tests to enforce strict verification of these new classes, ensuring regressions are caught before they reach production.

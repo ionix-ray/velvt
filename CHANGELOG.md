@@ -30,3 +30,9 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 - **Testing & Containerization:** Fixed Playwright color assertions that previously failed under different themes (dark vs light mode). Now accurately validating the entire crimson family dynamically. Verified local deployment environment stability with successful Podman container builds utilizing Distroless runtime. 
 - **Footer Spacing:** Fixed blank space issues at the bottom of the page, ensuring the giant Velvt text aligns flawlessly to the extreme end of the layout.
+
+### Experience Section Polish — same day
+- **Refactored Studio/Experience cards** to fully mirror the "How We Work" section (`v-process__step`).
+- **Running Glowing Borders**: Replaced generic backgrounds with `.v-sparkle-border` implementation.
+- **Added Logo Badges**: Injected the site logo securely into the top-left corner of each card using an absolute positioned `.v-experience-badge` class.
+- **TDD Enforcement**: Re-wrote Playwright integration tests to enforce strict verification of these new classes, ensuring regressions are caught before they reach production.

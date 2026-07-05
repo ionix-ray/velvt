@@ -389,19 +389,25 @@ test("brand: topbar actions cluster stays clear of the brand badge", async ({ pa
 
 // ── Showcase masonry (card sizing + vertical overflow scroll) ───────────────
 
-test("showcase: cards use cinematic template with glass effect and sparkling borders", async ({ page }) => {
+test("showcase: cards use v-process__step design with sparkling borders and logo badge", async ({ page }) => {
   await page.goto("/");
   await page.waitForSelector(".v-panels");
   await page.waitForSelector(".v-loader", { state: "hidden" });
 
-  const items = page.locator("#experience .v-tile");
+  // Update locator to match the new structural class
+  const items = page.locator("#experience .v-process__step");
   const count = await items.count();
   expect(count).toBeGreaterThan(0);
 
   for (let i = 0; i < count; i++) {
     const item = items.nth(i);
-    await expect(item).toHaveClass(/v-glass-effect/);
-    await expect(item).toHaveClass(/v-border-sparkle/);
+    // Assert the presence of the inner sparkle border
+    const border = item.locator(".v-sparkle-border");
+    await expect(border).toBeVisible();
+    
+    // Assert the presence of the logo badge
+    const badge = item.locator("img.v-experience-badge");
+    await expect(badge).toBeVisible();
   }
 });
 
@@ -410,7 +416,7 @@ test("showcase: masonry cards stay within a sane height and show their text", as
   await page.waitForSelector(".v-panels");
   await page.waitForSelector(".v-loader", { state: "hidden" });
 
-  const items = page.locator("#experience .v-tile");
+  const items = page.locator("#experience .v-process__step");
   const count = await items.count();
   expect(count).toBeGreaterThan(0);
 
@@ -432,8 +438,8 @@ test("showcase: responsive grid collapses from three columns to one on narrow vi
   await page.goto("/#experience");
   await page.waitForSelector(".v-loader", { state: "hidden" });
 
-  const firstTileBox = await page.locator("#experience .v-tile").nth(0).boundingBox();
-  const secondTileBox = await page.locator("#experience .v-tile").nth(1).boundingBox();
+  const firstTileBox = await page.locator("#experience .v-process__step").nth(0).boundingBox();
+  const secondTileBox = await page.locator("#experience .v-process__step").nth(1).boundingBox();
   expect(firstTileBox).not.toBeNull();
   expect(secondTileBox).not.toBeNull();
   
@@ -447,7 +453,7 @@ test("showcase: responsive grid collapses from three columns to one on narrow vi
   await page.goto("/#experience");
   await page.waitForSelector(".v-loader", { state: "hidden" });
 
-  const tops = await page.locator("#experience .v-tile").evaluateAll((els) =>
+  const tops = await page.locator("#experience .v-process__step").evaluateAll((els) =>
     els.map((el) => (el as HTMLElement).getBoundingClientRect().top),
   );
   expect(tops.length).toBeGreaterThan(1);
@@ -933,7 +939,7 @@ test("ideology: displays cinematic background and 3D floating cards with sparkle
   await expect(cinematicBg).toBeVisible();
 
   // 3D process cards
-  const steps = page.locator(".v-process__step");
+  const steps = page.locator("#ideology .v-process__step");
   await expect(steps).toHaveCount(5); // from mock data
   const firstStep = steps.first();
   await expect(firstStep).toBeVisible();

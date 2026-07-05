@@ -3265,3 +3265,16 @@ ul { list-style: none; }
 }
 
 
+
+/* Experience Section Badge */
+.v-experience-badge {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  width: 32px;
+  height: auto;
+  z-index: 2;
+  opacity: 0.9;
+  /* Make sure it's fully visible and not skewed */
+  object-fit: contain;
+}
