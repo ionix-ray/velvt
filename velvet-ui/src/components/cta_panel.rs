@@ -219,7 +219,9 @@ mod tests {
     #[test]
     fn build_mailto_embeds_subject_and_body() {
         let url = build_mailto("hello@vaelvet.com", "Sam", "sam@x.com", "PR", "Let's talk");
-        assert!(url.starts_with("mailto:hello@vaelvet.com?subject=Inquiry%20from%20Sam:%20PR&body="));
+        assert!(
+            url.starts_with("mailto:hello@vaelvet.com?subject=Inquiry%20from%20Sam:%20PR&body=")
+        );
         assert!(url.contains("Let's%20talk"));
         assert!(url.contains("From:%20Sam%20<sam@x.com>"));
         assert!(url.contains("Service%20Area:%20PR"));

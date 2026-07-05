@@ -1,4 +1,4 @@
-//! Hero panel — headline, badge, stats grid, CTA.
+//! Hero panel — headline, badge, hologram stat grid, CTA.
 //! Social strip is rendered globally by the Home route, not here.
 
 use crate::Site;
@@ -39,11 +39,25 @@ pub fn HeroPanel(site: Site) -> Element {
                             }
                         }
                         div { class: "v-hero__visual v-reveal-right",
-                            div { class: "v-hero__stat-grid",
-                                for stat in site.hero.stats.iter() {
-                                    div { class: "v-stat-card",
-                                        div { class: "v-stat-card__value", "{stat.value}" }
-                                        div { class: "v-stat-card__label", "{stat.label}" }
+                            div { class: "v-hologram",
+                                div { class: "v-hologram__glow", "aria-hidden": "true" }
+                                div { class: "v-hologram__scanlines", "aria-hidden": "true" }
+                                div { class: "v-hologram__particles", "aria-hidden": "true",
+                                    for i in 0..8 {
+                                        div { class: "v-hologram__particle", key: "{i}" }
+                                    }
+                                }
+                                div { class: "v-hologram__ring v-hologram__ring--1" }
+                                div { class: "v-hologram__ring v-hologram__ring--2" }
+                                div { class: "v-hero__stat-grid",
+                                    for (i, stat) in site.hero.stats.iter().enumerate() {
+                                        div {
+                                            class: "v-stat-card",
+                                            style: "--float-delay: {format_delay(i)}",
+                                            div { class: "v-stat-card__glow", "aria-hidden": "true" }
+                                            div { class: "v-stat-card__value", "{stat.value}" }
+                                            div { class: "v-stat-card__label", "{stat.label}" }
+                                        }
                                     }
                                 }
                             }
@@ -53,4 +67,8 @@ pub fn HeroPanel(site: Site) -> Element {
             }
         }
     }
+}
+
+fn format_delay(i: usize) -> String {
+    format!("{}s", i as f64 * 0.3)
 }

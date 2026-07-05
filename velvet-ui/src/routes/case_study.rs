@@ -147,7 +147,7 @@ pub fn CaseStudy(slug: String) -> Element {
                 }
             }
             }
-        },
+        }
     }
 }
 

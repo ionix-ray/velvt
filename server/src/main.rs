@@ -12,9 +12,7 @@ async fn main() {
         .unwrap_or_else(|_| tracing_subscriber::EnvFilter::new(default_level));
 
     if std::env::var("DEBUG").is_ok() {
-        tracing_subscriber::fmt()
-            .with_env_filter(env_filter)
-            .init();
+        tracing_subscriber::fmt().with_env_filter(env_filter).init();
     } else {
         tracing_subscriber::fmt()
             .json()

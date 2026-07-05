@@ -1,5 +1,35 @@
 # Progress Log — Vaelvet Container + UI/UX Refactor
 
+## 2026-07-04
+
+### Completed Today
+1. **Hologram Floating-Gravity Display** — Transformed the hero stat grid into a cinematic holographic projection system. Key features:
+   - `v-hologram` container with 7s gentle levitation animation (`v-hologram-levitate`)
+   - Glassmorphism stat cards with staggered `v-card-float` animation (each card floats independently via `--float-delay` CSS custom property, 0.3s stagger)
+   - Particle drift system (8 particles, each with unique position/timing/delay, drifting upward with glow)
+   - Concentric energy rings (`v-hologram__ring--1`/`--2`) that pulse and expand
+   - Scanline overlay for holographic display authenticity
+   - Ambient glow with `v-hologram-pulse` animation
+   - Card hover: 3D lift + scale + glow box-shadow
+   - Dark theme variants for all hologram elements
+   - Full `prefers-reduced-motion` support (disables all animations)
+   - Responsive: particles hidden at 1024px, reduced float amplitude
+   - Stat cards converted from flat `--bg-card` surfaces to `--glass-bg` with backdrop-filter blur
+
+2. **Lint Hygiene & Test Infrastructure Fixes**:
+   - Fixed `cargo fmt` drift across 7 files (`server/src/main.rs`, `about_aggregated_panel.rs`, `cta_panel.rs`, `footer_panel.rs`, `loader.rs`, `stacked_nav.rs`, `home.rs`, `case_study.rs`, `spa.rs`, `tests/render.rs`)
+   - Fixed `clippy::expect-used` in `loader.rs` SSR test (replaced `.expect()` with `unwrap_or` pattern)
+   - Fixed `clippy::useless-conversion` in `cases_panel.rs`
+   - Replaced empty `mod tests {}` in `stacked_nav.rs` with 4 SSR render tests covering nav items, open/closed states, and active panel
+   - Added hologram structural assertions to `tests/render.rs`
+   - All 133 tests passing (up from 129), lint clean, WASM 441 KB gz
+
+### Verified
+- `cargo fmt --check`: clean
+- `cargo clippy --workspace --all-targets -- -D warnings`: clean
+- `cargo test --workspace`: **133 passed, 0 failed** (87 lib + 14 ssr + 18 server + 3 server main + 9 server integration)
+- `dx build --release --platform web`: 441 KB gz WASM (budget 1.5 MB), 11 KB gz theme.css (budget 40 KB)
+
 ## 2026-06-28
 
 ### Completed Today

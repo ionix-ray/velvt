@@ -132,12 +132,12 @@ mod tests {
     #[test]
     fn iris_rings_are_nested_inside_brand_container() {
         let html = render(WrapVisible);
-        // Find the brand container…
-        let brand_start = html.find("v-loader__brand").expect("brand container missing");
-        // …and confirm the iris div appears after it (inside it).
-        let iris_pos = html.find("v-loader__iris").expect("iris container missing");
+        let brand_pos = html.find("v-loader__brand");
+        let iris_pos = html.find("v-loader__iris");
+        assert!(brand_pos.is_some(), "brand container missing");
+        assert!(iris_pos.is_some(), "iris container missing");
         assert!(
-            iris_pos > brand_start,
+            iris_pos.unwrap_or(0) > brand_pos.unwrap_or(usize::MAX),
             "iris rings must be inside the brand container to overlay the logo"
         );
     }

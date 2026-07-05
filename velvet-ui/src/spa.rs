@@ -84,11 +84,10 @@ pub fn install_spa_link_interceptor() -> Option<()> {
                     opts2.set_behavior(web_sys::ScrollBehavior::Instant);
                     win2.scroll_to_with_scroll_to_options(&opts2);
                 });
-                let _ = win
-                    .set_timeout_with_callback_and_timeout_and_arguments_0(
-                        cb.as_ref().unchecked_ref(),
-                        50,
-                    );
+                let _ = win.set_timeout_with_callback_and_timeout_and_arguments_0(
+                    cb.as_ref().unchecked_ref(),
+                    50,
+                );
                 cb.forget();
             }
         }

@@ -5,9 +5,8 @@ use crate::Site;
 use crate::components::{
     about_aggregated_panel::AboutAggregatedPanel, cases_panel::CasesPanel, cta_panel::CtaPanel,
     footer_panel::FooterPanel, hero_panel::HeroPanel, loader::Loader, mobile_nav::MobileNav,
-    process_panel::ProcessPanel, scroll_progress::ScrollProgress,
-    section_dots::SectionDots, social_strip::SocialStrip, stacked_nav::StackedNav,
-    studio_panel::StudioPanel, topbar::TopBar,
+    process_panel::ProcessPanel, scroll_progress::ScrollProgress, section_dots::SectionDots,
+    social_strip::SocialStrip, stacked_nav::StackedNav, studio_panel::StudioPanel, topbar::TopBar,
 };
 use dioxus::prelude::*;
 use wasm_bindgen::JsCast;
@@ -27,7 +26,13 @@ const PANEL_LABELS: &[&str] = &[
 /// URL-hash anchors, one per panel, in render order. Mirrors each panel
 /// section's own `id` attribute so `#showcase` etc. is shareable/bookmarkable.
 const PANEL_ANCHORS: &[&str] = &[
-    "home", "about", "ideology", "experience", "achivements", "contact", "footer",
+    "home",
+    "about",
+    "ideology",
+    "experience",
+    "achivements",
+    "contact",
+    "footer",
 ];
 
 /// Anchor slug for a panel index. Falls back to the first anchor for an
@@ -149,7 +154,8 @@ pub fn Home() -> Element {
 
     // Window vertical scroll listener to update current_panel
     {
-        let mut scroll_listener = use_signal(|| None::<wasm_bindgen::closure::Closure<dyn FnMut()>>);
+        let mut scroll_listener =
+            use_signal(|| None::<wasm_bindgen::closure::Closure<dyn FnMut()>>);
 
         use_effect(move || {
             if scroll_listener.peek().is_none() {
@@ -180,11 +186,8 @@ pub fn Home() -> Element {
                             .map(|e| e.scroll_height() as f64)
                             .unwrap_or(0.0);
 
-                        let mut idx = scroll_sync_index(
-                            scroll_top,
-                            client_height,
-                            PANEL_LABELS.len(),
-                        );
+                        let mut idx =
+                            scroll_sync_index(scroll_top, client_height, PANEL_LABELS.len());
 
                         // If we are at the very bottom, force the last panel (footer)
                         if scroll_height > 0.0

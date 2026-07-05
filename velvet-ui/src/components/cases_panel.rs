@@ -33,7 +33,7 @@ pub fn CasesPanel(site: Site) -> Element {
                 logo_image: "".into(),
                 button_link: "".into(),
                 footer_label: "Velvt Studio".into(),
-                slug: slug.into(),
+                slug,
             });
         }
     }

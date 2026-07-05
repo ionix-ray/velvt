@@ -68,7 +68,7 @@ pub fn FooterPanel(site: Site) -> Element {
                         }
                     }
                 } // End v-footer-panel__main
-                
+
                 // ── Bottom: Legal + copyright ────────────────────────
                 div { class: "v-footer-panel__bottom",
                     p { class: "v-footer-panel__copyright", "{site.brand.copyright}" }
@@ -80,7 +80,7 @@ pub fn FooterPanel(site: Site) -> Element {
                         a { href: "#", class: "v-footer-panel__legal-link", "Cookie Policy" }
                     }
                 }
-                
+
                 // ── Giant brand mark at the bottom ────────────────────────
                 div { class: "v-footer-panel__giant-brand",
                     "VELVT"

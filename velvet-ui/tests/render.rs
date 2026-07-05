@@ -34,6 +34,23 @@ fn panel_1_home_hero_renders() {
     let html = render_home();
     assert!(html.contains(r#"id="home""#), "panel #home must appear");
     assert!(html.contains("v-hero"), "hero class must appear");
+    assert!(html.contains("v-hologram"), "hologram must appear in hero");
+    assert!(
+        html.contains("v-hologram__glow"),
+        "hologram glow must appear"
+    );
+    assert!(
+        html.contains("v-hologram__scanlines"),
+        "hologram scanlines must appear"
+    );
+    assert!(
+        html.contains("v-hologram__particles"),
+        "hologram particles must appear"
+    );
+    assert!(
+        html.contains("v-hologram__ring"),
+        "hologram rings must appear"
+    );
 }
 
 #[test]
@@ -56,7 +73,10 @@ fn panel_3_process_renders() {
 #[test]
 fn panel_4_cases_renders() {
     let html = render_home();
-    assert!(html.contains(r#"id="achivements""#), "panel #achivements must appear");
+    assert!(
+        html.contains(r#"id="achivements""#),
+        "panel #achivements must appear"
+    );
     assert!(html.contains("v-cases"), "cases class must appear");
 }
 
@@ -93,7 +113,11 @@ fn footer_renders() {
 #[test]
 fn home_includes_all_case_studies() {
     let html = render_home();
-    for client in ["Be the first to be showcased here", "Luxe Beauty", "GreenFuture"] {
+    for client in [
+        "Be the first to be showcased here",
+        "Luxe Beauty",
+        "GreenFuture",
+    ] {
         assert!(html.contains(client), "case study {client} must render");
     }
 }

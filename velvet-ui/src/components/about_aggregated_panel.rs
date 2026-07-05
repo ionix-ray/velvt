@@ -41,7 +41,7 @@ pub fn AboutAggregatedPanel(site: Site) -> Element {
                         div { class: "v-about-grid__right",
                             // Founder — config-driven (see content/site.md `[founder]`).
                             FounderCard { founder: site.founder.clone() }
-                            
+
                             div { class: "v-about-grid__stats",
                                 span { class: "v-eyebrow", "By the Numbers" }
                                 h3 { class: "v-about-grid__stats-title",
