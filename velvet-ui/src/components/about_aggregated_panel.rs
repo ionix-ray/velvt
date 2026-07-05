@@ -109,9 +109,6 @@ fn is_active_cell(row: usize, col: usize) -> bool {
     }
 }
 
-fn format_delay(i: usize) -> String {
-    format!("{}s", i as f64 * 0.3)
-}
 
 #[component]
 fn TeamCard(member: TeamMember) -> Element {
