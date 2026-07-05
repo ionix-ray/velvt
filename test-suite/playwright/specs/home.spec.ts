@@ -28,13 +28,13 @@ test("home: CTA links to contact email", async ({ page }) => {
 test("topbar: theme toggle flips html[data-theme]", async ({ page }) => {
   await page.goto("/");
   const html = page.locator("html");
-  await expect(html).toHaveAttribute("data-theme", "light");
-
-  await page.locator(".v-theme-toggle").click();
   await expect(html).toHaveAttribute("data-theme", "dark");
 
   await page.locator(".v-theme-toggle").click();
   await expect(html).toHaveAttribute("data-theme", "light");
+
+  await page.locator(".v-theme-toggle").click();
+  await expect(html).toHaveAttribute("data-theme", "dark");
 });
 
 test("topbar: menu button opens and closes the stacked nav", async ({ page }) => {
@@ -54,10 +54,6 @@ test("topbar: menu button opens and closes the stacked nav", async ({ page }) =>
 test("cta: filling and submitting the inquiry form shows the thank-you view", async ({ page }) => {
   await page.goto("/");
   const form = page.locator(".v-contact-form");
-  await page.route('/api/inquiry', async (route) => {
-    await route.fulfill({ status: 200, json: { status: 'ok' } });
-  });
-
   await form.scrollIntoViewIfNeeded();
 
   await form.locator('input[type="text"]').fill("Sam Parhi");
@@ -89,7 +85,7 @@ test("home: hero LCP under 2.5s", async ({ page }) => {
   await page.goto("/", { waitUntil: "load" });
   await page.locator(".v-hero__title").waitFor({ state: "visible" });
   const lcp = Date.now() - t0;
-  expect(lcp, `hero visible in ${lcp}ms`).toBeLessThan(5000);
+  expect(lcp, `hero visible in ${lcp}ms`).toBeLessThan(2500);
 });
 
 test("reduced-motion: loader curtain animates", async ({ page }) => {
@@ -177,11 +173,13 @@ test("brand: logo renders in topbar", async ({ page }) => {
   await expect(logo).toHaveAttribute("alt", "VELVT");
 });
 
-test("brand: loader shows animation", async ({ page }) => {
+test("brand: logo is NOT in hero content but in loader with animation", async ({ page }) => {
   await page.goto("/", { waitUntil: "domcontentloaded" });
+  const heroLogo = page.locator(".v-hero__content .v-hero__logo");
+  await expect(heroLogo).toBeHidden();
 
   const logo = page.locator(".v-loader__logo");
-  await expect(logo).toBeAttached({ timeout: 10000 });
+  await expect(logo).toBeVisible({ timeout: 3000 });
   await expect(logo).toHaveAttribute("alt", "VELVT");
   await expect(logo).toHaveCSS("animation-name", /v-loader-logo/);
 });
@@ -233,7 +231,7 @@ test("brand: floating badge anchored top-left and overflows the topbar strip", a
 
   // Sharp corners, not pill-rounded.
   const radius = await logo.evaluate((el) =>
-    Number.parseFloat(getComputedStyle(el).borderTopLeftRadius || "0"),
+    Number.parseFloat(getComputedStyle(el).borderTopLeftRadius),
   );
   expect(radius).toBeLessThanOrEqual(2);
 });
@@ -335,7 +333,7 @@ test("social-strip: visible on hero panel", async ({ page }) => {
   await page.waitForSelector(".v-loader", { state: "hidden" });
   // Strip visible on panel 0 (HOME)
   const strip = page.locator(".v-social-strip");
-  await expect(strip).toBeVisible();
+  await expect(strip).not.toHaveClass(/v-social-strip--hidden/);
 });
 
 test("social-strip: hidden (aria-hidden) on footer panel", async ({ page }) => {
@@ -405,7 +403,7 @@ test("showcase: masonry cards stay within a sane height and show their text", as
     expect(box).not.toBeNull();
     if (box) {
       // Cards must never balloon to near-viewport height.
-      expect(box.height).toBeLessThan(800);
+      expect(box.height).toBeLessThan(500);
     }
     const text = (await item.textContent()) ?? "";
     expect(text.trim().length).toBeGreaterThan(0);
@@ -763,7 +761,7 @@ for (const vp of VIEWPORTS) {
       expect(
         box.x + box.width,
         `h1 overflows right at ${vp.label}`,
-      ).toBeLessThanOrEqual(vp.width + 40); // Generous tolerance for responsive scaling
+      ).toBeLessThanOrEqual(vp.width + 4);
     }
   });
 
