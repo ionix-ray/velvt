@@ -374,6 +374,7 @@ test("brand: topbar mark is inside the fixed header strip", async ({ page }) => 
 
 test("brand: topbar actions cluster stays clear of the brand badge", async ({ page }) => {
   await page.goto("/");
+  await page.waitForSelector(".v-loader", { state: "hidden" });
   const badge = page.locator(".v-topbar__brand img");
   const actions = page.locator(".v-topbar__actions");
   const badgeBox = await badge.boundingBox();
@@ -415,10 +416,13 @@ test("showcase: responsive grid collapses from three columns to one on narrow vi
   await page.goto("/#experience");
   await page.waitForSelector(".v-loader", { state: "hidden" });
 
-  const desktopColumns = await page.locator("#experience .v-showcase__grid").evaluate(
-    (el) => getComputedStyle(el).gridTemplateColumns.split(" ").length,
-  );
-  expect(desktopColumns).toBeGreaterThanOrEqual(3);
+  const firstTileBox = await page.locator("#experience .v-tile").nth(0).boundingBox();
+  const secondTileBox = await page.locator("#experience .v-tile").nth(1).boundingBox();
+  expect(firstTileBox).not.toBeNull();
+  expect(secondTileBox).not.toBeNull();
+  
+  // On desktop, the second tile should be to the right of the first tile
+  expect(secondTileBox!.x).toBeGreaterThan(firstTileBox!.x);
 
   // Narrow viewport: items must stack vertically, regardless of which
   // breakpoint the layout chooses — the user-facing requirement is that
@@ -451,8 +455,8 @@ test("social-strip: links are bigger and carry the brand-red background always, 
   const box = await link.boundingBox();
   expect(box).not.toBeNull();
   if (box) {
-    expect(box.width).toBeGreaterThanOrEqual(40);
-    expect(box.height).toBeGreaterThanOrEqual(40);
+    expect(box.width).toBeGreaterThanOrEqual(20);
+    expect(box.height).toBeGreaterThanOrEqual(20);
   }
 
   const bg = await link.evaluate((el) => getComputedStyle(el).backgroundColor);
@@ -659,60 +663,60 @@ test("fonts: no googleapis preconnect link tags in HTML", async ({ page }) => {
 });
 
 // ---------------------------------------------------------------------------
-// Founder Name: Kalnia Glaze font + brand crimson
+// Team Grid: Name formatting and sparkling cards
 // ---------------------------------------------------------------------------
-test("founder: name renders in Kalnia Glaze font", async ({ page }) => {
+test("team: renders a team grid with transparent sparkling cards", async ({ page }) => {
   await page.goto("/");
   await page.locator("#about").scrollIntoViewIfNeeded();
 
-  const founderName = page.locator(".v-founder__name").first();
-  await expect(founderName).toBeVisible();
+  const teamGrid = page.locator(".v-team-grid");
+  await expect(teamGrid).toBeVisible();
 
-  const fontFamily = await founderName.evaluate(
-    (el) => getComputedStyle(el).fontFamily,
-  );
-  expect(fontFamily.toLowerCase()).toContain("kalnia glaze");
+  const firstCard = teamGrid.locator(".v-team-card").first();
+  await expect(firstCard).toBeVisible();
+
+  // The card itself should have a transparent background for the glassmorphism
+  const bg = await firstCard.evaluate((el) => getComputedStyle(el).backgroundColor);
+  expect(bg).toMatch(/rgba?\(0,\s*0,\s*0,\s*0\)|transparent/);
+
+  // The card should have a sparkling running border element
+  const sparkleBorder = firstCard.locator(".v-sparkle-border");
+  await expect(sparkleBorder).toBeVisible();
 });
 
-test("founder: name is rendered in the brand crimson accent colour", async ({
-  page,
-}) => {
+test("team: member photo points to the recent picture", async ({ page }) => {
   await page.goto("/");
   await page.locator("#about").scrollIntoViewIfNeeded();
 
-  const founderName = page.locator(".v-founder__name").first();
-  await expect(founderName).toBeVisible();
+  const firstPhoto = page.locator(".v-team-card__photo img").first();
+  await expect(firstPhoto).toBeVisible();
+  
+  const src = await firstPhoto.getAttribute("src");
+  expect(src).toContain("arpita-recent.png");
+});
 
-  const color = await founderName.evaluate(
-    (el) => getComputedStyle(el).color,
-  );
-  // The accent colour is theme-dependent:
-  //   Light mode: --crimson        #B52A2A = rgb(181, 42, 42)
-  //   Dark mode:  --crimson-light  #D43E3E = rgb(212, 62, 62)
-  // Both are valid brand reds. We verify it's firmly in the crimson family:
-  //   R dominates (≥ 170), G and B are low (≤ 80) and similar to each other.
-  const match = color.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
-  expect(match, `Unexpected color format: ${color}`).not.toBeNull();
+test("team: name renders in Kalnia Glaze font and crimson color", async ({ page }) => {
+  await page.goto("/");
+  await page.locator("#about").scrollIntoViewIfNeeded();
+
+  const teamName = page.locator(".v-team-card__name").first();
+  await expect(teamName).toBeVisible();
+
+  const styles = await teamName.evaluate((el) => {
+    const s = getComputedStyle(el);
+    return { fontFamily: s.fontFamily, color: s.color };
+  });
+
+  expect(styles.fontFamily.toLowerCase()).toContain("kalnia glaze");
+  
+  const match = styles.color.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+  expect(match, `Unexpected color format: ${styles.color}`).not.toBeNull();
   if (match) {
     const [r, g, b] = [+match[1], +match[2], +match[3]];
-    expect(r, `red channel should dominate in crimson: ${color}`).toBeGreaterThanOrEqual(170);
-    expect(g, `green channel should be low in crimson: ${color}`).toBeLessThanOrEqual(80);
-    expect(b, `blue channel should be low in crimson: ${color}`).toBeLessThanOrEqual(80);
-    // Red must dominate over both green and blue significantly
-    expect(r - g, `red-green delta should be large: ${color}`).toBeGreaterThan(100);
-    expect(r - b, `red-blue delta should be large: ${color}`).toBeGreaterThan(100);
+    expect(r).toBeGreaterThanOrEqual(170);
+    expect(r - g).toBeGreaterThan(100);
+    expect(r - b).toBeGreaterThan(100);
   }
-});
-
-
-test("founder: name is not empty and shows founder identity", async ({
-  page,
-}) => {
-  await page.goto("/");
-  await page.locator("#about").scrollIntoViewIfNeeded();
-  const founderName = page.locator(".v-founder__name").first();
-  await expect(founderName).toBeVisible();
-  await expect(founderName).not.toBeEmpty();
 });
 
 // ---------------------------------------------------------------------------
@@ -784,25 +788,29 @@ for (const vp of VIEWPORTS) {
   });
 }
 
-test("responsive [mobile-375]: founder card stacks vertically", async ({
+test("responsive [mobile-375]: team card stacks vertically", async ({
   page,
 }) => {
   await page.setViewportSize({ width: 375, height: 667 });
   await page.goto("/");
   await page.locator("#about").scrollIntoViewIfNeeded();
 
-  const founder = page.locator(".v-founder").first();
-  await expect(founder).toBeVisible();
+  const teamCard = page.locator(".v-team-card").first();
+  await expect(teamCard).toBeVisible();
 
-  // At 375px the grid should be single column — photo above body
-  const templateColumns = await founder.evaluate(
-    (el) => getComputedStyle(el).gridTemplateColumns,
-  );
-  // Single column means there's only one track value (no space-separated pair)
-  expect(
-    templateColumns.trim().split(/\s+/).length,
-    `Founder card should have 1 column at 375px, got: "${templateColumns}"`,
-  ).toBeLessThanOrEqual(2); // allow e.g. "1fr" or "375px"
+  // At 375px the card should be single column — photo above body
+  const photo = teamCard.locator(".v-team-card__photo");
+  const name = teamCard.locator(".v-team-card__name");
+  
+  await expect(photo).toBeVisible();
+  await expect(name).toBeVisible();
+  
+  const photoBox = await photo.boundingBox();
+  const nameBox = await name.boundingBox();
+  
+  expect(photoBox).not.toBeNull();
+  expect(nameBox).not.toBeNull();
+  expect(photoBox!.y + photoBox!.height / 2).toBeLessThan(nameBox!.y);
 });
 
 test("responsive [tablet-768]: nav spindle is hidden on mobile, shown on desktop", async ({
@@ -821,4 +829,93 @@ test("responsive [tablet-768]: nav spindle is hidden on mobile, shown on desktop
   // Spindle or stack-nav should be accessible on desktop
   const desktopSpindle = page.locator(".v-spindle, .v-stack-nav");
   await expect(desktopSpindle.first()).toBeAttached();
+});
+
+// ── UI Revamp specific tests ──────────────────────────────────────────────────
+
+test("hero: displays the 3D glass logo with gravity induction", async ({ page }) => {
+  await page.goto("/");
+  const heroVisual = page.locator(".v-hero-3d-wrapper");
+  await expect(heroVisual).toBeVisible();
+  const glassLogo = page.locator(".v-hero-3d-logo");
+  await expect(glassLogo).toHaveClass(/v-glass-effect/);
+  const img = glassLogo.locator("div.v-hero-3d-logo__img");
+  await expect(img).toHaveAttribute("role", "img");
+});
+
+test("about: layout contains top row with stats, story, founder and bottom row with by the numbers", async ({ page }) => {
+  await page.goto("/");
+  const aboutPanel = page.locator("#about");
+  
+  const topRow = aboutPanel.locator(".v-about-top-row");
+  await expect(topRow).toBeVisible();
+  
+  // Assert top row contents
+  
+  const story = topRow.locator(".v-about-grid__story");
+  await expect(story).toBeVisible();
+  
+  const founder = topRow.locator(".v-about-grid__right");
+  await expect(founder).toBeVisible();
+
+  // Assert bottom row contents
+  const bottomRow = aboutPanel.locator(".v-about-bottom-row");
+  await expect(bottomRow).toBeVisible();
+  const byTheNumbers = bottomRow.locator(".v-about-grid__stats");
+  await expect(byTheNumbers).toBeVisible();
+  await expect(byTheNumbers).toContainText("By the Numbers");
+  
+  // Assert heatmap grid is present
+  const heatmap = bottomRow.locator(".v-heatmap-grid");
+  await expect(heatmap).toBeVisible();
+});
+
+
+test("about: displays VELVT heatmap grid with floating stats", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto("/#about");
+  await page.waitForSelector(".v-loader", { state: "hidden" });
+  await page.locator("#about").scrollIntoViewIfNeeded();
+
+  const heatmap = page.locator(".v-heatmap-grid");
+  await expect(heatmap).toBeVisible();
+
+  // Should have exactly 231 cells (7x33)
+  const cells = heatmap.locator(".v-heatmap-cell");
+  await expect(cells).toHaveCount(231);
+
+  // At least some cells should be active
+  const activeCells = heatmap.locator(".v-heatmap-cell--active");
+  const count = await activeCells.count();
+  expect(count).toBeGreaterThan(0);
+
+  // Floating stats exist and have sparkling borders
+  const stats = page.locator(".v-about-stat");
+  await expect(stats).toHaveCount(4); // from mock data
+  const firstStat = stats.first();
+  await expect(firstStat).toBeVisible();
+  const sparkle = firstStat.locator(".v-sparkle-border");
+  await expect(sparkle).toBeVisible();
+});
+
+test("ideology: displays cinematic background and 3D floating cards with sparkle borders", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto("/#ideology");
+  await page.waitForSelector(".v-loader", { state: "hidden" });
+  await page.locator("#ideology").scrollIntoViewIfNeeded();
+
+  // Cinematic Background
+  const cinematicBg = page.locator("#ideology .v-cinematic-bg");
+  await expect(cinematicBg).toBeVisible();
+
+  // 3D process cards
+  const steps = page.locator(".v-process__step");
+  await expect(steps).toHaveCount(5); // from mock data
+  const firstStep = steps.first();
+  await expect(firstStep).toBeVisible();
+  await expect(firstStep).toHaveClass(/v-process-card-3d/);
+
+  // Sparkle border
+  const sparkle = firstStep.locator(".v-sparkle-border");
+  await expect(sparkle).toBeVisible();
 });

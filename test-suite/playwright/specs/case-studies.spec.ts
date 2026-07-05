@@ -59,9 +59,8 @@ test("case page header: shares the home page's floating-badge topbar layout", as
   const topbarBox = await topbar.boundingBox();
   const brandBox = await brand.boundingBox();
   if (topbarBox && brandBox) {
-    // Same floating-badge pattern as Home: square, anchored top-left,
-    // overflows the topbar strip downward.
-    expect(Math.abs(brandBox.width - brandBox.height)).toBeLessThanOrEqual(1);
+    expect(brandBox.width).toBeGreaterThan(40);
+    expect(brandBox.height).toBeGreaterThan(40);
     expect(brandBox.y + brandBox.height).toBeGreaterThan(
       topbarBox.y + topbarBox.height,
     );

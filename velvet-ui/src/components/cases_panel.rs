@@ -54,6 +54,7 @@ pub fn CasesPanel(site: Site) -> Element {
                             div {
                                 class: "v-card-modern v-reveal",
                                 style: "transition-delay: {(i + 1) * 80}ms;",
+                                div { class: "v-sparkle-border" }
                                 div { class: "v-card-modern__image" }
                                 div { class: "v-card-modern__content",
                                     div {

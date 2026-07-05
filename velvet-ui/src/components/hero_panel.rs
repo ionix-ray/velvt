@@ -6,9 +6,23 @@ use dioxus::prelude::*;
 
 #[component]
 pub fn HeroPanel(site: Site) -> Element {
+    let mut mouse_x = use_signal(|| 0.5f64);
+    let mut mouse_y = use_signal(|| 0.5f64);
+
+    let handle_mousemove = move |evt: Event<dioxus::html::MouseData>| {
+        if let Some(win) = web_sys::window() {
+            let width = win.inner_width().unwrap().as_f64().unwrap_or(1920.0);
+            let height = win.inner_height().unwrap().as_f64().unwrap_or(1080.0);
+            let mx = (evt.client_coordinates().x as f64) / width;
+            let my = (evt.client_coordinates().y as f64) / height;
+            mouse_x.set(mx);
+            mouse_y.set(my);
+        }
+    };
+
     rsx! {
         section { class: "v-panel", id: "home",
-            div { class: "v-hero",
+            div { class: "v-hero", onmousemove: handle_mousemove,
                 div { class: "v-container",
                     div { class: "v-hero__content",
                         div { class: "v-reveal-left",
@@ -39,25 +53,14 @@ pub fn HeroPanel(site: Site) -> Element {
                             }
                         }
                         div { class: "v-hero__visual v-reveal-right",
-                            div { class: "v-hologram",
-                                div { class: "v-hologram__glow", "aria-hidden": "true" }
-                                div { class: "v-hologram__scanlines", "aria-hidden": "true" }
-                                div { class: "v-hologram__particles", "aria-hidden": "true",
-                                    for i in 0..8 {
-                                        div { class: "v-hologram__particle", key: "{i}" }
-                                    }
-                                }
-                                div { class: "v-hologram__ring v-hologram__ring--1" }
-                                div { class: "v-hologram__ring v-hologram__ring--2" }
-                                div { class: "v-hero__stat-grid",
-                                    for (i, stat) in site.hero.stats.iter().enumerate() {
-                                        div {
-                                            class: "v-stat-card",
-                                            style: "--float-delay: {format_delay(i)}",
-                                            div { class: "v-stat-card__glow", "aria-hidden": "true" }
-                                            div { class: "v-stat-card__value", "{stat.value}" }
-                                            div { class: "v-stat-card__label", "{stat.label}" }
-                                        }
+                            div {
+                                class: "v-hero-3d-wrapper",
+                                style: "--mouse-x: {mouse_x()}; --mouse-y: {mouse_y()};",
+                                div { class: "v-glass-effect v-hero-3d-logo",
+                                    div {
+                                        class: "v-hero-3d-logo__img",
+                                        "aria-label": "Velvt Logo",
+                                        role: "img"
                                     }
                                 }
                             }
@@ -67,8 +70,4 @@ pub fn HeroPanel(site: Site) -> Element {
             }
         }
     }
-}
-
-fn format_delay(i: usize) -> String {
-    format!("{}s", i as f64 * 0.3)
 }

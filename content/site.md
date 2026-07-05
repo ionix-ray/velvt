@@ -307,19 +307,17 @@ cta           = "Tell us the story you want to tell."
 title = "Trusted by Industry Leaders"
 ```
 
-## Founder
+## Team
 
 ```toml
-[founder]
+[[team]]
 name     = "Arpita"
 eyebrow  = "Founder · Star Gazer"
 bio      = "An Odishi dancer with a quiet observer's eye, Arpita reads a room before she enters it. Her soft spot is the stardom her work moves around every day — and the warmth of hospitality she insists every guest leaves with. Velvt is built on both: an artist's attention to detail, and a host's instinct for people."
-# Drop the founder portrait at velvet-ui/assets/images/arpita.jpg and
-# point `photo` at it. Empty `photo` renders the monogram tile.
-photo    = "/assets/images/arpita.png"
+photo    = "/assets/images/arpita-recent.png"
 monogram = "A"
 
-[[founder.handles]]
+[[team.handles]]
 icon  = "instagram"
 label = "@thearpitaparhi_official"
 href  = "https://instagram.com/thearpitaparhi_official"

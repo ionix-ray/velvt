@@ -43,18 +43,18 @@ pub struct Site {
     #[serde(default)]
     pub client_banner: ClientBanner,
     #[serde(default)]
-    pub founder: Founder,
+    pub team: Vec<TeamMember>,
 }
 
 #[derive(Deserialize, Debug, Clone, Default, PartialEq)]
-pub struct Founder {
+pub struct TeamMember {
     #[serde(default)]
     pub name: Box<str>,
     #[serde(default)]
     pub eyebrow: Box<str>,
     #[serde(default)]
     pub bio: Box<str>,
-    /// Optional path under `velvet-ui/assets/` to the founder portrait.
+    /// Optional path under `velvet-ui/assets/` to the team member portrait.
     /// Leave empty (or omit) to render the monogram placeholder tile.
     #[serde(default)]
     pub photo: Box<str>,

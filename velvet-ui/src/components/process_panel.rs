@@ -7,6 +7,7 @@ use dioxus::prelude::*;
 pub fn ProcessPanel(site: Site) -> Element {
     rsx! {
         section { class: "v-panel", id: "ideology",
+            div { class: "v-cinematic-bg" }
             div { class: "v-section",
                 div { class: "v-container",
                     div { class: "v-panel-header v-reveal",
@@ -19,8 +20,9 @@ pub fn ProcessPanel(site: Site) -> Element {
                     div { class: "v-process",
                         for (i, step) in site.process.steps.iter().enumerate() {
                             div {
-                                class: "v-process__step v-reveal",
-                                style: "transition-delay: {(i + 1) * 60}ms;",
+                                class: "v-process__step v-process-card-3d v-reveal",
+                                style: "animation-delay: {(i + 1) * 120}ms;",
+                                div { class: "v-sparkle-border" }
                                 div { class: "v-process__num", "{step.num}" }
                                 h4 { "{step.title}" }
                                 p { "{step.body}" }

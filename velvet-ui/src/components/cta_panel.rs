@@ -62,7 +62,7 @@ pub fn CtaPanel(site: Site) -> Element {
                             h2 { class: "v-display-2", "{site.cta.title}" }
                             p { class: "v-cta__body", "{site.cta.body}" }
 
-                            form { class: "v-contact-form", onsubmit: on_submit,
+                            form { class: "v-contact-form", onsubmit: on_submit, novalidate: "true",
                                 div { class: "v-form-row",
                                     label { "Name" }
                                     input {
