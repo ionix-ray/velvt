@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file.
 - **Testing:** Added explicit assertion in Playwright to guarantee that the hero logo renders strictly as an `img` tag and blocks the regression of mask filters or unnecessary 3D float animations.
 
 ### Changed
+- **Experience Cards:** Refactored `.v-tile` cards in the `#experience` (Studio) section to comply with the cinematic design template. Applied `v-glass-effect` for transparent backgrounds and `v-border-sparkle` for dynamic outlines, removing the obsolete flat background aesthetic.
 - **Hero Logo Component:** Refactored `.v-hero-3d-wrapper` to swap out the mask-driven CSS image with a direct HTML `img` tag sourcing the new, background-less red logo configuration (`velvt-red-logo.png`).
 - **Layout Spacing:** Increased `.v-container` from `72rem` to `90rem` specifically to "zoom out" the UI and utilize edge-to-edge screen real estate more effectively, reducing unnecessary whitespace on desktop viewports.
 - **Visual Effects:** Disabled the `ambient-float` continuous animation on the logo wrapper to achieve a cleaner, less distracting landing experience, conforming strictly to the updated product design spec.

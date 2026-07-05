@@ -55,12 +55,11 @@ pub fn HeroPanel(site: Site) -> Element {
                         div { class: "v-hero__visual v-reveal-right",
                             div {
                                 class: "v-hero-3d-wrapper",
-                                style: "--mouse-x: {mouse_x()}; --mouse-y: {mouse_y()}; --hero-logo: url('{site.hero.logo}');",
                                 div { class: "v-glass-effect v-hero-3d-logo",
-                                    div {
+                                    img {
                                         class: "v-hero-3d-logo__img",
-                                        "aria-label": "Velvt Logo",
-                                        role: "img"
+                                        src: "{site.hero.logo}",
+                                        alt: "Velvt Logo"
                                     }
                                 }
                             }

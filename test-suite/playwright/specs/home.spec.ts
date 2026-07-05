@@ -389,6 +389,22 @@ test("brand: topbar actions cluster stays clear of the brand badge", async ({ pa
 
 // ── Showcase masonry (card sizing + vertical overflow scroll) ───────────────
 
+test("showcase: cards use cinematic template with glass effect and sparkling borders", async ({ page }) => {
+  await page.goto("/");
+  await page.waitForSelector(".v-panels");
+  await page.waitForSelector(".v-loader", { state: "hidden" });
+
+  const items = page.locator("#experience .v-tile");
+  const count = await items.count();
+  expect(count).toBeGreaterThan(0);
+
+  for (let i = 0; i < count; i++) {
+    const item = items.nth(i);
+    await expect(item).toHaveClass(/v-glass-effect/);
+    await expect(item).toHaveClass(/v-border-sparkle/);
+  }
+});
+
 test("showcase: masonry cards stay within a sane height and show their text", async ({ page }) => {
   await page.goto("/");
   await page.waitForSelector(".v-panels");

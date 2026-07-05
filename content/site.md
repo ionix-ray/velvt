@@ -52,7 +52,7 @@ href = "#contact"
 
 ```toml
 [hero]
-logo      = "/assets/images/velvt-red-logo.png"
+logo      = "/assets/images/logo-final-latest-bg-removed.png"
 badge     = "Building Brands. Creating Impact."
 headline1 = "We shape"
 headline2 = "stories."

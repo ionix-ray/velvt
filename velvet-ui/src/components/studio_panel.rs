@@ -39,9 +39,9 @@ pub fn StudioPanel(site: Site) -> Element {
 fn showcase_item_classes(index: usize, total: usize) -> String {
     let extra = showcase_span_class(index, total);
     if extra.is_empty() {
-        "v-tile v-tile--showcase v-reveal".to_string()
+        "v-tile v-tile--showcase v-reveal v-glass-effect v-border-sparkle".to_string()
     } else {
-        format!("v-tile v-tile--showcase v-reveal {extra}")
+        format!("v-tile v-tile--showcase v-reveal v-glass-effect v-border-sparkle {extra}")
     }
 }
 
@@ -93,11 +93,11 @@ mod tests {
     fn showcase_item_classes_appends_modifier_with_single_space() {
         assert_eq!(
             showcase_item_classes(0, 3),
-            "v-tile v-tile--showcase v-reveal"
+            "v-tile v-tile--showcase v-reveal v-glass-effect v-border-sparkle"
         );
         assert_eq!(
             showcase_item_classes(4, 5),
-            "v-tile v-tile--showcase v-reveal v-tile--wide"
+            "v-tile v-tile--showcase v-reveal v-glass-effect v-border-sparkle v-tile--wide"
         );
     }
 }

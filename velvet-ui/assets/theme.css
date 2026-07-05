@@ -755,7 +755,7 @@ ul { list-style: none; }
 
 /* ----- Container & Grid ------------------------------------------------- */
 .v-container {
-  width: min(100% - 3rem, 72rem);
+  width: min(100% - 3rem, 90rem);
   margin-inline: auto;
   /* Block-axis auto margin centers short content same as the parent's
      center alignment would, but degrades to flex-start (not a negative,
@@ -3221,63 +3221,17 @@ ul { list-style: none; }
 .v-glass-effect::after {
   content: "";
   position: absolute;
-  top: -50%; left: -50%;
-  width: 200%; height: 200%;
-  background: linear-gradient(
-    45deg,
-    transparent 40%,
-    rgba(255, 255, 255, 0.15) 45%,
-    rgba(255, 255, 255, 0.3) 50%,
-    rgba(255, 255, 255, 0.15) 55%,
-    transparent 60%
-  );
-  animation: hologram-sweep 4s linear infinite;
-  pointer-events: none;
-}
-
-@keyframes hologram-sweep {
-  0% { transform: translateY(-50%) rotate(45deg); }
-  100% { transform: translateY(50%) rotate(45deg); }
+  padding: 20px;
 }
 
 .v-hero-3d-logo {
-  --rot-x: calc((var(--mouse-y, 0.5) - 0.5) * -30deg);
-  --rot-y: calc((var(--mouse-x, 0.5) - 0.5) * 30deg);
-  transform: rotateX(var(--rot-x)) rotateY(var(--rot-y)) translateZ(20px);
-  transition: transform 0.15s cubic-bezier(0.2, 0, 0.2, 1);
   transform-style: preserve-3d;
-  animation: ambient-float 4s ease-in-out infinite;
-}
-
-@keyframes ambient-float {
-  0%, 100% { transform: rotateX(var(--rot-x)) rotateY(var(--rot-y)) translateZ(20px) translateY(0); }
-  50% { transform: rotateX(var(--rot-x)) rotateY(var(--rot-y)) translateZ(20px) translateY(-15px); }
 }
 
 .v-hero-3d-logo__img {
   width: 250px;
   height: 250px;
-  /* Use mask-image to colorize the transparent PNG */
-  background-color: var(--brand-crimson, #b52a2a);
-  -webkit-mask-image: var(--hero-logo);
-  -webkit-mask-size: contain;
-  -webkit-mask-repeat: no-repeat;
-  -webkit-mask-position: center;
-  mask-image: var(--hero-logo);
-  mask-size: contain;
-  mask-repeat: no-repeat;
-  mask-position: center;
-  
-  /* Crimson glow behind the mask */
-  filter: drop-shadow(0 0 15px rgba(181, 42, 42, 0.8)) drop-shadow(0 10px 20px rgba(0,0,0,0.5));
-  animation: logo-hover 4s ease-in-out infinite;
-  transform-style: preserve-3d;
-}
-
-/* Floating animation without 360 rotation */
-@keyframes logo-hover {
-  0%, 100% { transform: translateZ(40px) scale(1); }
-  50% { transform: translateZ(60px) scale(1.05); }
+  object-fit: contain;
 }
 
 /* About Layout Revamp */

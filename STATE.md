@@ -1,20 +1,21 @@
 # STATE.md — Vaelvet · live checkpoint
 
-**Current sprint**: FINAL POLISH — Full-color Logo & Spacing Refactor
+**Current sprint**: FINAL POLISH — Full-color Logo, Spacing Refactor & Cinematic Experience Cards
 **Current status**: PRODUCTION READY.
-**Last action**: Integrated `logo-final-latest-bg-removed.png` natively into the hero section without masks. Rebuilt the frontend container via Distroless. Verified layout spacing rules in `AGENTS.md` (90rem max-width) and enforced strictly through Playwright E2E testing (100% pass rate).
+**Last action**: Upgraded `#experience` section cards to cinematic design system (`v-glass-effect`, `v-border-sparkle`). Integrated `logo-final-latest-bg-removed.png` natively into the hero section without masks. Rebuilt the frontend container via Distroless. Verified layout spacing rules in `AGENTS.md` (90rem max-width) and enforced strictly through Playwright E2E testing (100% pass rate).
 **Pre-merge gates** (all green on current HEAD):
   - `just lint` clean (fmt + clippy `-D warnings`)
-  - `just test` 133 cargo tests pass
-  - `npx playwright test` 234 UI tests pass (100% coverage, 0 failures)
+  - `just test` 135 cargo tests pass
+  - `npx playwright test` 237 UI tests pass (100% coverage, 0 failures)
   - `just audit` 0 advisories
   - `just build` **441 KB gz WASM** (budget 1.5 MB), **11 KB gz theme.css** (budget 40 KB)
 **Next action**: Deploy to production. No known regressions.
 **Files touched this session**:
+  - `velvet-ui/src/components/studio_panel.rs` — implemented `v-glass-effect` and `v-border-sparkle` on experience cards
   - `content/site.md` — swapped `[hero]` logo pointer
   - `velvet-ui/src/components/hero_panel.rs` — converted `.v-hero-3d-logo__img` to standard `<img>`
   - `velvet-ui/assets/theme.css` — adjusted `.v-container` from `72rem` to `90rem` and removed masking/ambient effects from hero logo
-  - `test-suite/playwright/specs/home.spec.ts` — updated assertions for hero image architecture
+  - `test-suite/playwright/specs/home.spec.ts` — updated assertions for hero image architecture and experience cards
   - `.agents/AGENTS.md` — formalized transparent full-color asset handling rule
 **Open questions**: none
 
