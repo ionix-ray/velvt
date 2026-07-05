@@ -14,3 +14,5 @@ When modifying or generating frontend components (HTML, CSS, Rust/Dioxus), stric
 
 1. **100% Playwright Coverage**: Any change in visual design, card layouts, animations, or DOM structure MUST have an accompanying Playwright test checking bounds, computed styles, visibility, and layout constraints.
 2. **Visual Checks before Progress**: Always run the E2E test suite locally using `VAELVET_URL=http://localhost:8087 npx playwright test` after a UI change and ensure ALL tests pass before deciding a task is complete. No regressions are acceptable.
+6. **Native Full-Color Assets**: When a full-color transparent asset (like a primary logo) is provided, render it using a standard `<img>` tag without any `mask-image`, CSS color overlays, or distorting 3D/hover animations unless explicitly instructed. Let the native brand colors show.
+7. **Wider Layout Spacing**: To avoid a compacted, cramped view, container `max-width` (e.g. `.v-container`) must be generous (e.g., `90rem` or `1440px`) to utilize screen space effectively and create a zoom-out effect rather than squishing content into the center.

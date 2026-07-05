@@ -1,5 +1,13 @@
 # Progress Log — Vaelvet Container + UI/UX Refactor
 
+## 2026-07-05
+
+### Completed Today
+1. **Logo & Layout Refactoring**: Upgraded hero section to use a native, background-less `<img>` tag, avoiding CSS `mask-image` hacks that incorrectly colorized full-color assets.
+2. **Container Expansion**: Adjusted the `.v-container` `max-width` to `90rem` (1440px), improving screen utilization, avoiding cramped views on widescreen displays, and giving a zoomed-out aesthetic.
+3. **Playwright & Distroless Verification**: Hardened E2E testing to assert against unintended logo masks and ambient animations. Performed fresh uncached multi-stage container build and confirmed fully successful tests against the resulting Distroless production container.
+4. **Architecture Documentation**: Finalized rules for processing opaque vs transparent assets going forward in the `AGENTS.md` and `STATE.md` specification files to accelerate UI iteration.
+
 ## 2026-07-04
 
 ### Completed Today

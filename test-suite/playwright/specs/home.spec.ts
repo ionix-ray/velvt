@@ -833,14 +833,22 @@ test("responsive [tablet-768]: nav spindle is hidden on mobile, shown on desktop
 
 // ── UI Revamp specific tests ──────────────────────────────────────────────────
 
-test("hero: displays the 3D glass logo with gravity induction", async ({ page }) => {
+test("hero: displays the standard img logo without background mask or filter", async ({ page }) => {
   await page.goto("/");
   const heroVisual = page.locator(".v-hero-3d-wrapper");
   await expect(heroVisual).toBeVisible();
+  
+  // The wrapper should NOT contain ambient animation classes or mask effects
   const glassLogo = page.locator(".v-hero-3d-logo");
   await expect(glassLogo).toHaveClass(/v-glass-effect/);
-  const img = glassLogo.locator("div.v-hero-3d-logo__img");
-  await expect(img).toHaveAttribute("role", "img");
+  
+  const img = glassLogo.locator("img.v-hero-3d-logo__img");
+  await expect(img).toBeVisible();
+  await expect(img).toHaveAttribute("alt", "Velvt Logo");
+  
+  // Verify it's an actual img tag rendering standard src, not a div with mask
+  const tagName = await img.evaluate((el) => el.tagName.toLowerCase());
+  expect(tagName).toBe("img");
 });
 
 test("about: layout contains top row with stats, story, founder and bottom row with by the numbers", async ({ page }) => {
