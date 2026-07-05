@@ -52,6 +52,7 @@ href = "#contact"
 
 ```toml
 [hero]
+logo      = "/assets/images/only-v-transparent-bg.png"
 badge     = "Building Brands. Creating Impact."
 headline1 = "We shape"
 headline2 = "stories."
