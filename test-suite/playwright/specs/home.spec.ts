@@ -585,12 +585,12 @@ test("spindle: active item is visually distinct (accent color left border)", asy
 });
 
 // ---------------------------------------------------------------------------
-// Brand Colour Scheme: accent matches logo crimson #B52A2A
+// Brand Colour Scheme: accent matches logo crimson #CC2B2B
 // ---------------------------------------------------------------------------
-test("brand: accent colour matches logo crimson #B52A2A", async ({ page }) => {
+test("brand: accent colour matches logo crimson #CC2B2B", async ({ page }) => {
   await page.goto("/");
 
-  // The CSS var --crimson is #B52A2A = rgb(181,42,42)
+  // The CSS var --crimson is #CC2B2B = rgb(204,43,43)
   // Verify a primary accent button reflects this colour.
   const btn = page.locator(".v-btn--primary").first();
   await btn.scrollIntoViewIfNeeded();
@@ -598,16 +598,16 @@ test("brand: accent colour matches logo crimson #B52A2A", async ({ page }) => {
   const bg = await btn.evaluate(
     (el) => getComputedStyle(el).backgroundColor,
   );
-  // Accept exact match or very close to rgb(181,42,42) — allow ±5 per channel
+  // Accept exact match or very close to rgb(204,43,43) — allow ±5 per channel
   const match = bg.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
   if (!match) throw new Error(`Unexpected colour format: ${bg}`);
   const [r, g, b] = [+match[1], +match[2], +match[3]];
-  expect(r, `red channel of accent: ${bg}`).toBeGreaterThanOrEqual(176);
-  expect(r, `red channel of accent: ${bg}`).toBeLessThanOrEqual(186);
-  expect(g, `green channel of accent: ${bg}`).toBeGreaterThanOrEqual(37);
-  expect(g, `green channel of accent: ${bg}`).toBeLessThanOrEqual(47);
-  expect(b, `blue channel of accent: ${bg}`).toBeGreaterThanOrEqual(37);
-  expect(b, `blue channel of accent: ${bg}`).toBeLessThanOrEqual(47);
+  expect(r, `red channel of accent: ${bg}`).toBeGreaterThanOrEqual(199);
+  expect(r, `red channel of accent: ${bg}`).toBeLessThanOrEqual(209);
+  expect(g, `green channel of accent: ${bg}`).toBeGreaterThanOrEqual(38);
+  expect(g, `green channel of accent: ${bg}`).toBeLessThanOrEqual(48);
+  expect(b, `blue channel of accent: ${bg}`).toBeGreaterThanOrEqual(38);
+  expect(b, `blue channel of accent: ${bg}`).toBeLessThanOrEqual(48);
 });
 
 // ---------------------------------------------------------------------------

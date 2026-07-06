@@ -16,3 +16,30 @@ When modifying or generating frontend components (HTML, CSS, Rust/Dioxus), stric
 2. **Visual Checks before Progress**: Always run the E2E test suite locally using `VAELVET_URL=http://localhost:8087 npx playwright test` after a UI change and ensure ALL tests pass before deciding a task is complete. No regressions are acceptable.
 6. **Native Full-Color Assets**: When a full-color transparent asset (like a primary logo) is provided, render it using a standard `<img>` tag without any `mask-image`, CSS color overlays, or distorting 3D/hover animations unless explicitly instructed. Let the native brand colors show.
 7. **Wider Layout Spacing**: To avoid a compacted, cramped view, container `max-width` (e.g. `.v-container`) must be generous (e.g., `90rem` or `1440px`) to utilize screen space effectively and create a zoom-out effect rather than squishing content into the center.
+
+## Card Transparency (Permanent Rule — Do NOT Regress)
+
+ALL card backgrounds MUST be fully transparent so the page background bleeds through. This applies in BOTH dark mode and light mode.
+
+- Card root: `background: transparent` always
+- Inner pseudo-element: `background: var(--glass-card-fill)` (defined as ≤6% alpha via CSS variable)
+- NEVER use: `background: var(--bg-card)`, `background: var(--bg-primary)`, or any hardcoded `rgba(10,4,5,0.6)` type fills
+- Test: Playwright checks `computedStyle.backgroundColor` alpha ≤ 0.2 on every card root
+
+## Unique Peek-In Animations Per Card Type (Permanent Rule)
+
+Each card section uses a DIFFERENT CSS animation keyframe for cinematic variety:
+- Process steps: `peek-up` (slide up), `peek-left`, `peek-right` per nth-child position
+- Showcase tiles: `peek-left`/`peek-right` alternating by even/odd
+- Team cards: `peek-tilt` (slight rotation entrance)
+- Case study cards: `peek-scale` (scale from center)
+- About stats: `peek-down` (drop from top)
+
+All carry `.v-reveal` class. `prefers-reduced-motion` MUST collapse all animations to 0.001ms.
+
+## Test-Driven Frontend (Playwright) — Updated Workflow
+
+1. **100% Playwright Coverage**: Any change in visual design, card layouts, animations, or DOM structure MUST have an accompanying Playwright test.
+2. **Visual Checks before Progress**: Run `VAELVET_URL=http://localhost:8080 npx playwright test --project=chromium` from `test-suite/playwright/` after rebuilding the container.
+3. **Use Browser Tool**: Take screenshots with the browser subagent to visually verify every section in BOTH dark mode and light mode, and at mobile (375px) and desktop (1280px) viewports.
+4. **No Regressions**: All 96+ Rust unit tests and all Playwright tests must pass before marking work done.

@@ -100,9 +100,9 @@
 /* ----- CSS Custom Properties (Light Theme — default) -------------------- */
 :root {
   /* palette */
-  --crimson-deep: #7A1919;
-  --crimson: #B52A2A;
-  --crimson-light: #D43E3E;
+  --crimson-deep: #8b1d1d;
+  --crimson: #cc2b2b;
+  --crimson-light: #e63e3e;
   --black: #0A0405;
   --off-white: #F8EFE0;
   --smoke: #9A8E84;
@@ -159,7 +159,7 @@
   --glass-card-rgb: 240, 232, 220;  /* warm off-white (light mode) */
   --glass-card-alpha: 0.06;         /* ≤10% opacity = clearly transparent */
   --glass-card-fill: rgba(var(--glass-card-rgb), var(--glass-card-alpha));
-  --glass-border-rgb: 181, 42, 42;  /* brand crimson */
+  --glass-border-rgb: 204, 43, 43;  /* brand crimson */
   --glass-border-subtle: rgba(var(--glass-border-rgb), 0.15);
 }
 
@@ -1059,7 +1059,7 @@ ul { list-style: none; }
   border: var(--border);
   border-radius: 2px;
   text-align: center;
-  background: var(--bg-card);
+  background: transparent;
   transition: border-color var(--d-fast) var(--ease);
 }
 .v-stat-card:hover { border-color: var(--accent); }
@@ -1206,7 +1206,7 @@ ul { list-style: none; }
   position: absolute;
   inset: 2px;
   border-radius: 10px;
-  background: rgba(10, 4, 5, 0.6); /* Very dark glass */
+  background: var(--glass-card-fill);
   z-index: -1;
 }
 .v-stat-card:hover {
@@ -1477,19 +1477,15 @@ ul { list-style: none; }
 /* --- Process Steps ------------------------------------------------------ */
 .v-process {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: var(--s3);
+  /* Use a responsive auto-fit grid so cards are wider and better spaced */
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: var(--s4);
   margin-top: var(--s5);
   position: relative;
+  justify-content: center;
 }
 .v-process::before {
-  content: '';
-  position: absolute;
-  top: 28px;
-  left: 10%;
-  right: 10%;
-  height: 1px;
-  background: var(--border-strong);
+  display: none; /* Hide connector line as cards will wrap into multiple rows */
 }
 .v-process__step {
   text-align: center;
@@ -1562,14 +1558,15 @@ ul { list-style: none; }
   color: var(--accent);
 }
 .v-process__step h4 {
-  font-size: 0.88rem;
-  margin-bottom: var(--s1);
+  font-size: 1.25rem;
+  margin-bottom: var(--s2);
   color: var(--text-primary);
+  font-weight: 600;
 }
 .v-process__step p {
-  font-size: 0.78rem;
+  font-size: 1rem;
   color: var(--text-muted);
-  line-height: 1.5;
+  line-height: 1.6;
 }
 
 /* --- Case Studies ------------------------------------------------------- */
@@ -2420,7 +2417,7 @@ ul { list-style: none; }
   -webkit-backdrop-filter: blur(12px);
   overflow: hidden;
   z-index: 1;
-  color: var(--off-white);
+  color: var(--text);
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
   pointer-events: auto;
   min-width: 140px;
@@ -2506,6 +2503,11 @@ ul { list-style: none; }
   z-index: -2;
   overflow: hidden;
   pointer-events: none;
+  /* Use mask to hide the center of the gradient, keeping only a 1.5px border */
+  padding: 1.5px;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
 }
 .v-sparkle-border::before {
   content: "";
@@ -2517,8 +2519,8 @@ ul { list-style: none; }
   background: conic-gradient(from 0deg,
     transparent 0%,
     transparent 55%,
-    var(--accent, #b52a2a) 70%,
-    var(--crimson-light, #D43E3E) 80%,
+    var(--accent, #cc2b2b) 70%,
+    var(--crimson-light, #e63e3e) 80%,
     transparent 95%,
     transparent 100%
   );
