@@ -928,7 +928,7 @@ test("about: displays VELVT heatmap grid with floating stats", async ({ page }) 
   await expect(sparkle).toBeVisible();
 });
 
-test("ideology: displays cinematic background and 3D floating cards with sparkle borders", async ({ page }) => {
+test("ideology: displays cinematic background and transparent cards with sparkle borders", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto("/#ideology");
   await page.waitForSelector(".v-loader", { state: "hidden" });
@@ -943,9 +943,117 @@ test("ideology: displays cinematic background and 3D floating cards with sparkle
   await expect(steps).toHaveCount(5); // from mock data
   const firstStep = steps.first();
   await expect(firstStep).toBeVisible();
-  await expect(firstStep).toHaveClass(/v-process-card-3d/);
 
-  // Sparkle border
+  // Sparkle border and badge
   const sparkle = firstStep.locator(".v-sparkle-border");
   await expect(sparkle).toBeVisible();
+  const badge = firstStep.locator(".v-experience-badge");
+  await expect(badge).toBeVisible();
+});
+
+// ── Transparent Cards: TDD Spec ───────────────────────────────────────────────
+// All cards MUST be fully transparent (no solid opaque fill).
+
+test("cards: v-process__step has transparent background (no opaque fill)", async ({ page }) => {
+  await page.goto("/");
+  await page.waitForSelector(".v-loader", { state: "hidden" });
+  const step = page.locator(".v-process__step").first();
+  await step.scrollIntoViewIfNeeded();
+  await expect(step).toBeVisible();
+  const bg = await step.evaluate((el) => getComputedStyle(el).backgroundColor);
+  const alphaMatch = bg.match(/rgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*([\d.]+)\s*\)/);
+  if (alphaMatch) {
+    expect(parseFloat(alphaMatch[1])).toBeLessThanOrEqual(0.2);
+  } else {
+    expect(bg).toMatch(/transparent|rgba\(\s*0\s*,\s*0\s*,\s*0\s*,\s*0\s*\)/);
+  }
+});
+
+test("cards: v-team-card transparent in dark and light mode", async ({ page }) => {
+  await page.goto("/");
+  await page.waitForSelector(".v-loader", { state: "hidden" });
+  await page.locator("#about").scrollIntoViewIfNeeded();
+  const card = page.locator(".v-team-card").first();
+  await expect(card).toBeVisible();
+  const darkBg = await card.evaluate((el) => getComputedStyle(el).backgroundColor);
+  const darkAlpha = darkBg.match(/rgba\(.*,([\d.]+)\)/);
+  if (darkAlpha) expect(parseFloat(darkAlpha[1])).toBeLessThanOrEqual(0.2);
+  else expect(darkBg).toMatch(/transparent|rgba\(0.*0\)/);
+  await page.locator(".v-theme-toggle").click();
+  await page.waitForTimeout(300);
+  const lightBg = await card.evaluate((el) => getComputedStyle(el).backgroundColor);
+  const lightAlpha = lightBg.match(/rgba\(.*,([\d.]+)\)/);
+  if (lightAlpha) expect(parseFloat(lightAlpha[1])).toBeLessThanOrEqual(0.2);
+  else expect(lightBg).toMatch(/transparent|rgba\(0.*0\)/);
+});
+
+test("cards: v-process__step h4 text is readable in light mode (dark enough)", async ({ page }) => {
+  await page.goto("/");
+  await page.waitForSelector(".v-loader", { state: "hidden" });
+  await page.locator(".v-theme-toggle").click();
+  await page.waitForTimeout(300);
+  const step = page.locator(".v-process__step").first();
+  await step.scrollIntoViewIfNeeded();
+  const h4Color = await step.locator("h4").evaluate((el) => getComputedStyle(el).color);
+  const rgb = h4Color.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+  if (rgb) {
+    const luminance = 0.299 * +rgb[1] + 0.587 * +rgb[2] + 0.114 * +rgb[3];
+    expect(luminance, `Light mode text must be dark, got: ${h4Color}`).toBeLessThan(200);
+  }
+});
+
+// ── Scroll-Reveal Peek-In: TDD Spec ──────────────────────────────────────────
+
+test("animations: v-process__step cards carry the v-reveal class", async ({ page }) => {
+  await page.goto("/");
+  await page.waitForSelector(".v-loader", { state: "hidden" });
+  const steps = page.locator(".v-process__step");
+  expect(await steps.count()).toBeGreaterThan(0);
+  await expect(steps.first()).toHaveClass(/v-reveal/);
+});
+
+test("animations: showcase tiles have staggered animation delays", async ({ page }) => {
+  await page.goto("/");
+  await page.waitForSelector(".v-loader", { state: "hidden" });
+  const tiles = page.locator("#experience .v-process__step, .v-showcase__grid .v-process__step");
+  const count = await tiles.count();
+  if (count < 2) return;
+  const delay0 = await tiles.nth(0).evaluate((el) => (el as HTMLElement).style.animationDelay);
+  const delay1 = await tiles.nth(1).evaluate((el) => (el as HTMLElement).style.animationDelay);
+  expect(delay0).not.toBe(delay1);
+});
+
+test("animations: v-team-card carries v-reveal class", async ({ page }) => {
+  await page.goto("/");
+  await page.waitForSelector(".v-loader", { state: "hidden" });
+  await page.locator("#about").scrollIntoViewIfNeeded();
+  const cards = page.locator(".v-team-card");
+  expect(await cards.count()).toBeGreaterThan(0);
+  await expect(cards.first()).toHaveClass(/v-reveal/);
+});
+
+test("animations: reduced-motion disables peek-in card animations", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+  await page.waitForSelector(".v-loader", { state: "hidden" });
+  const step = page.locator(".v-process__step").first();
+  await step.scrollIntoViewIfNeeded();
+  const animDuration = await step.evaluate((el) => getComputedStyle(el).animationDuration);
+  expect(parseFloat(animDuration)).toBeLessThanOrEqual(0.01);
+});
+
+test("cards: all v-process__step and v-team-card have v-sparkle-border attached", async ({ page }) => {
+  await page.goto("/");
+  await page.waitForSelector(".v-loader", { state: "hidden" });
+  const steps = page.locator(".v-process__step");
+  const stepCount = await steps.count();
+  for (let i = 0; i < Math.min(stepCount, 3); i++) {
+    await expect(steps.nth(i).locator(".v-sparkle-border")).toBeAttached();
+  }
+  await page.locator("#about").scrollIntoViewIfNeeded();
+  const teamCards = page.locator(".v-team-card");
+  const teamCount = await teamCards.count();
+  for (let i = 0; i < teamCount; i++) {
+    await expect(teamCards.nth(i).locator(".v-sparkle-border")).toBeAttached();
+  }
 });

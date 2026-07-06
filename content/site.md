@@ -312,7 +312,7 @@ title = "Trusted by Industry Leaders"
 
 ```toml
 [[team]]
-name     = "Arpita"
+name     = "Arpita Parhi"
 eyebrow  = "Founder · Star Gazer"
 bio      = "An Odishi dancer with a quiet observer's eye, Arpita reads a room before she enters it. Her soft spot is the stardom her work moves around every day — and the warmth of hospitality she insists every guest leaves with. Velvt is built on both: an artist's attention to detail, and a host's instinct for people."
 photo    = "/assets/images/arpita-recent.png"

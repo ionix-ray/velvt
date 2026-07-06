@@ -34,22 +34,22 @@ fn panel_1_home_hero_renders() {
     let html = render_home();
     assert!(html.contains(r#"id="home""#), "panel #home must appear");
     assert!(html.contains("v-hero"), "hero class must appear");
-    assert!(html.contains("v-hologram"), "hologram must appear in hero");
+    // The hero uses the cinematic 3-D logo wrapper (replaced the old v-hologram).
     assert!(
-        html.contains("v-hologram__glow"),
-        "hologram glow must appear"
+        html.contains("v-hero-3d-wrapper"),
+        "hero 3d wrapper must appear"
     );
     assert!(
-        html.contains("v-hologram__scanlines"),
-        "hologram scanlines must appear"
+        html.contains("v-glass-effect"),
+        "hero glass effect must appear"
     );
     assert!(
-        html.contains("v-hologram__particles"),
-        "hologram particles must appear"
+        html.contains("v-hero-3d-logo"),
+        "hero 3d logo class must appear"
     );
     assert!(
-        html.contains("v-hologram__ring"),
-        "hologram rings must appear"
+        html.contains("v-hero-3d-logo__img"),
+        "hero logo img must appear"
     );
 }
 

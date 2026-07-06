@@ -1,6 +1,7 @@
 //! UI components. Stateless renderers that consume `Site` config.
 
 pub mod about_aggregated_panel;
+pub mod card_step;
 pub mod case_header;
 pub mod cases_panel;
 pub mod cta_panel;

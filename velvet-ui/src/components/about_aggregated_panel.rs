@@ -128,7 +128,7 @@ fn TeamCard(member: TeamMember) -> Element {
         member.monogram.to_string()
     };
     rsx! {
-        div { class: "v-team-card v-card-modern", id: "team-member",
+        div { class: "v-team-card v-card-modern v-reveal", id: "team-member",
             div { class: "v-sparkle-border" }
             if has_photo {
                 div { class: "v-team-card__photo",

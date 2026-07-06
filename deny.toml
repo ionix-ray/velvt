@@ -1,0 +1,65 @@
+# cargo-deny configuration — Vaelvet
+# https://embarkstudios.github.io/cargo-deny/
+
+[graph]
+targets = [
+    { triple = "x86_64-unknown-linux-gnu" },
+    { triple = "wasm32-unknown-unknown" },
+]
+all-features = false
+
+# ── Advisories (RustSec vulnerability database) ───────────────────────────────
+[advisories]
+db-path    = "~/.cargo/advisory-db"
+db-urls    = ["https://github.com/rustsec/advisory-db"]
+version    = 2
+# Treat vulnerabilities as errors; unmaintained crates as warnings.
+vulnerability = "deny"
+unmaintained  = "warn"
+yanked        = "warn"
+notice        = "warn"
+ignore        = []
+
+# ── Licenses ──────────────────────────────────────────────────────────────────
+[licenses]
+version            = 2
+confidence-threshold = 0.8
+allow = [
+    "MIT",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "ISC",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "MPL-2.0",
+    "Zlib",
+    "Unicode-DFS-2016",
+    "OpenSSL",
+    "CC0-1.0",
+]
+deny = [
+    "GPL-2.0",
+    "GPL-3.0",
+    "AGPL-1.0",
+    "AGPL-3.0",
+    "LGPL-2.0",
+    "LGPL-2.1",
+    "LGPL-3.0",
+]
+
+# ── Bans (duplicate crates, blocked crates) ───────────────────────────────────
+[bans]
+multiple-versions = "warn"
+wildcards         = "deny"
+highlight         = "all"
+
+# Known benign duplicates accepted during Dioxus upgrade cycles
+skip = [
+    # { name = "example-crate", version = "=1.0.0" },
+]
+
+# ── Sources (crate registry policy) ──────────────────────────────────────────
+[sources]
+unknown-registry = "deny"
+unknown-git      = "warn"
+allow-registry   = ["https://github.com/rust-lang/crates.io-index"]

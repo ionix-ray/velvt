@@ -46,10 +46,6 @@ pub async fn serve_request(
     }
 
     if requested_exists_as_file {
-        let content = fs::read(&requested)
-            .await
-            .map_err(|e| ServerError::AssetRead(format!("{path_str}: {e}")))?;
-
         let mime = mime_type(&requested);
         let cache_control = if is_immutable_asset(path_str) {
             "public, max-age=31536000, immutable"
@@ -57,9 +53,37 @@ pub async fn serve_request(
             "public, max-age=3600"
         };
 
+        // Serve pre-compressed .gz variant if it exists alongside the raw file.
+        // The container build pre-compresses WASM/JS/CSS so this is zero-cost
+        // at serve time (no runtime gzip overhead).
+        // Build path as "{original}.gz" (e.g. app.wasm.gz) by appending to filename.
+        let gz_path = {
+            let mut p = requested.clone();
+            let mut name = p.file_name().and_then(|n| n.to_str()).unwrap_or("").to_string();
+            name.push_str(".gz");
+            p.set_file_name(name);
+            p
+        };
+
+        let (content, encoding) = if gz_path.is_file() {
+            let bytes = fs::read(&gz_path)
+                .await
+                .map_err(|e| ServerError::AssetRead(format!("{path_str}.gz: {e}")))?;
+            (bytes, Some("gzip"))
+        } else {
+            let bytes = fs::read(&requested)
+                .await
+                .map_err(|e| ServerError::AssetRead(format!("{path_str}: {e}")))?;
+            (bytes, None)
+        };
+
         let mut response = Response::new(Body::from(content));
         set_header(&mut response, "content-type", mime);
         set_header(&mut response, "cache-control", cache_control);
+        if let Some(enc) = encoding {
+            set_header(&mut response, "content-encoding", enc);
+            set_header(&mut response, "vary", "Accept-Encoding");
+        }
         return Ok(response);
     }
 
@@ -103,8 +127,17 @@ fn mime_type(path: &std::path::Path) -> &'static str {
     }
 }
 
+/// Returns true for content-hashed assets that can be cached immutably
+/// (1 year). Dioxus marks all hashed assets with the `dxh` marker in the
+/// filename, covering WASM, JS bundles, CSS stylesheets, and web fonts.
 fn is_immutable_asset(path: &str) -> bool {
-    path.contains("dxh") && (path.ends_with(".js") || path.ends_with(".wasm"))
+    if !path.contains("dxh") {
+        return false;
+    }
+    matches!(
+        path.rsplit('.').next().unwrap_or(""),
+        "js" | "wasm" | "css" | "woff2" | "woff" | "ttf"
+    )
 }
 
 #[cfg(test)]
@@ -201,11 +234,20 @@ mod tests {
     }
 
     #[test]
-    fn is_immutable_asset_requires_hash_marker_and_extension() {
+    fn is_immutable_asset_requires_hash_marker_and_known_extension() {
+        // WASM + JS — original behaviour
         assert!(is_immutable_asset("assets/app-dxh1234.wasm"));
         assert!(is_immutable_asset("assets/app-dxh1234.js"));
+        // CSS and font files are now also immutable when hash-marked
+        assert!(is_immutable_asset("assets/theme-dxh1234.css"));
+        assert!(is_immutable_asset("assets/ibm-plex-dxh1234.woff2"));
+        assert!(is_immutable_asset("assets/ibm-plex-dxh1234.woff"));
+        assert!(is_immutable_asset("assets/ibm-plex-dxh1234.ttf"));
+        // Without hash marker — must NOT be immutable
         assert!(!is_immutable_asset("assets/app.wasm"));
-        assert!(!is_immutable_asset("assets/app-dxh1234.css"));
+        assert!(!is_immutable_asset("assets/theme.css"));
+        // HTML and other types — never immutable
         assert!(!is_immutable_asset("index.html"));
+        assert!(!is_immutable_asset("robots.txt"));
     }
 }

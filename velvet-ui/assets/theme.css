@@ -152,6 +152,15 @@
   /* glassmorphism */
   --glass-bg: rgba(181, 42, 42, 0.05);
   --glass-border: 1px solid rgba(181, 42, 42, 0.2);
+
+  /* Card glass fill — transparent enough to show the page bg through.
+     In light mode: warm white tint. In dark mode: dark tint.
+     These are intentionally very low alpha so the card is see-through. */
+  --glass-card-rgb: 240, 232, 220;  /* warm off-white (light mode) */
+  --glass-card-alpha: 0.06;         /* ≤10% opacity = clearly transparent */
+  --glass-card-fill: rgba(var(--glass-card-rgb), var(--glass-card-alpha));
+  --glass-border-rgb: 181, 42, 42;  /* brand crimson */
+  --glass-border-subtle: rgba(var(--glass-border-rgb), 0.15);
 }
 
 /* ----- Dark Theme ------------------------------------------------------- */
@@ -172,6 +181,13 @@
   /* glassmorphism */
   --glass-bg: rgba(212, 62, 62, 0.05);
   --glass-border: 1px solid rgba(212, 62, 62, 0.2);
+
+  /* Dark mode card glass — very dark crimson-black tint, almost transparent */
+  --glass-card-rgb: 10, 4, 5;     /* near-black (dark mode) */
+  --glass-card-alpha: 0.06;       /* 6% — purely see-through */
+  --glass-card-fill: rgba(var(--glass-card-rgb), var(--glass-card-alpha));
+  --glass-border-rgb: 212, 62, 62;
+  --glass-border-subtle: rgba(var(--glass-border-rgb), 0.18);
 }
 
 /* ----- Reset (minimal) -------------------------------------------------- */
@@ -873,27 +889,56 @@ ul { list-style: none; }
 }
 
 /* ----- Reveal Animation ------------------------------------------------- */
+/* Base: slide up + fade (default for most cards) */
 .v-reveal {
-  animation: reveal-up var(--d-slow) var(--ease-out) both;
+  animation: peek-up 0.65s var(--ease-out) both;
 }
 .v-reveal-left {
-  animation: reveal-left var(--d-slow) var(--ease-out) both;
+  animation: peek-left 0.65s var(--ease-out) both;
 }
 .v-reveal-right {
-  animation: reveal-right var(--d-slow) var(--ease-out) both;
+  animation: peek-right 0.65s var(--ease-out) both;
 }
 
-@keyframes reveal-up {
-  from { opacity: 0; transform: translateY(24px); }
-  to   { opacity: 1; transform: translateY(0); }
+/* ── Unique peek-in keyframes per card type ────────────────────────────────
+   peek-up    → process steps (slide in from below)
+   peek-left  → even showcase tiles (slide from left)
+   peek-right → odd showcase tiles (slide from right)
+   peek-scale → case study cards (grow from center)
+   peek-tilt  → team member cards (enter with slight tilt then settle)
+   peek-down  → about stats (drop from above)
+   All use fill:both so cards stay hidden until animation runs. */
+
+@keyframes peek-up {
+  from { opacity: 0; transform: translateY(40px) scale(0.97); }
+  60%  { opacity: 1; }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
 }
-@keyframes reveal-left {
-  from { opacity: 0; transform: translateX(-24px); }
-  to   { opacity: 1; transform: translateX(0); }
+@keyframes peek-left {
+  from { opacity: 0; transform: translateX(-48px) scale(0.96); }
+  60%  { opacity: 1; }
+  to   { opacity: 1; transform: translateX(0) scale(1); }
 }
-@keyframes reveal-right {
-  from { opacity: 0; transform: translateX(24px); }
-  to   { opacity: 1; transform: translateX(0); }
+@keyframes peek-right {
+  from { opacity: 0; transform: translateX(48px) scale(0.96); }
+  60%  { opacity: 1; }
+  to   { opacity: 1; transform: translateX(0) scale(1); }
+}
+@keyframes peek-scale {
+  from { opacity: 0; transform: scale(0.88); }
+  50%  { opacity: 1; }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes peek-tilt {
+  from { opacity: 0; transform: rotate(-4deg) translateY(32px) scale(0.95); }
+  50%  { opacity: 1; }
+  80%  { transform: rotate(1deg) translateY(-4px) scale(1.01); }
+  to   { opacity: 1; transform: rotate(0deg) translateY(0) scale(1); }
+}
+@keyframes peek-down {
+  from { opacity: 0; transform: translateY(-36px) scale(0.97); }
+  60%  { opacity: 1; }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 /* Delay utilities */
@@ -902,6 +947,14 @@ ul { list-style: none; }
 .v-delay-3 { animation-delay: 240ms; }
 .v-delay-4 { animation-delay: 320ms; }
 .v-delay-5 { animation-delay: 400ms; }
+
+/* Reduced-motion: collapse all animations to instant */
+@media (prefers-reduced-motion: reduce) {
+  .v-reveal, .v-reveal-left, .v-reveal-right {
+    animation-duration: 0.001ms !important;
+    animation-delay: 0ms !important;
+  }
+}
 
 /* ===== PANEL STYLES ===================================================== */
 
@@ -1442,45 +1495,40 @@ ul { list-style: none; }
   text-align: center;
   position: relative;
   z-index: 1;
+  /* Fully transparent — shows page background through. */
   background: transparent;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border-radius: 12px;
   padding: var(--s4);
-  transition: transform var(--d-fast) var(--ease), box-shadow var(--d-fast) var(--ease);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  /* Subtle shadow for depth without hiding transparency */
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12),
+              0 1px 0 inset var(--glass-border-subtle);
   overflow: hidden;
-  color: var(--off-white);
+  color: var(--text-primary);
+  /* Thin border drawn by box-shadow — no border property needed */
+  outline: 1px solid var(--glass-border-subtle);
 }
+/* Minimal glass fill — just enough to separate from background without blocking it */
 .v-process__step::before {
   content: "";
   position: absolute;
-  inset: 2px;
-  border-radius: 10px;
-  background: rgba(10, 4, 5, 0.7);
+  inset: 0;
+  border-radius: 12px;
+  background: var(--glass-card-fill);
   z-index: -1;
-}
-.v-process__step:hover {
-  transform: translateY(-8px) scale(1.03);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
 }
 
-/* 3D Fold Animation */
-.v-process-card-3d {
-  opacity: 0;
-  transform: perspective(1000px) rotateX(45deg) translateY(40px) scale(0.9);
-  transform-origin: bottom center;
-}
-.v-process-card-3d.is-revealed {
-  animation: process-3d-fold 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-}
+/* Unique peek-in per position inside the grid */
+.v-process__step:nth-child(3n+1)  { animation-name: peek-up; }
+.v-process__step:nth-child(3n+2)  { animation-name: peek-left; }
+.v-process__step:nth-child(3n+3)  { animation-name: peek-right; }
 
-@keyframes process-3d-fold {
-  to {
-    opacity: 1;
-    transform: perspective(1000px) rotateX(0deg) translateY(0) scale(1);
-  }
-}
+/* Showcase tiles alternate left/right */
+.v-showcase__grid .v-process__step:nth-child(even) { animation-name: peek-left; }
+.v-showcase__grid .v-process__step:nth-child(odd)  { animation-name: peek-right; }
+
 
 /* Cinematic Background Mesh */
 .v-cinematic-bg {
@@ -1508,17 +1556,15 @@ ul { list-style: none; }
   font-family: var(--font-sans);
   font-size: 1.1rem;
   margin: 0 auto var(--s3);
-  background: var(--bg-primary);
-  border: var(--border-strong);
-  transition: all var(--d-fast) var(--ease);
-}
-.v-process__step:hover .v-process__num {
-  border-color: var(--accent);
+  /* Transparent with only a border — no solid fill */
+  background: transparent;
+  border: 1px solid var(--glass-border-subtle);
   color: var(--accent);
 }
 .v-process__step h4 {
-  font-size: 0.85rem;
+  font-size: 0.88rem;
   margin-bottom: var(--s1);
+  color: var(--text-primary);
 }
 .v-process__step p {
   font-size: 0.78rem;
@@ -1537,12 +1583,19 @@ ul { list-style: none; }
   border: none;
   border-radius: 10px;
   overflow: hidden;
-  background: var(--bg-card);
+  /* Transparent glass — adapts to dark/light page bg */
+  background: transparent;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  outline: 1px solid var(--glass-border-subtle);
   transition: all var(--d-med) var(--ease);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
   height: 460px;
   display: flex;
   flex-direction: column;
+  /* Peek-in animation: case cards scale from center */
+  animation: peek-scale 0.65s var(--ease-out) both;
+  position: relative;
 }
 .v-case-card:hover {
   transform: translateY(-4px);
@@ -2375,10 +2428,12 @@ ul { list-style: none; }
 .v-about-stat::before {
   content: "";
   position: absolute;
-  inset: 2px;
-  border-radius: 10px;
-  background: rgba(10, 4, 5, 0.85); /* Slightly darker glass */
+  inset: 0;
+  border-radius: 12px;
+  /* Theme-adaptive glass fill — very transparent */
+  background: var(--glass-card-fill);
   z-index: -1;
+  pointer-events: none;
 }
 .v-about-stat:hover { transform: translateY(-4px) scale(1.05); }
 
@@ -2427,22 +2482,30 @@ ul { list-style: none; }
   text-align: center;
   padding: var(--s3);
   border-radius: 20px;
-  /* Transparent cinematic glass */
+  /* Fully transparent — shows page background through */
   background: transparent;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   overflow: hidden;
-  box-shadow: 0 16px 40px rgba(0,0,0,0.2);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
   z-index: 1;
+  /* Unique tilt peek-in entrance for team cards */
+  animation: peek-tilt 0.75s var(--ease-out) both;
 }
+/* Stagger team cards */
+.v-team-card:nth-child(1) { animation-delay: 0ms; }
+.v-team-card:nth-child(2) { animation-delay: 120ms; }
+.v-team-card:nth-child(3) { animation-delay: 240ms; }
+.v-team-card:nth-child(4) { animation-delay: 360ms; }
 
-/* The running outline border effect */
+/* The running sparkle border effect — shared by all cinematic cards */
 .v-sparkle-border {
   position: absolute;
   inset: 0;
   border-radius: inherit;
   z-index: -2;
   overflow: hidden;
+  pointer-events: none;
 }
 .v-sparkle-border::before {
   content: "";
@@ -2451,22 +2514,41 @@ ul { list-style: none; }
   left: -50%;
   width: 200%;
   height: 200%;
-  background: conic-gradient(from 0deg, transparent 60%, var(--brand-crimson, #b52a2a) 100%);
+  background: conic-gradient(from 0deg,
+    transparent 0%,
+    transparent 55%,
+    var(--accent, #b52a2a) 70%,
+    var(--crimson-light, #D43E3E) 80%,
+    transparent 95%,
+    transparent 100%
+  );
   animation: rotate-border 4s linear infinite;
 }
+/* Speed variation per card type — each section has its own rotation rhythm */
+.v-process__step .v-sparkle-border::before {
+  animation-duration: 3.5s;
+}
+.v-about-stat .v-sparkle-border::before {
+  animation-duration: 5s;
+}
+.v-case-card .v-sparkle-border::before {
+  animation-duration: 6s;
+}
+
 .v-team-card::before {
-  /* Inner glass mask to hide the center of the conic gradient */
+  /* Transparent glass fill — NOT dark solid. Theme-adaptive. */
   content: "";
   position: absolute;
-  inset: 2px; /* Border thickness */
+  inset: 2px;
   border-radius: 18px;
-  background: rgba(10, 4, 5, 0.6); /* Very dark glass */
+  background: var(--glass-card-fill);
   z-index: -1;
+  pointer-events: none;
 }
 
 @keyframes rotate-border {
   from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  to   { transform: rotate(360deg); }
 }
 
 .v-team-card__photo {
@@ -2681,26 +2763,27 @@ ul { list-style: none; }
 /* --- /#cases panel keeps its classic card-modern design ----------------- */
 .v-card-modern {
   background: transparent;
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border-radius: 12px;
   overflow: hidden;
   position: relative;
   display: flex;
   flex-direction: column;
   transition: transform var(--d-fast) var(--ease), box-shadow var(--d-fast) var(--ease);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
+  border: 1px solid var(--glass-border-subtle);
   z-index: 1;
 }
 .v-card-modern::before {
-  /* Inner glass mask to hide the center of the conic gradient */
+  /* Theme-adaptive glass fill — transparent in both dark and light mode */
   content: "";
   position: absolute;
   inset: 2px;
   border-radius: 10px;
-  background: rgba(10, 4, 5, 0.6);
+  background: var(--glass-card-fill);
   z-index: -1;
+  pointer-events: none;
 }
 .v-card-modern:hover {
   transform: translateY(-4px);
@@ -3229,8 +3312,8 @@ ul { list-style: none; }
 }
 
 .v-hero-3d-logo__img {
-  width: 250px;
-  height: 250px;
+  width: clamp(200px, 22vw, 340px);
+  height: clamp(200px, 22vw, 340px);
   object-fit: contain;
 }
 
@@ -3278,3 +3361,37 @@ ul { list-style: none; }
   /* Make sure it's fully visible and not skewed */
   object-fit: contain;
 }
+
+/* Experience Adaptive Card */
+.v-experience-card {
+  text-align: center;
+  position: relative;
+  z-index: 1;
+  background: transparent;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-radius: 12px;
+  padding: var(--s4);
+  overflow: hidden;
+  color: var(--text-primary);
+}
+.v-experience-card::before {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  border-radius: 10px;
+  background: var(--bg-primary);
+  opacity: 0.92;
+  z-index: -1;
+}
+.v-experience-card h4 {
+  font-size: 0.85rem;
+  margin-bottom: var(--s1);
+  color: var(--text-primary);
+}
+.v-experience-card p {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
