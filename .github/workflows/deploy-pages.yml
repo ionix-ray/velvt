@@ -23,7 +23,7 @@ env:
   RUST_VERSION: "1.88.0"
   DIOXUS_CLI_VERSION: "0.7.6"
   CARGO_AUDIT_VERSION: "0.21.2"
-  CARGO_DENY_VERSION: "0.16.4"
+  CARGO_DENY_VERSION: "0.19.5"
   # velvt.live is served at the root domain — no subpath needed.
   BASE_PATH: "/"
 
