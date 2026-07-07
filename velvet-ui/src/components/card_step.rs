@@ -135,7 +135,10 @@ mod tests {
     #[test]
     fn renders_step_number_when_provided() {
         let html = render(WithNum);
-        assert!(html.contains("v-process__num"), "step number circle missing");
+        assert!(
+            html.contains("v-process__num"),
+            "step number circle missing"
+        );
         assert!(html.contains("01"), "step number text missing");
         // Tag eyebrow must NOT appear when only num is set.
         assert!(!html.contains("v-eyebrow"), "unexpected eyebrow tag");
@@ -147,7 +150,10 @@ mod tests {
         assert!(html.contains("v-eyebrow"), "eyebrow tag missing");
         assert!(html.contains("Events"), "eyebrow text missing");
         // Step number must NOT appear when only tag is set.
-        assert!(!html.contains("v-process__num"), "unexpected step number circle");
+        assert!(
+            !html.contains("v-process__num"),
+            "unexpected step number circle"
+        );
     }
 
     #[test]
@@ -185,10 +191,7 @@ mod tests {
     fn renders_title_and_body() {
         let html = render(WithNum);
         assert!(html.contains("Discover"), "title missing");
-        assert!(
-            html.contains("Deep research"),
-            "body text missing"
-        );
+        assert!(html.contains("Deep research"), "body text missing");
     }
 
     #[test]

@@ -59,7 +59,11 @@ pub async fn serve_request(
         // Build path as "{original}.gz" (e.g. app.wasm.gz) by appending to filename.
         let gz_path = {
             let mut p = requested.clone();
-            let mut name = p.file_name().and_then(|n| n.to_str()).unwrap_or("").to_string();
+            let mut name = p
+                .file_name()
+                .and_then(|n| n.to_str())
+                .unwrap_or("")
+                .to_string();
             name.push_str(".gz");
             p.set_file_name(name);
             p

@@ -56,4 +56,3 @@ pub fn HeroPanel(site: Site) -> Element {
         }
     }
 }
-

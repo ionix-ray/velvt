@@ -8,21 +8,12 @@ targets = [
 ]
 all-features = false
 
-# ── Advisories (RustSec vulnerability database) ───────────────────────────────
 [advisories]
 db-path    = "~/.cargo/advisory-db"
 db-urls    = ["https://github.com/rustsec/advisory-db"]
-version    = 2
-# Treat vulnerabilities as errors; unmaintained crates as warnings.
-vulnerability = "deny"
-unmaintained  = "warn"
-yanked        = "warn"
-notice        = "warn"
-ignore        = []
+ignore     = []
 
-# ── Licenses ──────────────────────────────────────────────────────────────────
 [licenses]
-version            = 2
 confidence-threshold = 0.8
 allow = [
     "MIT",
@@ -36,29 +27,15 @@ allow = [
     "Unicode-DFS-2016",
     "OpenSSL",
     "CC0-1.0",
-]
-deny = [
-    "GPL-2.0",
-    "GPL-3.0",
-    "AGPL-1.0",
-    "AGPL-3.0",
-    "LGPL-2.0",
-    "LGPL-2.1",
-    "LGPL-3.0",
+    "Unicode-3.0",
 ]
 
-# ── Bans (duplicate crates, blocked crates) ───────────────────────────────────
 [bans]
 multiple-versions = "warn"
 wildcards         = "deny"
 highlight         = "all"
+skip = []
 
-# Known benign duplicates accepted during Dioxus upgrade cycles
-skip = [
-    # { name = "example-crate", version = "=1.0.0" },
-]
-
-# ── Sources (crate registry policy) ──────────────────────────────────────────
 [sources]
 unknown-registry = "deny"
 unknown-git      = "warn"

@@ -7,6 +7,7 @@ Cargo.lock.bak
 # Dioxus / build output
 /dist
 /velvet-ui/dist
+/velvet-ui/public/
 /.dioxus
 /deployment/
 *.wasm

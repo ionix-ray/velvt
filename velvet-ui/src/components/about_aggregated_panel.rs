@@ -56,7 +56,7 @@ pub fn AboutAggregatedPanel(site: Site) -> Element {
                                 h3 { class: "v-about-grid__stats-title",
                                     "{site.analytics.title}"
                                 }
-                                
+
                                 div { class: "v-heatmap-container v-reveal",
                                     // The animated heatmap spelling VELVT
                                     div { class: "v-heatmap-grid",
@@ -108,7 +108,6 @@ fn is_active_cell(row: usize, col: usize) -> bool {
         false
     }
 }
-
 
 #[component]
 fn TeamCard(member: TeamMember) -> Element {
