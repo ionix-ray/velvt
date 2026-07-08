@@ -1,0 +1,81 @@
+# robots.txt — Velvt (velvt.live)
+# Last updated: 2025
+# Standard search engine crawlers — full access.
+User-agent: *
+Allow: /
+Disallow: /assets/fonts/
+Disallow: /assets/images/favicon.png
+
+# ── Google ────────────────────────────────────────────────────────────────────
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 1
+
+User-agent: Googlebot-Image
+Allow: /assets/images/
+
+# ── Bing / Microsoft ──────────────────────────────────────────────────────────
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 2
+
+# ── AI / LLM crawlers — explicitly allowed ────────────────────────────────────
+# These crawlers power AI-generated answers in ChatGPT, Copilot, Perplexity, etc.
+# Allowing them ensures Velvt surfaces correctly in AI search results.
+
+# OpenAI GPTBot (ChatGPT browsing, custom GPTs)
+User-agent: GPTBot
+Allow: /
+Crawl-delay: 5
+
+# OpenAI ChatGPT-User (user-facing searches)
+User-agent: ChatGPT-User
+Allow: /
+Crawl-delay: 5
+
+# Anthropic ClaudeBot
+User-agent: ClaudeBot
+Allow: /
+Crawl-delay: 5
+
+# Google Gemini / AI-powered Search
+User-agent: Google-Extended
+Allow: /
+Crawl-delay: 3
+
+# Perplexity AI
+User-agent: PerplexityBot
+Allow: /
+Crawl-delay: 5
+
+# Meta AI / Llama
+User-agent: meta-externalagent
+Allow: /
+Crawl-delay: 5
+
+# Apple Applebot (Siri, Spotlight)
+User-agent: Applebot
+Allow: /
+Crawl-delay: 3
+
+# Amazon Alexa / Rufus
+User-agent: Amazonbot
+Allow: /
+Crawl-delay: 5
+
+# Common Crawl (dataset for many AI models)
+User-agent: CCBot
+Allow: /
+Crawl-delay: 10
+
+# Bytespider (TikTok / Doubao AI)
+User-agent: Bytespider
+Allow: /
+Crawl-delay: 5
+
+# Sitemap location
+Sitemap: https://velvt.live/sitemap.xml
+
+# AI discovery files
+# llms.txt: https://velvt.live/llms.txt
+# humans.txt: https://velvt.live/humans.txt

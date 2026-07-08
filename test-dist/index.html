@@ -6,7 +6,7 @@
 <meta name="color-scheme" content="dark" />
 <meta name="theme-color" content="#B52A2A" />
 
-<title>Velvt — We Shape Stories. You Make History. | PR, Events, Celebrity &amp; Influencer Agency</title>
+<title>Velvt — We Shape Stories. You Make History. | PR, Events, Celebrity &amp; Influencer AgencyVelvt — elevate your Presence</title>
 <meta name="description" content="Velvt is a premium PR house in Bhubaneswar. Public relations, events, celebrity &amp; influencer management, advertising, digital marketing, branding, photography, videography and a creator-friendly podcast &amp; shoot venue. Building brands. Creating impact." />
 <meta name="keywords" content="PR agency, public relations, event management, celebrity management, influencer marketing, creator seeding, advertising agency, digital marketing, branding agency, photography studio, videography, podcast studio, Bhubaneswar, Odisha, India, Velvt" />
 <meta name="author" content="Velvt" />
@@ -57,10 +57,6 @@
 <!-- CSS, favicon, and image preloads are injected from Rust via asset!() so dx
      hashes them and the dev server actually serves them. Keeping them out of
      this static template avoids 404s on un-hashed paths. -->
-<link rel="stylesheet" href="/assets/theme.css">
-<link rel="icon" type="image/png" href="/assets/images/favicon.png">
-<link rel="apple-touch-icon" href="/assets/images/favicon.png">
-<link rel="preload" as="image" href="/assets/images/velvet-square.png" fetchpriority="high">
 
 <style>
   /* Critical inline: stage colour to prevent first-paint flash */
@@ -272,26 +268,10 @@
   ]
 }
 </script>
-<script>
-  // Prevent context menu (right-click)
-  document.addEventListener('contextmenu', function(e) {
-    e.preventDefault();
-  });
-  // Prevent common developer tools shortcuts (F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U)
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'F12' || 
-       (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j' || e.key === 'C' || e.key === 'c')) || 
-       (e.ctrlKey && (e.key === 'U' || e.key === 'u')) || 
-       (e.metaKey && e.altKey && (e.key === 'I' || e.key === 'i' || e.key === 'J' || e.key === 'j' || e.key === 'C' || e.key === 'c')) ||
-       (e.metaKey && (e.key === 'U' || e.key === 'u'))) {
-      e.preventDefault();
-      return false;
-    }
-  });
-</script>
-</head>
+<link rel="preload" as="script" href="/./assets/vaelvet-ui-dxh80fc77d99e3bebd1.js" crossorigin></head>
 <body>
 <div class="v-curtain" aria-hidden="true"></div>
 <div id="main"></div>
-</body>
+<script type="module" async src="/./assets/vaelvet-ui-dxh80fc77d99e3bebd1.js"></script>
+            </body>
 </html>

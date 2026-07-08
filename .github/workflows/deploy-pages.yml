@@ -182,9 +182,6 @@ jobs:
         run: |
           mkdir -p dist
           cp -a target/dx/vaelvet-ui/release/web/public/. dist/
-          # Copy tracked assets into dist so unhashed paths in site.md resolve
-          mkdir -p dist/assets
-          cp -r velvet-ui/assets/* dist/assets/ || true
           echo "📦 dist/ contents:"
           ls -lah dist/
 
