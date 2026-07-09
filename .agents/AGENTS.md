@@ -43,3 +43,9 @@ All carry `.v-reveal` class. `prefers-reduced-motion` MUST collapse all animatio
 2. **Visual Checks before Progress**: Run `VAELVET_URL=http://localhost:8080 npx playwright test --project=chromium` from `test-suite/playwright/` after rebuilding the container.
 3. **Use Browser Tool**: Take screenshots with the browser subagent to visually verify every section in BOTH dark mode and light mode, and at mobile (375px) and desktop (1280px) viewports.
 4. **No Regressions**: All 96+ Rust unit tests and all Playwright tests must pass before marking work done.
+
+## Project Workflow (Permanent Rule)
+
+1. **Branching & Pull Requests**: All future modifications, new features, bug fixes, or structural changes MUST occur on a separate feature branch. 
+2. **No Direct Commits**: Do not commit directly to `main` or the current stable deployment branch (`refactor/production-grade`).
+3. **Pull Request Protocol**: Changes must be submitted via a pull request (or a completely separate task request) so they can be reviewed and tested in isolation before being merged into the stable base.
