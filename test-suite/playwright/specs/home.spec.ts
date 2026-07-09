@@ -779,6 +779,9 @@ for (const vp of VIEWPORTS) {
     const h1 = page.locator("h1").first();
     await expect(h1).toBeVisible();
 
+    // Wait for entrance animations (e.g. peek-left 0.65s) to finish before measuring
+    await page.waitForTimeout(800);
+
     // h1 must be within viewport width — not clipped
     const box = await h1.boundingBox();
     expect(box, "h1 has no bounding box").not.toBeNull();

@@ -17,7 +17,7 @@ level = "z"
 [web.resource]
 # All resources are loaded via Rust-side asset!() + document::Link so dx hashes
 # them. Leaving these arrays empty prevents duplicate un-hashed <link> tags.
-style  = ["/assets/theme.css"]
+style  = []
 script = []
 
 [web.resource.dev]

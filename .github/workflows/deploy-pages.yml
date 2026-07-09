@@ -182,6 +182,9 @@ jobs:
         run: |
           mkdir -p dist
           cp -a target/dx/vaelvet-ui/release/web/public/. dist/
+          # Ensure assets are present for static HTML loading
+          mkdir -p dist/assets
+          cp -a velvet-ui/assets/. dist/assets/
           echo "📦 dist/ contents:"
           ls -lah dist/
 
