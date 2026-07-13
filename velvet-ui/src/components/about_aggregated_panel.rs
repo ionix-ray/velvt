@@ -151,7 +151,14 @@ fn TeamCard(member: TeamMember) -> Element {
                 if !member.eyebrow.is_empty() {
                     span { class: "v-team-card__eyebrow", "{member.eyebrow}" }
                 }
-                h3 { class: "v-team-card__name", "{member.name}" }
+                h3 { class: "v-team-card__name",
+                    if let Some((first, last)) = member.name.split_once(' ') {
+                        span { style: "color: var(--text-primary);", "{first} " }
+                        span { style: "color: var(--accent);", "{last}" }
+                    } else {
+                        span { style: "color: var(--text-primary);", "{member.name}" }
+                    }
+                }
                 if !member.bio.is_empty() {
                     p { class: "v-team-card__bio", "{member.bio}" }
                 }

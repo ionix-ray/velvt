@@ -161,6 +161,13 @@
   --glass-card-fill: rgba(var(--glass-card-rgb), var(--glass-card-alpha));
   --glass-border-rgb: 204, 43, 43;  /* brand crimson */
   --glass-border-subtle: rgba(var(--glass-border-rgb), 0.15);
+
+  /* cinematic dynamic gradients */
+  --cinematic-radial-1: rgba(204, 43, 43, 0.05);
+  --cinematic-radial-2: rgba(20, 0, 0, 0.05);
+  --cinematic-radial-3: rgba(181, 42, 42, 0.06);
+  --cinematic-radial-4: rgba(248, 239, 224, 0.08);
+  --overlay-gradient-end: rgba(248, 239, 224, 0.95);
 }
 
 /* ----- Dark Theme ------------------------------------------------------- */
@@ -188,6 +195,13 @@
   --glass-card-fill: rgba(var(--glass-card-rgb), var(--glass-card-alpha));
   --glass-border-rgb: 212, 62, 62;
   --glass-border-subtle: rgba(var(--glass-border-rgb), 0.18);
+
+  /* cinematic dynamic gradients */
+  --cinematic-radial-1: rgba(139, 0, 0, 0.15);
+  --cinematic-radial-2: rgba(20, 0, 0, 0.4);
+  --cinematic-radial-3: rgba(184, 60, 43, 0.16);
+  --cinematic-radial-4: rgba(10, 4, 5, 0.08);
+  --overlay-gradient-end: rgba(10, 4, 5, 0.8);
 }
 
 /* ----- Reset (minimal) -------------------------------------------------- */
@@ -1530,8 +1544,8 @@ ul { list-style: none; }
 .v-cinematic-bg {
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at 20% 50%, rgba(139, 0, 0, 0.15) 0%, transparent 50%),
-              radial-gradient(circle at 80% 80%, rgba(20, 0, 0, 0.4) 0%, transparent 50%);
+  background: radial-gradient(circle at 20% 50%, var(--cinematic-radial-1) 0%, transparent 50%),
+              radial-gradient(circle at 80% 80%, var(--cinematic-radial-2) 0%, transparent 50%);
   background-size: 200% 200%;
   animation: cinematic-pan 15s ease-in-out infinite alternate;
   z-index: 0;
@@ -1686,7 +1700,7 @@ ul { list-style: none; }
 .v-pr-item__overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, transparent 40%, rgba(10, 4, 5, 0.8));
+  background: linear-gradient(180deg, transparent 40%, var(--overlay-gradient-end));
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
@@ -1708,8 +1722,8 @@ ul { list-style: none; }
 /* --- Creative Studio / Showcase Blocks ---------------------------------- */
 .v-showcase-panel {
   background:
-    radial-gradient(circle at 18% 18%, rgba(184, 60, 43, 0.16), transparent 28rem),
-    radial-gradient(circle at 82% 76%, rgba(10, 4, 5, 0.08), transparent 24rem),
+    radial-gradient(circle at 18% 18%, var(--cinematic-radial-3), transparent 28rem),
+    radial-gradient(circle at 82% 76%, var(--cinematic-radial-4), transparent 24rem),
     var(--bg-primary);
 }
 .v-showcase__section {
@@ -2593,10 +2607,10 @@ ul { list-style: none; }
 .v-team-card__name {
   font-family: "Kalnia Glaze", var(--font-display);
   font-size: clamp(1.6rem, 3vw, 2.2rem);
-  font-weight: 700;
-  color: var(--accent);
+  font-weight: 400;
+  text-transform: uppercase;
   line-height: 1.05;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.02em;
 }
 .v-team-card__bio {
   font-size: 0.92rem;

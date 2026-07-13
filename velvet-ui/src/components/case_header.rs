@@ -15,7 +15,7 @@ pub fn CaseHeader(
     #[props(default)] back_href: Option<String>,
     #[props(default)] back_label: Option<String>,
 ) -> Element {
-    let mut theme = use_signal(|| "dark".to_string());
+    let mut theme = use_signal(|| "light".to_string());
 
     // Apply theme attribute to <html> — same pattern as Home (home.rs), kept
     // SSR-safe by the `if let Some(win) = web_sys::window()` guard, which is

@@ -104,7 +104,7 @@ pub fn Home() -> Element {
 
     let loader_hidden = use_signal(|| false);
     let mut menu_open = use_signal(|| false);
-    let theme = use_signal(|| "dark".to_string());
+    let theme = use_signal(|| "light".to_string());
     let mut current_panel = use_signal(|| 0usize);
 
     // Land on the panel named by the URL hash (e.g. `#showcase`) on first paint.

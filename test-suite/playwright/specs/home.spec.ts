@@ -28,13 +28,13 @@ test("home: CTA links to contact email", async ({ page }) => {
 test("topbar: theme toggle flips html[data-theme]", async ({ page }) => {
   await page.goto("/");
   const html = page.locator("html");
-  await expect(html).toHaveAttribute("data-theme", "dark");
-
-  await page.locator(".v-theme-toggle").click();
   await expect(html).toHaveAttribute("data-theme", "light");
 
   await page.locator(".v-theme-toggle").click();
   await expect(html).toHaveAttribute("data-theme", "dark");
+
+  await page.locator(".v-theme-toggle").click();
+  await expect(html).toHaveAttribute("data-theme", "light");
 });
 
 test("topbar: menu button opens and closes the stacked nav", async ({ page }) => {
@@ -1011,6 +1011,7 @@ test("animations: v-process__step cards carry the v-reveal class", async ({ page
   await page.goto("/");
   await page.waitForSelector(".v-loader", { state: "hidden" });
   const steps = page.locator(".v-process__step");
+  await steps.first().waitFor({ state: "attached" });
   expect(await steps.count()).toBeGreaterThan(0);
   await expect(steps.first()).toHaveClass(/v-reveal/);
 });
