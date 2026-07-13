@@ -324,6 +324,13 @@ label = "@thearpitaparhi_official"
 href  = "https://instagram.com/thearpitaparhi_official"
 ```
 
+[[team]]
+name     = "Adarsh Kumar Rout"
+eyebrow  = "Creative Head"
+bio      = "A veteran media professional and founder of Odisha Times, specializes in PR, media, and celebrity management. A dynamic on-screen personality and podcast host, he is passionate about crafting memorable events and bringing news to life."
+photo    = "/assets/images/odisha-times-founder.jpg"
+monogram = "A"
+
 ## Footer
 
 ```toml
