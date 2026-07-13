@@ -1,0 +1,8 @@
+{
+  "version": "0.2.0",
+  "commit": "4fe4e59027d6800c23f1d7c408cba21aead5cff6",
+  "branch": "main",
+  "build_date": "2026-07-13T19:05:23Z",
+  "rust_version": "1.88.0",
+  "dioxus_version": "0.7.6"
+}
