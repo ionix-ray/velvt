@@ -85,13 +85,13 @@ test("case study detail: also ships the home footer at the bottom of the page", 
 test("case page theme toggle: flips html[data-theme] between dark and light", async ({ page }) => {
   await page.goto("/achivements/technova-full-funnel-growth");
   const html = page.locator("html");
-  await expect(html).toHaveAttribute("data-theme", "dark");
-
-  await page.locator(".v-theme-toggle").click();
   await expect(html).toHaveAttribute("data-theme", "light");
 
   await page.locator(".v-theme-toggle").click();
   await expect(html).toHaveAttribute("data-theme", "dark");
+
+  await page.locator(".v-theme-toggle").click();
+  await expect(html).toHaveAttribute("data-theme", "light");
 });
 
 test("case detail sidebar: shows Published date and Topics tag links", async ({ page }) => {

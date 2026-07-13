@@ -983,6 +983,14 @@ test("cards: v-process__step has transparent background (no opaque fill)", async
   }
 });
 
+test("team: renders at least two team members", async ({ page }) => {
+  await page.goto("/");
+  await page.waitForSelector(".v-loader", { state: "hidden" });
+  await page.locator("#about").scrollIntoViewIfNeeded();
+  const count = await page.locator(".v-team-card").count();
+  expect(count).toBeGreaterThanOrEqual(2);
+});
+
 test("cards: v-team-card transparent in dark and light mode", async ({ page }) => {
   await page.goto("/");
   await page.waitForSelector(".v-loader", { state: "hidden" });
@@ -1004,8 +1012,11 @@ test("cards: v-team-card transparent in dark and light mode", async ({ page }) =
 test("cards: v-process__step h4 text is readable in light mode (dark enough)", async ({ page }) => {
   await page.goto("/");
   await page.waitForSelector(".v-loader", { state: "hidden" });
-  await page.locator(".v-theme-toggle").click();
-  await page.waitForTimeout(300);
+  const html = page.locator("html");
+  if (await html.getAttribute("data-theme") === "dark") {
+    await page.locator(".v-theme-toggle").click();
+    await page.waitForTimeout(300);
+  }
   const step = page.locator(".v-process__step").first();
   await step.scrollIntoViewIfNeeded();
   const h4Color = await step.locator("h4").evaluate((el) => getComputedStyle(el).color);

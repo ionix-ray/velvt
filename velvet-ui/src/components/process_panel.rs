@@ -8,6 +8,7 @@ use dioxus::prelude::*;
 pub fn ProcessPanel(site: Site) -> Element {
     rsx! {
         section { class: "v-panel", id: "ideology",
+            div { class: "v-cinematic-bg" }
             div { class: "v-section",
                 div { class: "v-container",
                     div { class: "v-panel-header v-reveal",
