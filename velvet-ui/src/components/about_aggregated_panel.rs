@@ -153,10 +153,10 @@ fn TeamCard(member: TeamMember) -> Element {
                 }
                 h3 { class: "v-team-card__name",
                     if let Some((first, last)) = member.name.split_once(' ') {
-                        span { style: "color: var(--black);", "{first} " }
+                        span { style: "color: var(--text-primary);", "{first} " }
                         span { style: "color: var(--accent);", "{last}" }
                     } else {
-                        span { style: "color: var(--black);", "{member.name}" }
+                        span { style: "color: var(--text-primary);", "{member.name}" }
                     }
                 }
                 if !member.bio.is_empty() {

@@ -717,24 +717,35 @@ test("team: member photo points to the recent picture", async ({ page }) => {
   expect(src).toContain("arpita-recent.png");
 });
 
-test("team: name renders in Kalnia Glaze font and crimson color", async ({ page }) => {
+test("team: name renders in Cormorant Garamond font and splits colors (black and crimson)", async ({ page }) => {
   await page.goto("/");
   await page.locator("#about").scrollIntoViewIfNeeded();
 
   const teamName = page.locator(".v-team-card__name").first();
   await expect(teamName).toBeVisible();
 
-  const styles = await teamName.evaluate((el) => {
-    const s = getComputedStyle(el);
-    return { fontFamily: s.fontFamily, color: s.color };
-  });
+  const fontFamily = await teamName.evaluate((el) => getComputedStyle(el).fontFamily);
+  expect(fontFamily.toLowerCase()).toContain("cormorant garamond");
 
-  expect(styles.fontFamily.toLowerCase()).toContain("kalnia glaze");
-  
-  const match = styles.color.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
-  expect(match, `Unexpected color format: ${styles.color}`).not.toBeNull();
-  if (match) {
-    const [r, g, b] = [+match[1], +match[2], +match[3]];
+  const spans = teamName.locator("span");
+  await expect(spans).toHaveCount(2);
+
+  const firstColor = await spans.nth(0).evaluate((el) => getComputedStyle(el).color);
+  const match1 = firstColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+  expect(match1, `Unexpected color format: ${firstColor}`).not.toBeNull();
+  if (match1) {
+    const [r, g, b] = [+match1[1], +match1[2], +match1[3]];
+    // It should either be very dark (light mode) or very light (dark mode)
+    const isDark = r < 50 && g < 50 && b < 50;
+    const isLight = r > 200 && g > 200 && b > 200;
+    expect(isDark || isLight).toBeTruthy();
+  }
+
+  const secondColor = await spans.nth(1).evaluate((el) => getComputedStyle(el).color);
+  const match2 = secondColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+  expect(match2, `Unexpected color format: ${secondColor}`).not.toBeNull();
+  if (match2) {
+    const [r, g, b] = [+match2[1], +match2[2], +match2[3]];
     expect(r).toBeGreaterThanOrEqual(170);
     expect(r - g).toBeGreaterThan(100);
     expect(r - b).toBeGreaterThan(100);
