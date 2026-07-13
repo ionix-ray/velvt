@@ -468,6 +468,7 @@ mod tests {
     }
 
     #[test]
+    #[allow(clippy::collapsible_if, clippy::panic)]
     fn test_no_stray_toml_headers() {
         let mut in_toml_block = false;
         for (i, line) in RAW.lines().enumerate() {
