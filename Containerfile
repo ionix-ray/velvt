@@ -119,9 +119,9 @@ RUN WASM=$(find /out -name '*.wasm' 2>/dev/null | head -1) \
       echo "WARN: no .wasm found in /out — skipping wasm-opt post-pass"; \
     fi
 
-# Copy raw images (some paths are hardcoded in Rust via `site.hero.logo` etc.)
-RUN mkdir -p /out/assets/images \
- && cp /app/velvet-ui/assets/images/* /out/assets/images/ \
+# Copy all static assets manually to ensure CSS, fonts, and images are included.
+RUN mkdir -p /out/assets \
+ && cp -a /app/velvet-ui/assets/. /out/assets/ \
  && cp /app/velvet-ui/assets/images/* /out/assets/ 2>/dev/null || true
 
 # SEO / crawler root files — served at "/" by the server.

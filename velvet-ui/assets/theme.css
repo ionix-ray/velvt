@@ -2605,7 +2605,7 @@ ul { list-style: none; }
   color: var(--accent);
 }
 .v-team-card__name {
-  font-family: "Kalnia Glaze", var(--font-display);
+  font-family: var(--font-display);
   font-size: clamp(1.6rem, 3vw, 2.2rem);
   font-weight: 400;
   text-transform: uppercase;
