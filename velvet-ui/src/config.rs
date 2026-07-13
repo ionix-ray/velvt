@@ -466,4 +466,34 @@ mod tests {
             assert!(!col.title.is_empty(), "footer column title is empty");
         }
     }
+
+    #[test]
+    fn test_no_stray_toml_headers() {
+        let mut in_toml_block = false;
+        for (i, line) in RAW.lines().enumerate() {
+            let trimmed = line.trim();
+            if trimmed.starts_with("```toml") {
+                in_toml_block = true;
+                continue;
+            } else if in_toml_block && trimmed.starts_with("```") {
+                in_toml_block = false;
+                continue;
+            }
+
+            if !in_toml_block {
+                if (trimmed.starts_with("[[") && trimmed.ends_with("]]"))
+                    || (trimmed.starts_with("[")
+                        && trimmed.ends_with("]")
+                        && !trimmed.contains("](")
+                        && !trimmed.contains(' '))
+                {
+                    panic!(
+                        "Found stray TOML header outside of ```toml block on line {}: {}",
+                        i + 1,
+                        trimmed
+                    );
+                }
+            }
+        }
+    }
 }

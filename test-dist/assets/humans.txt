@@ -1,0 +1,18 @@
+/* HUMANS.TXT — The humans behind Velvt */
+/* humanstxt.org              */
+
+/* TEAM */
+  Founder & Creative Director: Arpita Parhi
+  Instagram: @thearpitaparhi_official
+  Location: Bhubaneswar, Odisha, India
+
+/* THANKS */
+  Built with Rust + Dioxus WASM — zero JavaScript framework overhead.
+  Hosted on a distroless container for maximum security.
+
+/* SITE */
+  Last update: 2025
+  Language: English
+  Doctype: HTML5
+  IDE: Various
+  Standards: W3C WCAG 2.1 AA, Schema.org, OpenGraph, Twitter Card

@@ -1,6 +1,7 @@
 //! Process panel — 5-step workflow, compact to fit 100vh.
 
 use crate::Site;
+use crate::components::card_step::CardStep;
 use dioxus::prelude::*;
 
 #[component]
@@ -19,13 +20,12 @@ pub fn ProcessPanel(site: Site) -> Element {
                     }
                     div { class: "v-process",
                         for (i, step) in site.process.steps.iter().enumerate() {
-                            div {
-                                class: "v-process__step v-process-card-3d v-reveal",
-                                style: "animation-delay: {(i + 1) * 120}ms;",
-                                div { class: "v-sparkle-border" }
-                                div { class: "v-process__num", "{step.num}" }
-                                h4 { "{step.title}" }
-                                p { "{step.body}" }
+                            CardStep {
+                                logo: site.hero.logo.to_string(),
+                                num: Some(step.num.to_string()),
+                                title: step.title.to_string(),
+                                body: step.body.to_string(),
+                                delay_ms: (i + 1) * 120,
                             }
                         }
                     }

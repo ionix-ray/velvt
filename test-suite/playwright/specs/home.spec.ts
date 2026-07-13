@@ -28,13 +28,13 @@ test("home: CTA links to contact email", async ({ page }) => {
 test("topbar: theme toggle flips html[data-theme]", async ({ page }) => {
   await page.goto("/");
   const html = page.locator("html");
-  await expect(html).toHaveAttribute("data-theme", "dark");
-
-  await page.locator(".v-theme-toggle").click();
   await expect(html).toHaveAttribute("data-theme", "light");
 
   await page.locator(".v-theme-toggle").click();
   await expect(html).toHaveAttribute("data-theme", "dark");
+
+  await page.locator(".v-theme-toggle").click();
+  await expect(html).toHaveAttribute("data-theme", "light");
 });
 
 test("topbar: menu button opens and closes the stacked nav", async ({ page }) => {
@@ -585,12 +585,12 @@ test("spindle: active item is visually distinct (accent color left border)", asy
 });
 
 // ---------------------------------------------------------------------------
-// Brand Colour Scheme: accent matches logo crimson #B52A2A
+// Brand Colour Scheme: accent matches logo crimson #CC2B2B
 // ---------------------------------------------------------------------------
-test("brand: accent colour matches logo crimson #B52A2A", async ({ page }) => {
+test("brand: accent colour matches logo crimson #CC2B2B", async ({ page }) => {
   await page.goto("/");
 
-  // The CSS var --crimson is #B52A2A = rgb(181,42,42)
+  // The CSS var --crimson is #CC2B2B = rgb(204,43,43)
   // Verify a primary accent button reflects this colour.
   const btn = page.locator(".v-btn--primary").first();
   await btn.scrollIntoViewIfNeeded();
@@ -598,16 +598,16 @@ test("brand: accent colour matches logo crimson #B52A2A", async ({ page }) => {
   const bg = await btn.evaluate(
     (el) => getComputedStyle(el).backgroundColor,
   );
-  // Accept exact match or very close to rgb(181,42,42) — allow ±5 per channel
+  // Accept exact match or very close to rgb(204,43,43) — allow ±5 per channel
   const match = bg.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
   if (!match) throw new Error(`Unexpected colour format: ${bg}`);
   const [r, g, b] = [+match[1], +match[2], +match[3]];
-  expect(r, `red channel of accent: ${bg}`).toBeGreaterThanOrEqual(176);
-  expect(r, `red channel of accent: ${bg}`).toBeLessThanOrEqual(186);
-  expect(g, `green channel of accent: ${bg}`).toBeGreaterThanOrEqual(37);
-  expect(g, `green channel of accent: ${bg}`).toBeLessThanOrEqual(47);
-  expect(b, `blue channel of accent: ${bg}`).toBeGreaterThanOrEqual(37);
-  expect(b, `blue channel of accent: ${bg}`).toBeLessThanOrEqual(47);
+  expect(r, `red channel of accent: ${bg}`).toBeGreaterThanOrEqual(199);
+  expect(r, `red channel of accent: ${bg}`).toBeLessThanOrEqual(209);
+  expect(g, `green channel of accent: ${bg}`).toBeGreaterThanOrEqual(38);
+  expect(g, `green channel of accent: ${bg}`).toBeLessThanOrEqual(48);
+  expect(b, `blue channel of accent: ${bg}`).toBeGreaterThanOrEqual(38);
+  expect(b, `blue channel of accent: ${bg}`).toBeLessThanOrEqual(48);
 });
 
 // ---------------------------------------------------------------------------
@@ -717,24 +717,35 @@ test("team: member photo points to the recent picture", async ({ page }) => {
   expect(src).toContain("arpita-recent.png");
 });
 
-test("team: name renders in Kalnia Glaze font and crimson color", async ({ page }) => {
+test("team: name renders in Cormorant Garamond font and splits colors (black and crimson)", async ({ page }) => {
   await page.goto("/");
   await page.locator("#about").scrollIntoViewIfNeeded();
 
   const teamName = page.locator(".v-team-card__name").first();
   await expect(teamName).toBeVisible();
 
-  const styles = await teamName.evaluate((el) => {
-    const s = getComputedStyle(el);
-    return { fontFamily: s.fontFamily, color: s.color };
-  });
+  const fontFamily = await teamName.evaluate((el) => getComputedStyle(el).fontFamily);
+  expect(fontFamily.toLowerCase()).toContain("cormorant garamond");
 
-  expect(styles.fontFamily.toLowerCase()).toContain("kalnia glaze");
-  
-  const match = styles.color.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
-  expect(match, `Unexpected color format: ${styles.color}`).not.toBeNull();
-  if (match) {
-    const [r, g, b] = [+match[1], +match[2], +match[3]];
+  const spans = teamName.locator("span");
+  await expect(spans).toHaveCount(2);
+
+  const firstColor = await spans.nth(0).evaluate((el) => getComputedStyle(el).color);
+  const match1 = firstColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+  expect(match1, `Unexpected color format: ${firstColor}`).not.toBeNull();
+  if (match1) {
+    const [r, g, b] = [+match1[1], +match1[2], +match1[3]];
+    // It should either be very dark (light mode) or very light (dark mode)
+    const isDark = r < 50 && g < 50 && b < 50;
+    const isLight = r > 200 && g > 200 && b > 200;
+    expect(isDark || isLight).toBeTruthy();
+  }
+
+  const secondColor = await spans.nth(1).evaluate((el) => getComputedStyle(el).color);
+  const match2 = secondColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+  expect(match2, `Unexpected color format: ${secondColor}`).not.toBeNull();
+  if (match2) {
+    const [r, g, b] = [+match2[1], +match2[2], +match2[3]];
     expect(r).toBeGreaterThanOrEqual(170);
     expect(r - g).toBeGreaterThan(100);
     expect(r - b).toBeGreaterThan(100);
@@ -778,6 +789,9 @@ for (const vp of VIEWPORTS) {
 
     const h1 = page.locator("h1").first();
     await expect(h1).toBeVisible();
+
+    // Wait for entrance animations (e.g. peek-left 0.65s) to finish before measuring
+    await page.waitForTimeout(800);
 
     // h1 must be within viewport width — not clipped
     const box = await h1.boundingBox();
@@ -928,7 +942,7 @@ test("about: displays VELVT heatmap grid with floating stats", async ({ page }) 
   await expect(sparkle).toBeVisible();
 });
 
-test("ideology: displays cinematic background and 3D floating cards with sparkle borders", async ({ page }) => {
+test("ideology: displays cinematic background and transparent cards with sparkle borders", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto("/#ideology");
   await page.waitForSelector(".v-loader", { state: "hidden" });
@@ -943,9 +957,129 @@ test("ideology: displays cinematic background and 3D floating cards with sparkle
   await expect(steps).toHaveCount(5); // from mock data
   const firstStep = steps.first();
   await expect(firstStep).toBeVisible();
-  await expect(firstStep).toHaveClass(/v-process-card-3d/);
 
-  // Sparkle border
+  // Sparkle border and badge
   const sparkle = firstStep.locator(".v-sparkle-border");
   await expect(sparkle).toBeVisible();
+  const badge = firstStep.locator(".v-experience-badge");
+  await expect(badge).toBeVisible();
+});
+
+// ── Transparent Cards: TDD Spec ───────────────────────────────────────────────
+// All cards MUST be fully transparent (no solid opaque fill).
+
+test("cards: v-process__step has transparent background (no opaque fill)", async ({ page }) => {
+  await page.goto("/");
+  await page.waitForSelector(".v-loader", { state: "hidden" });
+  const step = page.locator(".v-process__step").first();
+  await step.scrollIntoViewIfNeeded();
+  await expect(step).toBeVisible();
+  const bg = await step.evaluate((el) => getComputedStyle(el).backgroundColor);
+  const alphaMatch = bg.match(/rgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*([\d.]+)\s*\)/);
+  if (alphaMatch) {
+    expect(parseFloat(alphaMatch[1])).toBeLessThanOrEqual(0.2);
+  } else {
+    expect(bg).toMatch(/transparent|rgba\(\s*0\s*,\s*0\s*,\s*0\s*,\s*0\s*\)/);
+  }
+});
+
+test("team: renders at least two team members", async ({ page }) => {
+  await page.goto("/");
+  await page.waitForSelector(".v-loader", { state: "hidden" });
+  await page.locator("#about").scrollIntoViewIfNeeded();
+  const count = await page.locator(".v-team-card").count();
+  expect(count).toBeGreaterThanOrEqual(2);
+});
+
+test("cards: v-team-card transparent in dark and light mode", async ({ page }) => {
+  await page.goto("/");
+  await page.waitForSelector(".v-loader", { state: "hidden" });
+  await page.locator("#about").scrollIntoViewIfNeeded();
+  const card = page.locator(".v-team-card").first();
+  await expect(card).toBeVisible();
+  const darkBg = await card.evaluate((el) => getComputedStyle(el).backgroundColor);
+  const darkAlpha = darkBg.match(/rgba\(.*,([\d.]+)\)/);
+  if (darkAlpha) expect(parseFloat(darkAlpha[1])).toBeLessThanOrEqual(0.2);
+  else expect(darkBg).toMatch(/transparent|rgba\(0.*0\)/);
+  await page.locator(".v-theme-toggle").click();
+  await page.waitForTimeout(300);
+  const lightBg = await card.evaluate((el) => getComputedStyle(el).backgroundColor);
+  const lightAlpha = lightBg.match(/rgba\(.*,([\d.]+)\)/);
+  if (lightAlpha) expect(parseFloat(lightAlpha[1])).toBeLessThanOrEqual(0.2);
+  else expect(lightBg).toMatch(/transparent|rgba\(0.*0\)/);
+});
+
+test("cards: v-process__step h4 text is readable in light mode (dark enough)", async ({ page }) => {
+  await page.goto("/");
+  await page.waitForSelector(".v-loader", { state: "hidden" });
+  const html = page.locator("html");
+  if (await html.getAttribute("data-theme") === "dark") {
+    await page.locator(".v-theme-toggle").click();
+    await page.waitForTimeout(300);
+  }
+  const step = page.locator(".v-process__step").first();
+  await step.scrollIntoViewIfNeeded();
+  const h4Color = await step.locator("h4").evaluate((el) => getComputedStyle(el).color);
+  const rgb = h4Color.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+  if (rgb) {
+    const luminance = 0.299 * +rgb[1] + 0.587 * +rgb[2] + 0.114 * +rgb[3];
+    expect(luminance, `Light mode text must be dark, got: ${h4Color}`).toBeLessThan(200);
+  }
+});
+
+// ── Scroll-Reveal Peek-In: TDD Spec ──────────────────────────────────────────
+
+test("animations: v-process__step cards carry the v-reveal class", async ({ page }) => {
+  await page.goto("/");
+  await page.waitForSelector(".v-loader", { state: "hidden" });
+  const steps = page.locator(".v-process__step");
+  await steps.first().waitFor({ state: "attached" });
+  expect(await steps.count()).toBeGreaterThan(0);
+  await expect(steps.first()).toHaveClass(/v-reveal/);
+});
+
+test("animations: showcase tiles have staggered animation delays", async ({ page }) => {
+  await page.goto("/");
+  await page.waitForSelector(".v-loader", { state: "hidden" });
+  const tiles = page.locator("#experience .v-process__step, .v-showcase__grid .v-process__step");
+  const count = await tiles.count();
+  if (count < 2) return;
+  const delay0 = await tiles.nth(0).evaluate((el) => (el as HTMLElement).style.animationDelay);
+  const delay1 = await tiles.nth(1).evaluate((el) => (el as HTMLElement).style.animationDelay);
+  expect(delay0).not.toBe(delay1);
+});
+
+test("animations: v-team-card carries v-reveal class", async ({ page }) => {
+  await page.goto("/");
+  await page.waitForSelector(".v-loader", { state: "hidden" });
+  await page.locator("#about").scrollIntoViewIfNeeded();
+  const cards = page.locator(".v-team-card");
+  expect(await cards.count()).toBeGreaterThan(0);
+  await expect(cards.first()).toHaveClass(/v-reveal/);
+});
+
+test("animations: reduced-motion disables peek-in card animations", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+  await page.waitForSelector(".v-loader", { state: "hidden" });
+  const step = page.locator(".v-process__step").first();
+  await step.scrollIntoViewIfNeeded();
+  const animDuration = await step.evaluate((el) => getComputedStyle(el).animationDuration);
+  expect(parseFloat(animDuration)).toBeLessThanOrEqual(0.01);
+});
+
+test("cards: all v-process__step and v-team-card have v-sparkle-border attached", async ({ page }) => {
+  await page.goto("/");
+  await page.waitForSelector(".v-loader", { state: "hidden" });
+  const steps = page.locator(".v-process__step");
+  const stepCount = await steps.count();
+  for (let i = 0; i < Math.min(stepCount, 3); i++) {
+    await expect(steps.nth(i).locator(".v-sparkle-border")).toBeAttached();
+  }
+  await page.locator("#about").scrollIntoViewIfNeeded();
+  const teamCards = page.locator(".v-team-card");
+  const teamCount = await teamCards.count();
+  for (let i = 0; i < teamCount; i++) {
+    await expect(teamCards.nth(i).locator(".v-sparkle-border")).toBeAttached();
+  }
 });

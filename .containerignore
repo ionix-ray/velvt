@@ -40,3 +40,16 @@ compose.yml
 
 # Misc
 velvet-ui/index\ copy.html
+
+# Pre-built staging folder (always rebuilt inside the container)
+deployment/
+
+# Node / Playwright artefacts
+node_modules/
+test-results/
+playwright-report/
+
+# Agent / IDE metadata
+.agents/
+.gemini/
+*.log

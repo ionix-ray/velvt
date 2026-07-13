@@ -56,7 +56,7 @@ pub fn AboutAggregatedPanel(site: Site) -> Element {
                                 h3 { class: "v-about-grid__stats-title",
                                     "{site.analytics.title}"
                                 }
-                                
+
                                 div { class: "v-heatmap-container v-reveal",
                                     // The animated heatmap spelling VELVT
                                     div { class: "v-heatmap-grid",
@@ -109,7 +109,6 @@ fn is_active_cell(row: usize, col: usize) -> bool {
     }
 }
 
-
 #[component]
 fn TeamCard(member: TeamMember) -> Element {
     // Empty name means the maintainer hasn't filled in the team block
@@ -128,7 +127,7 @@ fn TeamCard(member: TeamMember) -> Element {
         member.monogram.to_string()
     };
     rsx! {
-        div { class: "v-team-card v-card-modern", id: "team-member",
+        div { class: "v-team-card v-card-modern v-reveal", id: "team-member",
             div { class: "v-sparkle-border" }
             if has_photo {
                 div { class: "v-team-card__photo",
@@ -152,7 +151,14 @@ fn TeamCard(member: TeamMember) -> Element {
                 if !member.eyebrow.is_empty() {
                     span { class: "v-team-card__eyebrow", "{member.eyebrow}" }
                 }
-                h3 { class: "v-team-card__name", "{member.name}" }
+                h3 { class: "v-team-card__name",
+                    if let Some((first, last)) = member.name.split_once(' ') {
+                        span { style: "color: var(--text-primary);", "{first} " }
+                        span { style: "color: var(--accent);", "{last}" }
+                    } else {
+                        span { style: "color: var(--text-primary);", "{member.name}" }
+                    }
+                }
                 if !member.bio.is_empty() {
                     p { class: "v-team-card__bio", "{member.bio}" }
                 }

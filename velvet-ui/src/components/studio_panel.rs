@@ -1,6 +1,7 @@
 //! Studio panel — event showcase block grid.
 
 use crate::Site;
+use crate::components::card_step::CardStep;
 use dioxus::prelude::*;
 
 #[component]
@@ -18,18 +19,13 @@ pub fn StudioPanel(site: Site) -> Element {
                     }
                     div { class: "v-showcase__grid",
                         for (i, item) in site.studio.items.iter().enumerate() {
-                            div {
-                                class: "{showcase_item_classes(i, site.studio.items.len())}",
-                                style: "transition-delay: {(i + 1) * 60}ms;",
-                                div { class: "v-sparkle-border" }
-                                img {
-                                    class: "v-experience-badge",
-                                    src: "{site.hero.logo}",
-                                    alt: "Velvt Badge",
-                                }
-                                span { class: "v-eyebrow", "{item.tag}" }
-                                h4 { "{item.title}" }
-                                p { "{item.body}" }
+                            CardStep {
+                                logo: site.hero.logo.to_string(),
+                                tag: Some(item.tag.to_string()),
+                                title: item.title.to_string(),
+                                body: item.body.to_string(),
+                                class_extra: showcase_class_extra(i, site.studio.items.len()),
+                                delay_ms: (i + 1) * 60,
                             }
                         }
                     }
@@ -39,15 +35,15 @@ pub fn StudioPanel(site: Site) -> Element {
     }
 }
 
-/// Full class list for a showcase card at `index` out of `total` items.
-/// Carbon-tile base + `--showcase` modifier so a single tile system styles
-/// both the showcase grid and the cases grid.
-fn showcase_item_classes(index: usize, total: usize) -> String {
-    let extra = showcase_span_class(index, total);
-    if extra.is_empty() {
-        "v-process__step v-tile--showcase v-reveal".to_string()
+/// Extra CSS class for a showcase card, based on its position in the grid.
+/// Returns "v-tile--showcase" always, plus a span modifier for orphaned
+/// trailing items that would leave an incomplete last row in the 3-col grid.
+fn showcase_class_extra(index: usize, total: usize) -> String {
+    let span = showcase_span_class(index, total);
+    if span.is_empty() {
+        "v-tile--showcase".to_string()
     } else {
-        format!("v-process__step v-tile--showcase v-reveal {extra}")
+        format!("v-tile--showcase {span}")
     }
 }
 
@@ -96,14 +92,15 @@ mod tests {
     }
 
     #[test]
-    fn showcase_item_classes_appends_modifier_with_single_space() {
-        assert_eq!(
-            showcase_item_classes(0, 3),
-            "v-process__step v-tile--showcase v-reveal"
-        );
-        assert_eq!(
-            showcase_item_classes(4, 5),
-            "v-process__step v-tile--showcase v-reveal v-tile--wide"
-        );
+    fn showcase_class_extra_always_includes_showcase_base() {
+        assert!(showcase_class_extra(0, 3).contains("v-tile--showcase"));
+        assert!(showcase_class_extra(4, 5).contains("v-tile--showcase"));
+        assert!(showcase_class_extra(4, 5).contains("v-tile--wide"));
+    }
+
+    #[test]
+    fn showcase_class_extra_is_just_base_for_non_orphan() {
+        assert_eq!(showcase_class_extra(0, 3), "v-tile--showcase");
+        assert_eq!(showcase_class_extra(1, 6), "v-tile--showcase");
     }
 }

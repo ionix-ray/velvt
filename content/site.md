@@ -312,7 +312,7 @@ title = "Trusted by Industry Leaders"
 
 ```toml
 [[team]]
-name     = "Arpita"
+name     = "Arpita Parhi"
 eyebrow  = "Founder · Star Gazer"
 bio      = "An Odishi dancer with a quiet observer's eye, Arpita reads a room before she enters it. Her soft spot is the stardom her work moves around every day — and the warmth of hospitality she insists every guest leaves with. Velvt is built on both: an artist's attention to detail, and a host's instinct for people."
 photo    = "/assets/images/arpita-recent.png"
@@ -322,6 +322,13 @@ monogram = "A"
 icon  = "instagram"
 label = "@thearpitaparhi_official"
 href  = "https://instagram.com/thearpitaparhi_official"
+
+[[team]]
+name     = "Adarsh Kumar Rout"
+eyebrow  = "Creative Head"
+bio      = "A veteran media professional and founder of Odisha Times, specializes in PR, media, and celebrity management. A dynamic on-screen personality and podcast host, he is passionate about crafting memorable events and bringing news to life."
+photo    = "/assets/images/odisha-times-founder.jpg"
+monogram = "A"
 ```
 
 ## Footer

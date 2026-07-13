@@ -24,11 +24,6 @@ fn App() -> Element {
     });
 
     rsx! {
-        document::Link { rel: "stylesheet",     href: asset!("/assets/theme.css") }
-        document::Link { rel: "icon", r#type: "image/png",
-                          href: asset!("/assets/images/favicon.png") }
-        document::Link { rel: "apple-touch-icon",
-                          href: asset!("/assets/images/favicon.png") }
         document::Link { rel: "preload", r#as: "image", fetchpriority: "high",
                   href: brand_mark() }
         Router::<Route> {}

@@ -6,23 +6,9 @@ use dioxus::prelude::*;
 
 #[component]
 pub fn HeroPanel(site: Site) -> Element {
-    let mut mouse_x = use_signal(|| 0.5f64);
-    let mut mouse_y = use_signal(|| 0.5f64);
-
-    let handle_mousemove = move |evt: Event<dioxus::html::MouseData>| {
-        if let Some(win) = web_sys::window() {
-            let width = win.inner_width().unwrap().as_f64().unwrap_or(1920.0);
-            let height = win.inner_height().unwrap().as_f64().unwrap_or(1080.0);
-            let mx = (evt.client_coordinates().x as f64) / width;
-            let my = (evt.client_coordinates().y as f64) / height;
-            mouse_x.set(mx);
-            mouse_y.set(my);
-        }
-    };
-
     rsx! {
         section { class: "v-panel", id: "home",
-            div { class: "v-hero", onmousemove: handle_mousemove,
+            div { class: "v-hero",
                 div { class: "v-container",
                     div { class: "v-hero__content",
                         div { class: "v-reveal-left",

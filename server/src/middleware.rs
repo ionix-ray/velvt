@@ -58,6 +58,20 @@ pub async fn security_headers(request: Request, next: Next) -> Response {
         axum::http::HeaderValue::from_static(PERMISSIONS_POLICY_VALUE),
     );
 
+    // Cross-Origin-Opener-Policy: isolates the browsing context so an attacker
+    // cannot leverage cross-origin window references for Spectre-style attacks.
+    headers.insert(
+        HeaderName::from_static("cross-origin-opener-policy"),
+        axum::http::HeaderValue::from_static("same-origin"),
+    );
+
+    // Opt out of browser DNS prefetching for all sub-resources on this page,
+    // reducing unintentional outbound DNS queries to third-party hosts.
+    headers.insert(
+        HeaderName::from_static("x-dns-prefetch-control"),
+        axum::http::HeaderValue::from_static("off"),
+    );
+
     if let Some(content_type) = headers.get("content-type") {
         let ct = content_type.to_str().unwrap_or("");
         if ct.starts_with("text/html") {

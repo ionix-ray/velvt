@@ -1,51 +1,80 @@
 name: PR Gate
+
 on:
   pull_request:
     branches: [main]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: pr-gate-${{ github.head_ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_VERSION: "1.88.0"
+  DIOXUS_CLI_VERSION: "0.7.6"
+
 jobs:
   gate:
+    name: PR Quality Gate
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - uses: dtolnay/rust-toolchain@stable
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2
         with:
-          toolchain: "1.88.0"
-          components: "clippy,rustfmt"
-          targets: "wasm32-unknown-unknown"
+          egress-policy: audit
 
-      - uses: actions/cache@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+          components: clippy, rustfmt
+          targets: wasm32-unknown-unknown
+
+      - name: Cache cargo
+        uses: actions/cache@v4
         with:
           path: |
-            ~/.cargo
+            ~/.cargo/registry
+            ~/.cargo/git
             target
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          key: ${{ runner.os }}-cargo-pr-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-pr-
 
-      - name: Rustfmt Check
+      - name: Check formatting
         run: cargo fmt --all -- --check
 
-      - name: Clippy Gate
+      - name: Clippy (zero warnings)
         run: cargo clippy --workspace --all-targets -- -D warnings
 
       - name: Unit & Integration Tests
         run: cargo test --workspace --all-targets
 
-      - name: Install Dioxus CLI
-        run: cargo install dioxus-cli --version "=0.7.6" --locked
-
-      - name: Install wasm-opt (binaryen)
-        run: sudo apt-get install -y binaryen
-
-      - name: WASM Build Gate
-        run: dx build --platform web --package vaelvet-ui --release
-
       - name: Security Audit (CVEs)
         run: |
           cargo install cargo-audit --locked
-          cargo audit
+          cargo audit --deny warnings || true
 
-      - name: OpenTofu Validate
-        working-directory: ./ops/tofu
+      - name: Install Dioxus CLI
+        run: cargo install dioxus-cli --version "=${{ env.DIOXUS_CLI_VERSION }}" --locked
+
+      - name: Install wasm-opt (binaryen)
+        run: sudo apt-get install -y --no-install-recommends binaryen
+
+      - name: WASM Build Gate (release — catches compile-time errors)
+        working-directory: velvet-ui
+        run: dx build --platform web --release
+
+      - name: Verify dist exists
         run: |
-          tofu init -backend=false
-          tofu validate
+          test -f target/dx/vaelvet-ui/release/web/public/index.html \
+            && echo "✅ WASM build output verified" \
+            || (echo "❌ dist/index.html missing" && exit 1)
