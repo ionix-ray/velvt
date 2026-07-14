@@ -109,6 +109,8 @@ pub struct NavItem {
 pub struct Hero {
     #[serde(default)]
     pub logo: Box<str>,
+    #[serde(default)]
+    pub video: Option<Box<str>>,
     pub badge: Box<str>,
     pub headline1: Box<str>,
     pub headline2: Box<str>,

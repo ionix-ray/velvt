@@ -3333,6 +3333,16 @@ ul { list-style: none; }
   object-fit: contain;
 }
 
+.v-hero-3d-logo__video {
+  width: clamp(200px, 22vw, 340px);
+  height: clamp(200px, 22vw, 340px);
+  object-fit: cover;
+  mix-blend-mode: screen;
+  mask-image: radial-gradient(circle, black 50%, transparent 72%);
+  -webkit-mask-image: radial-gradient(circle, black 50%, transparent 72%);
+  pointer-events: none;
+}
+
 /* About Layout Revamp */
 .v-about-layout {
   display: flex;

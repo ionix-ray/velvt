@@ -53,6 +53,7 @@ href = "#contact"
 ```toml
 [hero]
 logo      = "/assets/images/logo-final-latest-bg-removed.png"
+video     = "/assets/images/velvt-animation-optimized.mp4"
 badge     = "Building Brands. Creating Impact."
 headline1 = "We shape"
 headline2 = "stories."
@@ -327,7 +328,7 @@ href  = "https://instagram.com/thearpitaparhi_official"
 name     = "Adarsh Kumar Rout"
 eyebrow  = "Creative Head"
 bio      = "A veteran media professional and founder of Odisha Times, specializes in PR, media, and celebrity management. A dynamic on-screen personality and podcast host, he is passionate about crafting memorable events and bringing news to life."
-photo    = "/assets/images/odisha-times-founder.jpg"
+photo    = "/assets/images/adarsh-kumar.jpg"
 monogram = "A"
 ```
 
