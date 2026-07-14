@@ -39,6 +39,20 @@ test("case studies index: lists all sample studies and filters by tag", async ({
   await expect(page.locator(".v-cases-grid .v-tile__eyebrow").first()).toContainText("Luxe Beauty");
 });
 
+test("case studies index: main container has generous horizontal padding", async ({ page }) => {
+  await page.goto("/achivements");
+  const container = page.locator(".v-case-hero .v-container");
+  await expect(container).toBeVisible();
+  
+  // Verify that the container has left and right padding instead of being cramped
+  const paddingLeft = await container.evaluate((el) => window.getComputedStyle(el).paddingLeft);
+  const paddingRight = await container.evaluate((el) => window.getComputedStyle(el).paddingRight);
+  
+  // We expect padding to be at least 32px (which is var(--s5) -> 2rem)
+  expect(parseFloat(paddingLeft)).toBeGreaterThanOrEqual(32);
+  expect(parseFloat(paddingRight)).toBeGreaterThanOrEqual(32);
+});
+
 test("case page header: shows the brand mark image, not text", async ({ page }) => {
   await page.goto("/achivements/technova-full-funnel-growth");
   const brandImg = page.locator(".v-topbar__brand img");

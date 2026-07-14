@@ -41,7 +41,7 @@ pub fn HeroPanel(site: Site) -> Element {
                         div { class: "v-hero__visual v-reveal-right",
                             div {
                                 class: "v-hero-3d-wrapper",
-                                div { class: "v-glass-effect v-hero-3d-logo",
+                                div { class: "v-glass-effect v-hero-3d-logo v-sparkle-border",
                                     if let Some(video) = &site.hero.video {
                                         video {
                                             class: "v-hero-3d-logo__video",
