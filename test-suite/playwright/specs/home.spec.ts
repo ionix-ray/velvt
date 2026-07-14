@@ -25,6 +25,22 @@ test("home: CTA links to contact email", async ({ page }) => {
   await expect(cta).toHaveAttribute("href", /mailto:|#contact/);
 });
 
+test("home: hero renders looping video instead of static logo", async ({ page }) => {
+  await page.goto("/");
+  
+  const wrapper = page.locator(".v-hero-3d-wrapper");
+  await expect(wrapper).toBeVisible();
+  
+  const video = page.locator("video.v-hero-3d-logo__video");
+  await expect(video).toBeVisible();
+  
+  // Verify it has the required native playback attributes
+  await expect(video).toHaveAttribute("autoplay", "true");
+  await expect(video).toHaveAttribute("loop", "true");
+  await expect(video).toHaveAttribute("muted", "true");
+  await expect(video).toHaveAttribute("playsinline", "true");
+});
+
 test("topbar: theme toggle flips html[data-theme]", async ({ page }) => {
   await page.goto("/");
   const html = page.locator("html");
@@ -714,7 +730,7 @@ test("team: member photo points to the recent picture", async ({ page }) => {
   await expect(firstPhoto).toBeVisible();
   
   const src = await firstPhoto.getAttribute("src");
-  expect(src).toContain("arpita-recent.png");
+  expect(src).toContain("arpita-recent.jpg");
 });
 
 test("team: name renders in Cormorant Garamond font and splits colors (black and crimson)", async ({ page }) => {
@@ -869,23 +885,7 @@ test("responsive [tablet-768]: nav spindle is hidden on mobile, shown on desktop
 
 // ── UI Revamp specific tests ──────────────────────────────────────────────────
 
-test("hero: displays the standard img logo without background mask or filter", async ({ page }) => {
-  await page.goto("/");
-  const heroVisual = page.locator(".v-hero-3d-wrapper");
-  await expect(heroVisual).toBeVisible();
-  
-  // The wrapper should NOT contain ambient animation classes or mask effects
-  const glassLogo = page.locator(".v-hero-3d-logo");
-  await expect(glassLogo).toHaveClass(/v-glass-effect/);
-  
-  const img = glassLogo.locator("img.v-hero-3d-logo__img");
-  await expect(img).toBeVisible();
-  await expect(img).toHaveAttribute("alt", "Velvt Logo");
-  
-  // Verify it's an actual img tag rendering standard src, not a div with mask
-  const tagName = await img.evaluate((el) => el.tagName.toLowerCase());
-  expect(tagName).toBe("img");
-});
+
 
 test("about: layout contains top row with stats, story, founder and bottom row with by the numbers", async ({ page }) => {
   await page.goto("/");
