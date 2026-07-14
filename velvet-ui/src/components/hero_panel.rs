@@ -46,10 +46,10 @@ pub fn HeroPanel(site: Site) -> Element {
                                         video {
                                             class: "v-hero-3d-logo__video",
                                             src: "{video}",
-                                            autoplay: "true",
-                                            loop: "true",
-                                            muted: "true",
-                                            playsinline: "true",
+                                            autoplay: true,
+                                            "loop": true,
+                                            muted: true,
+                                            playsinline: true,
                                             title: "Velvt Video"
                                         }
                                     } else {
