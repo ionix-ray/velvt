@@ -914,6 +914,35 @@ test("about: layout contains top row with stats, story, founder and bottom row w
   await expect(heatmap).toBeVisible();
 });
 
+test("about: layout proportions and spacing for story and team cards", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto("/#about");
+  await page.waitForSelector(".v-loader", { state: "hidden" });
+  await page.locator("#about").scrollIntoViewIfNeeded();
+
+  const topRow = page.locator(".v-about-top-row");
+  const story = page.locator(".v-about-grid__story");
+  const rightPanel = page.locator(".v-about-grid__right");
+
+  await expect(topRow).toBeVisible();
+  
+  const topRowBox = await topRow.boundingBox();
+  const storyBox = await story.boundingBox();
+  const rightBox = await rightPanel.boundingBox();
+
+  expect(topRowBox).toBeDefined();
+  expect(storyBox).toBeDefined();
+  expect(rightBox).toBeDefined();
+
+  // Verify responsive flex layout: Right panel should take more space than story (54% vs 42%)
+  expect(storyBox!.width).toBeLessThan(rightBox!.width);
+  expect(storyBox!.width).toBeGreaterThan(topRowBox!.width * 0.35);
+  expect(rightBox!.width).toBeGreaterThan(topRowBox!.width * 0.50);
+
+  // Assert there's a proper gap and they are side-by-side
+  expect(rightBox!.x).toBeGreaterThan(storyBox!.x + storyBox!.width);
+});
+
 
 test("about: displays VELVT heatmap grid with floating stats", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });

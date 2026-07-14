@@ -3341,14 +3341,25 @@ ul { list-style: none; }
 }
 
 .v-about-top-row {
-  display: grid;
-  grid-template-columns: 1fr;
+  display: flex;
+  flex-direction: column;
   gap: var(--s4);
 }
 
 @media (min-width: 1024px) {
   .v-about-top-row {
-    grid-template-columns: 1fr 1.5fr 1fr;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: var(--s6);
+  }
+  .v-about-grid__story {
+    width: 42%;
+    flex-shrink: 0;
+  }
+  .v-about-grid__right {
+    width: 54%;
+    flex-shrink: 0;
   }
 }
 
