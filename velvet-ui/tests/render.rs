@@ -48,8 +48,8 @@ fn panel_1_home_hero_renders() {
         "hero 3d logo class must appear"
     );
     assert!(
-        html.contains("v-hero-3d-logo__img"),
-        "hero logo img must appear"
+        html.contains("v-hero-3d-logo__img") || html.contains("v-hero-3d-logo__video"),
+        "hero logo img or video must appear"
     );
 }
 
