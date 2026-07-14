@@ -43,24 +43,20 @@ pub fn HeroPanel(site: Site) -> Element {
                                 class: "v-hero-3d-wrapper",
                                 div { class: "v-glass-effect v-hero-3d-logo",
                                     if let Some(video) = &site.hero.video {
-                                        rsx! {
-                                            video {
-                                                class: "v-hero-3d-logo__video",
-                                                src: "{video}",
-                                                autoplay: "true",
-                                                loop: "true",
-                                                muted: "true",
-                                                playsinline: "true",
-                                                title: "Velvt Video"
-                                            }
+                                        video {
+                                            class: "v-hero-3d-logo__video",
+                                            src: "{video}",
+                                            autoplay: "true",
+                                            loop: "true",
+                                            muted: "true",
+                                            playsinline: "true",
+                                            title: "Velvt Video"
                                         }
                                     } else {
-                                        rsx! {
-                                            img {
-                                                class: "v-hero-3d-logo__img",
-                                                src: "{site.hero.logo}",
-                                                alt: "Velvt Logo"
-                                            }
+                                        img {
+                                            class: "v-hero-3d-logo__img",
+                                            src: "{site.hero.logo}",
+                                            alt: "Velvt Logo"
                                         }
                                     }
                                 }
