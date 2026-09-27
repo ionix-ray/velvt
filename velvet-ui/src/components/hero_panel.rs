@@ -41,11 +41,15 @@ pub fn HeroPanel(site: Site) -> Element {
                         div { class: "v-hero__visual v-reveal-right",
                             div {
                                 class: "v-hero-3d-wrapper",
-                                div { class: "v-glass-effect v-hero-3d-logo v-sparkle-border",
+                                div { class: "v-glass-effect v-hero-3d-logo",
+                                    // Running sparkle border — child element so its
+                                    // border-only mask never hides the video inside.
+                                    div { class: "v-sparkle-border" }
                                     if let Some(video) = &site.hero.video {
                                         video {
                                             class: "v-hero-3d-logo__video",
                                             src: "{video}",
+                                            poster: "{site.hero.logo}",
                                             autoplay: true,
                                             "loop": true,
                                             muted: true,

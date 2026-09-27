@@ -27,12 +27,15 @@ pub fn FooterPanel(site: Site) -> Element {
                 // ── Main Top Row: Brand & Columns ────────────────────────
                 div { class: "v-footer-panel__main",
                     div { class: "v-footer-panel__brand",
-                    img {
-                        class: "v-footer-panel__wordmark",
-                        src: brand_mark(),
-                        alt: "{site.brand.name}",
-                        loading: "lazy",
-                        decoding: "async",
+                    div { class: "v-logo-wrap",
+                        img {
+                            class: "v-footer-panel__wordmark",
+                            src: brand_mark(),
+                            alt: "{site.brand.name}",
+                            loading: "lazy",
+                            decoding: "async",
+                        }
+                        div { class: "v-logo-sheen", "aria-hidden": "true" }
                     }
                     p { class: "v-footer-panel__tagline", "{site.brand.tagline}" }
                     p { class: "v-footer-panel__desc", "{site.footer.brand_desc}" }

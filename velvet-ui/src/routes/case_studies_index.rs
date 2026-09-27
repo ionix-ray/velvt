@@ -203,7 +203,7 @@ mod tests {
     fn renders_the_brand_image_via_shared_case_header() {
         let html = render(WrapIndex);
         assert!(html.contains("<img"));
-        assert!(html.contains("velvet-square"));
+        assert!(html.contains("velvet-mark"));
     }
 
     #[test]

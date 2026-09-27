@@ -56,6 +56,8 @@ pub fn CardStep(
         div { class: "{base_class}", style: "{delay_style}",
             // Running sparkling border — pure CSS conic-gradient animation.
             div { class: "v-sparkle-border" }
+            // Hover sheen sweep — cinematic light rakes across the card.
+            div { class: "v-card-sheen", "aria-hidden": "true" }
             // Brand mark badge — top-left corner branding per design system.
             img { class: "v-experience-badge", src: "{logo}", alt: "Velvt" }
             // Step number (ProcessPanel) — renders inside a circle.
@@ -88,7 +90,7 @@ mod tests {
     fn WithNum() -> Element {
         rsx! {
             CardStep {
-                logo: "/assets/images/velvet-square.png".to_string(),
+                logo: "/assets/images/velvet-mark.webp".to_string(),
                 num: Some("01".to_string()),
                 title: "Discover".to_string(),
                 body: "Deep research into brand, audience, and landscape.".to_string(),
@@ -101,7 +103,7 @@ mod tests {
     fn WithTag() -> Element {
         rsx! {
             CardStep {
-                logo: "/assets/images/velvet-square.png".to_string(),
+                logo: "/assets/images/velvet-mark.webp".to_string(),
                 tag: Some("Events".to_string()),
                 title: "Grand Soirée".to_string(),
                 body: "An unforgettable brand launch evening.".to_string(),
@@ -115,7 +117,7 @@ mod tests {
     fn Minimal() -> Element {
         rsx! {
             CardStep {
-                logo: "/assets/images/velvet-square.png".to_string(),
+                logo: "/assets/images/velvet-mark.webp".to_string(),
                 title: "Simple Card".to_string(),
                 body: "Body text.".to_string(),
             }
@@ -129,7 +131,7 @@ mod tests {
         let html = render(WithNum);
         assert!(html.contains("v-sparkle-border"), "sparkle border missing");
         assert!(html.contains("v-experience-badge"), "logo badge missing");
-        assert!(html.contains("velvet-square.png"), "logo src missing");
+        assert!(html.contains("velvet-mark.webp"), "logo src missing");
     }
 
     #[test]

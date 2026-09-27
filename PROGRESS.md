@@ -387,3 +387,10 @@ review/merge decision.
 - **Running Glowing Borders**: Replaced generic backgrounds with `.v-sparkle-border` implementation.
 - **Added Logo Badges**: Injected the site logo securely into the top-left corner of each card using an absolute positioned `.v-experience-badge` class.
 - **TDD Enforcement**: Re-wrote Playwright integration tests to enforce strict verification of these new classes, ensuring regressions are caught before they reach production.
+
+### Immersive Brand Modernization — feature/immersive-brand-experience
+- **New brand mark**: extracted crimson "V" botanical glyph from master drawio SVG (alpha-trimmed, square-padded, lossless WebP + PNG fallback). Wired through `brand.rs` (topbar/loader/footer/stacked-nav), `site.md` hero logo + og:image, favicon, index.html meta/preload/JSON-LD. Removed 65MB of unused legacy assets (old logos, 52MB mp4).
+- **Immersive layer** (GPU-cheap, transform/opacity only): fixed ambient aurora (`body::before`, 26s drift), film grain (`body::after`, SVG feTurbulence, overlay blend, kills banding), per-panel top glow, brand `::selection` color, global `:focus-visible` rings.
+- **Brand-aware motion**: logo sheen sweep (`.v-logo-sheen`, 5.5s rake across topbar/loader/footer/nav marks), card hover sheen (`.v-card-sheen`, soft-light), primary-button sheen, hero ambient pulse. All gated behind `prefers-reduced-motion` (Tier-1 removed, grain survives as static orientation cue).
+- **Hero video fix**: `v-sparkle-border` class was on the glass container itself — its border-only mask hid the video since the video branch. Moved to a child div (card pattern); video now renders. Added `poster` = brand mark.
+- **Validation**: 97 Rust tests, lint clean, 297 Playwright runs (chromium/webkit/reduced-motion × 99) green, WASM 442KB gzip (limit 1.5MB), theme.css 19.5KB gzip (limit 40KB). New e2e tests: aurora layer, grain overlay, logo sheen, reduced-motion gating, card sheen, video poster.

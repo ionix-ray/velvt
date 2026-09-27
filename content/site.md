@@ -20,7 +20,7 @@ copyright = "© 2026 Velvt. All rights reserved."
 [meta]
 title       = "Velvt — We Shape Stories. You Make History."
 description = "PR, event, celebrity, branding, advertising, digital and photography & videography agency. From powerful connections to unforgettable moments, we build brands that inspire, influence and leave a lasting impact."
-og_image    = "/assets/images/logo.jpg"
+og_image    = "/assets/images/velvet-mark.png"
 theme_color = "#5A0A0F"
 twitter     = "@velvt"
 ```
@@ -52,7 +52,7 @@ href = "#contact"
 
 ```toml
 [hero]
-logo      = "/assets/images/logo-final-latest-bg-removed.png"
+logo      = "/assets/images/velvet-mark.webp"
 video     = "/assets/images/velvt-animation-optimized.mp4"
 badge     = "Building Brands. Creating Impact."
 headline1 = "We shape"

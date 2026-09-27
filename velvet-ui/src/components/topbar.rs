@@ -10,7 +10,10 @@ pub fn TopBar(menu_open: Signal<bool>, theme: Signal<String>) -> Element {
     rsx! {
         header { class: "v-topbar", id: "topbar",
             div { class: "v-topbar__brand",
-                img { src: brand_mark(), alt: "VELVT" }
+                div { class: "v-logo-wrap",
+                    img { src: brand_mark(), alt: "VELVT" }
+                    div { class: "v-logo-sheen", "aria-hidden": "true" }
+                }
             }
             div { class: "v-topbar__actions",
                 button {

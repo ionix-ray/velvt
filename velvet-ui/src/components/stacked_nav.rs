@@ -20,6 +20,7 @@ pub fn StackedNav(
         nav { class: "{class}", aria_label: "Section navigation",
             div { class: "v-stack-nav__brand",
                 img { src: brand_mark(), alt: "VELVT" }
+                div { class: "v-logo-sheen", "aria-hidden": "true" }
             }
             for (i, item) in site.nav.iter().enumerate() {
                 button {

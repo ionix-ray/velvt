@@ -164,10 +164,10 @@ fn home_renders_navigation_elements() {
 #[test]
 fn home_loader_uses_icon_mark_not_full_wordmark() {
     let html = render_home();
-    // The loader must reference only-logo.png (the standalone icon) rather than
-    // the full velvet-square wordmark card.
+    // The loader must reference the velvet-mark glyph (the standalone icon)
+    // rather than the full wordmark card.
     assert!(
-        html.contains("only-logo"),
-        "loader must use only-logo.png as the loading symbol"
+        html.contains("velvet-mark"),
+        "loader must use velvet-mark.webp as the loading symbol"
     );
 }

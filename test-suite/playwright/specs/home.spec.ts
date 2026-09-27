@@ -290,7 +290,7 @@ test("brand: topbar and stacked navigation share the same brand mark", async ({ 
   const topbarSrc = await topbarLogo.getAttribute("src");
   const navSrc = await navLogo.getAttribute("src");
   expect(topbarSrc).toBe(navSrc);
-  expect(topbarSrc).toContain("velvet-square");
+  expect(topbarSrc).toContain("velvet-mark");
 });
 
 test("brand: logo renders in stacked navigation", async ({ page }) => {
@@ -339,7 +339,7 @@ test("footer: renders the real brand logo in the standard footer block", async (
   const logo = page.locator(".v-footer-panel__wordmark");
   await expect(logo).toBeVisible();
   await expect(logo).toHaveAttribute("alt", /Velvt/i);
-  await expect(logo).toHaveAttribute("src", /velvet-square/);
+  await expect(logo).toHaveAttribute("src", /velvet-mark/);
 });
 
 // ── Social strip (all panels except last) ────────────────────────────────────
@@ -1111,4 +1111,74 @@ test("cards: all v-process__step and v-team-card have v-sparkle-border attached"
   for (let i = 0; i < teamCount; i++) {
     await expect(teamCards.nth(i).locator(".v-sparkle-border")).toBeAttached();
   }
+});
+
+// ── Immersive brand layer (ambient aurora, grain, sheen) ────────────────────
+
+test("ambient: fixed cinematic aurora layer sits behind panels", async ({ page }) => {
+  await page.goto("/");
+  await page.waitForSelector(".v-loader", { state: "hidden" });
+  await page.waitForSelector(".v-topbar__brand img");
+  const before = await page.evaluate(() => {
+    const cs = getComputedStyle(document.body, "::before");
+    return { position: cs.position, zIndex: cs.zIndex, background: cs.backgroundImage, animation: cs.animationName };
+  });
+  expect(before.position).toBe("fixed");
+  expect(before.zIndex).toBe("0");
+  expect(before.background).toContain("radial-gradient");
+  expect(before.animation).toBe("v-aurora-drift");
+});
+
+test("ambient: film grain overlay covers the viewport without blocking input", async ({ page }) => {
+  await page.goto("/");
+  await page.waitForSelector(".v-loader", { state: "hidden" });
+  const after = await page.evaluate(() => {
+    const cs = getComputedStyle(document.body, "::after");
+    return { position: cs.position, zIndex: cs.zIndex, blend: cs.mixBlendMode, pe: cs.pointerEvents };
+  });
+  expect(after.position).toBe("fixed");
+  expect(Number(after.zIndex)).toBeGreaterThan(1000);
+  expect(after.blend).toBe("overlay");
+  expect(after.pe).toBe("none");
+});
+
+test("brand: topbar logo sheen sweeps with a branded animation", async ({ page }) => {
+  await page.goto("/");
+  const sheen = page.locator(".v-topbar__brand .v-logo-sheen");
+  await expect(sheen).toBeVisible();
+  const anim = await page.evaluate(() => {
+    const el = document.querySelector(".v-topbar__brand .v-logo-sheen");
+    return getComputedStyle(el, "::before").animationName;
+  });
+  expect(anim).toBe("v-logo-sheen");
+});
+
+test("animations: reduced-motion disables immersive sheen and aurora motion", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+  await page.waitForSelector(".v-loader", { state: "hidden" });
+  const sheen = page.locator(".v-topbar__brand .v-logo-sheen");
+  await expect(sheen).toBeVisible();
+  const sheenAnim = await page.evaluate(() => {
+    const el = document.querySelector(".v-topbar__brand .v-logo-sheen");
+    return getComputedStyle(el, "::before").animationName;
+  });
+  expect(sheenAnim).toBe("none");
+  const auroraAnim = await page.evaluate(
+    () => getComputedStyle(document.body, "::before").animationName,
+  );
+  expect(auroraAnim).toBe("none");
+});
+
+test("cards: cinematic cards carry a hover sheen overlay", async ({ page }) => {
+  await page.goto("/");
+  await page.waitForSelector(".v-loader", { state: "hidden" });
+  const step = page.locator(".v-process__step").first();
+  await expect(step.locator(".v-card-sheen")).toBeAttached();
+});
+
+test("brand: hero video poster falls back to the new brand mark", async ({ page }) => {
+  await page.goto("/");
+  const video = page.locator("video.v-hero-3d-logo__video");
+  await expect(video).toHaveAttribute("poster", /velvet-mark/);
 });

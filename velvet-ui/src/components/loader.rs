@@ -38,6 +38,7 @@ pub fn Loader(hidden: bool) -> Element {
                 img { class: "v-loader__logo",
                       src: loader_symbol(),
                       alt: "VELVT" }
+                div { class: "v-logo-sheen", "aria-hidden": "true" }
                 // Camera-iris aperture: three blade rings step down around the
                 // mark like a lens stopping down, then a flash marks focus.
                 // Placed after the <img> in DOM order so it paints above it
@@ -147,8 +148,8 @@ mod tests {
     fn loader_uses_only_logo_symbol_not_full_wordmark() {
         let html = render(WrapVisible);
         assert!(
-            html.contains("only-logo"),
-            "loader should reference only-logo.png, got: {html}"
+            html.contains("velvet-mark"),
+            "loader should reference velvet-mark.webp, got: {html}"
         );
     }
 
