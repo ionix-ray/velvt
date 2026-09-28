@@ -41,11 +41,20 @@ pub fn HeroPanel(site: Site) -> Element {
                         div { class: "v-hero__visual v-reveal-right",
                             div {
                                 class: "v-hero-3d-wrapper",
-                                div { class: "v-glass-effect v-hero-3d-logo",
+                                div { class: "v-glass-effect v-hero-3d-logo v-hero-3d-logo--clear",
                                     // Running sparkle border — child element so its
                                     // border-only mask never hides the video inside.
                                     div { class: "v-sparkle-border" }
-                                    if let Some(video) = &site.hero.video {
+                                    // Transparent animated SVG wordmark first: the page
+                                    // background shows through the tile. MP4/image
+                                    // remain as config fallbacks.
+                                    if let Some(svg) = &site.hero.logo_svg {
+                                        img {
+                                            class: "v-hero__logo-svg",
+                                            src: "{svg}",
+                                            alt: "Velvt animated logo"
+                                        }
+                                    } else if let Some(video) = &site.hero.video {
                                         video {
                                             class: "v-hero-3d-logo__video",
                                             src: "{video}",

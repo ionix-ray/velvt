@@ -4,6 +4,7 @@
 
 use dioxus::prelude::*;
 use dioxus_router::components::Router;
+use vaelvet_ui::components::dynamic_background::DynamicBackground;
 use vaelvet_ui::routes::Route;
 use vaelvet_ui::scroll;
 use vaelvet_ui::spa;
@@ -26,6 +27,8 @@ fn App() -> Element {
     rsx! {
         document::Link { rel: "preload", r#as: "image", fetchpriority: "high",
                   href: brand_mark() }
+        // Whole-site dynamic background — one mount, every route.
+        DynamicBackground { site: vaelvet_ui::Site::load().clone() }
         Router::<Route> {}
     }
 }

@@ -54,6 +54,7 @@ href = "#contact"
 [hero]
 logo      = "/assets/images/velvet-mark.webp"
 video     = "/assets/images/velvt-animation-optimized.mp4"
+logo_svg  = "/assets/images/velvt-logo.svg"
 badge     = "Building Brands. Creating Impact."
 headline1 = "We shape"
 headline2 = "stories."
@@ -76,6 +77,14 @@ label = "Average Campaign ROI"
 [[hero.stats]]
 value = "50+"
 label = "Celebrity Partnerships"
+```
+
+## Background
+
+```toml
+[background]
+enabled   = true
+intensity = 80
 ```
 
 ## Services

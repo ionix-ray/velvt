@@ -5,6 +5,7 @@ pub mod card_step;
 pub mod case_header;
 pub mod cases_panel;
 pub mod cta_panel;
+pub mod dynamic_background;
 pub mod footer_panel;
 pub mod hero_panel;
 pub mod icons;

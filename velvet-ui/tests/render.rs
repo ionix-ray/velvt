@@ -2,12 +2,26 @@
 //! and every panel is present (100 % coverage per coverage-goals.md).
 
 use vaelvet_ui::Site;
+use vaelvet_ui::components::dynamic_background::DynamicBackground;
 use vaelvet_ui::routes::Home;
 
 use dioxus::prelude::*;
 
 fn render_home() -> String {
     let mut dom = VirtualDom::new(Home);
+    dom.rebuild_in_place();
+    dioxus_ssr::render(&dom)
+}
+
+#[component]
+fn WrapBg() -> Element {
+    rsx! {
+        DynamicBackground { site: Site::load().clone() }
+    }
+}
+
+fn render_bg() -> String {
+    let mut dom = VirtualDom::new(WrapBg);
     dom.rebuild_in_place();
     dioxus_ssr::render(&dom)
 }
@@ -48,8 +62,33 @@ fn panel_1_home_hero_renders() {
         "hero 3d logo class must appear"
     );
     assert!(
-        html.contains("v-hero-3d-logo__img") || html.contains("v-hero-3d-logo__video"),
-        "hero logo img or video must appear"
+        html.contains("v-hero__logo-svg")
+            || html.contains("v-hero-3d-logo__img")
+            || html.contains("v-hero-3d-logo__video"),
+        "hero logo svg, img, or video must appear"
+    );
+}
+
+#[test]
+fn dynamic_background_renders_all_layers_with_config_alpha() {
+    let html = render_bg();
+    assert!(html.contains("v-dynamic-bg"), "bg root missing");
+    assert!(
+        html.contains("v-dynamic-bg__layer--slow"),
+        "slow layer missing"
+    );
+    assert!(
+        html.contains("v-dynamic-bg__layer--fast"),
+        "fast layer missing"
+    );
+    assert!(html.contains("v-dynamic-bg__beam"), "beam missing");
+    assert!(
+        html.contains("aria-hidden=\"true\""),
+        "decorative bg must be aria-hidden"
+    );
+    assert!(
+        html.contains("--v-bg-alpha:0.8"),
+        "config intensity must drive --v-bg-alpha, got: {html}"
     );
 }
 

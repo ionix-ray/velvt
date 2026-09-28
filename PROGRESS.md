@@ -394,3 +394,17 @@ review/merge decision.
 - **Brand-aware motion**: logo sheen sweep (`.v-logo-sheen`, 5.5s rake across topbar/loader/footer/nav marks), card hover sheen (`.v-card-sheen`, soft-light), primary-button sheen, hero ambient pulse. All gated behind `prefers-reduced-motion` (Tier-1 removed, grain survives as static orientation cue).
 - **Hero video fix**: `v-sparkle-border` class was on the glass container itself — its border-only mask hid the video since the video branch. Moved to a child div (card pattern); video now renders. Added `poster` = brand mark.
 - **Validation**: 97 Rust tests, lint clean, 297 Playwright runs (chromium/webkit/reduced-motion × 99) green, WASM 442KB gzip (limit 1.5MB), theme.css 19.5KB gzip (limit 40KB). New e2e tests: aurora layer, grain overlay, logo sheen, reduced-motion gating, card sheen, video poster.
+
+### Procedural whole-site dynamic background (no video loop)
+- Retired the runtime MP4/WebM ambient loop: same cinema, zero decode cost.
+  Kept `scripts/build-hero-media.sh` as a reproducible FFmpeg capability
+  (scene normalize → brand grade → xfade stitch → Velvt watermark → MP4/WebM/poster).
+- New `DynamicBackground` component mounted once in `App` (every route):
+  twin drifting spotlight meshes + slow stage beam, transform/opacity-only,
+  config-driven via `[background] enabled/intensity` in `content/site.md`.
+- Hero tile fully transparent; animated Draw.io-derived SVG wordmark stays.
+  Fixed SVG text fill to baked crimson-light (currentColor can't cross the
+  <img> document boundary; passes large-text contrast on both themes).
+- Raised light-mode radial presence so dynamism reads on Porcelain.
+- Validation: cargo 98+15+18+9 green, clippy/fmt clean, 297 Playwright runs
+  green, release WASM build green; screenshots verified light/dark.

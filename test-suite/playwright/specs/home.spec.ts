@@ -25,20 +25,25 @@ test("home: CTA links to contact email", async ({ page }) => {
   await expect(cta).toHaveAttribute("href", /mailto:|#contact/);
 });
 
-test("home: hero renders looping video instead of static logo", async ({ page }) => {
+test("home: hero renders transparent animated SVG logo over dynamic background", async ({ page }) => {
   await page.goto("/");
-  
+
   const wrapper = page.locator(".v-hero-3d-wrapper");
   await expect(wrapper).toBeVisible();
-  
-  const video = page.locator("video.v-hero-3d-logo__video");
-  await expect(video).toBeVisible();
-  
-  // Verify it has the required native playback attributes
-  await expect(video).toHaveAttribute("autoplay", "true");
-  await expect(video).toHaveAttribute("loop", "true");
-  await expect(video).toHaveAttribute("muted", "true");
-  await expect(video).toHaveAttribute("playsinline", "true");
+
+  // Transparent SVG wordmark is the hero visual (page bg shows through).
+  const logo = page.locator("img.v-hero__logo-svg");
+  await expect(logo).toBeVisible();
+  await expect(logo).toHaveAttribute("src", /velvt-logo\.svg/);
+  const bg = await logo.evaluate((el) => getComputedStyle(el).backgroundColor);
+  expect(bg).toMatch(/rgba?\(0,\s*0,\s*0,\s*0\)|transparent/);
+
+  // Procedural dynamic background sits behind all content — no video element.
+  const dyn = page.locator(".v-dynamic-bg");
+  await expect(dyn).toBeAttached();
+  await expect(dyn).toHaveAttribute("aria-hidden", "true");
+  await expect(page.locator(".v-bg-video__media")).toHaveCount(0);
+  await expect(page.locator("video.v-bg-video__media")).toHaveCount(0);
 });
 
 test("topbar: theme toggle flips html[data-theme]", async ({ page }) => {
@@ -1168,6 +1173,10 @@ test("animations: reduced-motion disables immersive sheen and aurora motion", as
     () => getComputedStyle(document.body, "::before").animationName,
   );
   expect(auroraAnim).toBe("none");
+  const dynAnim = await page.evaluate(() =>
+    getComputedStyle(document.querySelector(".v-dynamic-bg__layer--slow")).animationName,
+  );
+  expect(dynAnim).toBe("none");
 });
 
 test("cards: cinematic cards carry a hover sheen overlay", async ({ page }) => {
@@ -1177,8 +1186,23 @@ test("cards: cinematic cards carry a hover sheen overlay", async ({ page }) => {
   await expect(step.locator(".v-card-sheen")).toBeAttached();
 });
 
-test("brand: hero video poster falls back to the new brand mark", async ({ page }) => {
+test("brand: procedural background layers drift with brand motion", async ({ page }) => {
   await page.goto("/");
-  const video = page.locator("video.v-hero-3d-logo__video");
-  await expect(video).toHaveAttribute("poster", /velvet-mark/);
+  await page.waitForSelector(".v-loader", { state: "hidden" });
+  await page.waitForSelector(".v-dynamic-bg");
+  const slow = await page.evaluate(() => {
+    const el = document.querySelector(".v-dynamic-bg__layer--slow");
+    const cs = getComputedStyle(el);
+    return { anim: cs.animationName, pos: cs.position };
+  });
+  expect(slow.pos).toBe("absolute");
+  expect(slow.anim).toBe("v-bg-drift-slow");
+  const beam = await page.evaluate(
+    () => getComputedStyle(document.querySelector(".v-dynamic-bg__beam")).animationName,
+  );
+  expect(beam).toBe("v-bg-beam");
+  const alpha = await page.evaluate(() =>
+    getComputedStyle(document.querySelector(".v-dynamic-bg")).getPropertyValue("--v-bg-alpha").trim(),
+  );
+  expect(alpha).toBe("0.8");
 });

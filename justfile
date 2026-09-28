@@ -80,6 +80,12 @@ sbom:
 e2e:
     cd test-suite/playwright && npm ci && npx playwright test
 
+# Hero media pipeline — rebuild the ambient loop + logo SVG from
+# brand-owned sources (requires ffmpeg + python3/PIL).
+media:
+    scripts/build-hero-media.sh
+    python3 scripts/build-logo-svg.py
+
 # Wipe build artifacts.
 clean:
     cargo clean

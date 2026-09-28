@@ -44,6 +44,33 @@ pub struct Site {
     pub client_banner: ClientBanner,
     #[serde(default)]
     pub team: Vec<TeamMember>,
+    #[serde(default)]
+    pub background: Background,
+}
+
+fn default_true() -> bool {
+    true
+}
+
+fn default_intensity() -> u8 {
+    80
+}
+
+/// Whole-site procedural dynamic background (no video decode cost).
+/// Layered brand spotlight gradients drift on the compositor thread;
+/// `intensity` scales layer opacity 0..=100.
+#[derive(Deserialize, Debug, Clone, Default, PartialEq)]
+pub struct Background {
+    #[serde(default = "default_true")]
+    pub enabled: bool,
+    #[serde(default = "default_intensity")]
+    pub intensity: u8,
+}
+
+/// Opacity scalar 0.0..=1.0 for a 0..=100 intensity percent. Clamped so a
+/// typo in `site.md` can never push a layer opaque or negative.
+pub fn background_alpha(intensity: u8) -> f32 {
+    (intensity.min(100) as f32 / 100.0).clamp(0.0, 1.0)
 }
 
 #[derive(Deserialize, Debug, Clone, Default, PartialEq)]
@@ -111,6 +138,10 @@ pub struct Hero {
     pub logo: Box<str>,
     #[serde(default)]
     pub video: Option<Box<str>>,
+    /// Transparent animated SVG wordmark (vendored from the master Draw.io
+    /// logo). Rendered as the hero visual so the page background shows through.
+    #[serde(default)]
+    pub logo_svg: Option<Box<str>>,
     pub badge: Box<str>,
     pub headline1: Box<str>,
     pub headline2: Box<str>,
