@@ -6,7 +6,7 @@
 //! The mark is the crimson "V" botanical glyph (extracted from the master
 //! drawio logo, trimmed to the alpha bbox, padded square, exported as
 //! lossless WebP with a PNG fallback). `loader_symbol()` points at the
-//! same glyph so the iris rings overlay the current brand mark.
+//! same glyph the loading screen and lockup share.
 
 use dioxus::prelude::*;
 
@@ -17,7 +17,7 @@ pub fn brand_mark() -> Asset {
 }
 
 /// The standalone icon mark (transparent background, "V" glyph).
-/// Used exclusively on the loading screen so the iris rings overlay cleanly.
+/// Used exclusively on the loading screen (square stage, swarm collapse).
 pub fn loader_symbol() -> Asset {
     asset!("/assets/images/velvet-mark.webp")
 }

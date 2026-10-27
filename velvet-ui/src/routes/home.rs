@@ -3,10 +3,20 @@
 
 use crate::Site;
 use crate::components::{
-    about_aggregated_panel::AboutAggregatedPanel, cases_panel::CasesPanel, cta_panel::CtaPanel,
-    footer_panel::FooterPanel, hero_panel::HeroPanel, loader::Loader, mobile_nav::MobileNav,
-    process_panel::ProcessPanel, scroll_progress::ScrollProgress, section_dots::SectionDots,
-    social_strip::SocialStrip, stacked_nav::StackedNav, studio_panel::StudioPanel, topbar::TopBar,
+    about_aggregated_panel::AboutAggregatedPanel,
+    cases_panel::CasesPanel,
+    cta_panel::CtaPanel,
+    footer_panel::FooterPanel,
+    hero_panel::HeroPanel,
+    loader::{INTRO_MS, Loader, REVISIT_MS, intro_seen_and_mark},
+    mobile_nav::MobileNav,
+    process_panel::ProcessPanel,
+    scroll_progress::ScrollProgress,
+    section_dots::SectionDots,
+    social_strip::SocialStrip,
+    stacked_nav::StackedNav,
+    studio_panel::StudioPanel,
+    topbar::TopBar,
 };
 use dioxus::prelude::*;
 use wasm_bindgen::JsCast;
@@ -102,7 +112,10 @@ fn scroll_to_panel(idx: usize) {
 pub fn Home() -> Element {
     let site = Site::load().clone();
 
+    // Cinematic icon-swarm intro: full build on first visit per session,
+    // fast fade on return visits (sessionStorage gate in loader.rs).
     let loader_hidden = use_signal(|| false);
+    let mut revisit = use_signal(|| false);
     let mut menu_open = use_signal(|| false);
     let theme = use_signal(|| "light".to_string());
     let mut current_panel = use_signal(|| 0usize);
@@ -120,6 +133,14 @@ pub fn Home() -> Element {
         });
     }
 
+    // The observer is installed once by `App`; remounting this route (SPA
+    // navigation back to `/`) builds fresh reveal targets, so re-scan.
+    {
+        use_effect(move || {
+            crate::scroll::rescan_reveals();
+        });
+    }
+
     // Apply theme attribute to <html>
     {
         use_effect(move || {
@@ -133,12 +154,16 @@ pub fn Home() -> Element {
         });
     }
 
-    // Hide loader after 2.2 s
+    // Hide loader after the cinematic intro (first visit per session) or a
+    // fast fade (return visit). The session gate marks the flag as seen.
     let mut timeout_handle = use_signal(|| Option::<gloo_timers::callback::Timeout>::None);
     {
         use_effect(move || {
             let mut loader = loader_hidden;
-            let handle = gloo_timers::callback::Timeout::new(2200, move || {
+            let revisiting = intro_seen_and_mark();
+            revisit.set(revisiting);
+            let delay = if revisiting { REVISIT_MS } else { INTRO_MS };
+            let handle = gloo_timers::callback::Timeout::new(delay, move || {
                 loader.set(true);
             });
             timeout_handle.set(Some(handle));
@@ -227,7 +252,7 @@ pub fn Home() -> Element {
     let is_footer_panel = *current_panel.read() >= panel_count - 1;
 
     rsx! {
-        Loader { hidden: *loader_hidden.read() }
+        Loader { hidden: *loader_hidden.read(), revisit: *revisit.read() }
 
         ScrollProgress { progress }
 
@@ -248,9 +273,7 @@ pub fn Home() -> Element {
         }
 
         // Social icons — visible on all panels except the footer
-        SocialStrip { is_last_panel: is_footer_panel }
-
-        // Next and Previous hints removed as per user request
+        SocialStrip { site: site.clone(), is_last_panel: is_footer_panel }
 
         // ── Mobile bottom nav (≤768px) ───────────────────────────────────
         MobileNav {

@@ -65,12 +65,117 @@ pub struct Background {
     pub enabled: bool,
     #[serde(default = "default_intensity")]
     pub intensity: u8,
+    /// Slow crimson spotlight meshes + stage beam (the gradient wash).
+    #[serde(default = "default_true")]
+    pub mesh: bool,
+    /// Drifting service-icon glyphs — the "creative" half of the blend.
+    #[serde(default = "default_true")]
+    pub show_glyphs: bool,
+    /// Glyph layer opacity as a percent of `intensity` (0..=100).
+    #[serde(default = "default_glyph_opacity")]
+    pub glyph_opacity: u8,
+    /// Per-glyph drift cycle length in seconds. Larger = calmer.
+    #[serde(default = "default_glyph_duration")]
+    pub glyph_duration: u32,
+    /// The floating service glyphs themselves. Empty list = mesh only.
+    #[serde(default)]
+    pub glyphs: Vec<BackgroundGlyph>,
+}
+
+/// One floating service glyph in the ambient field.
+#[derive(Deserialize, Debug, Clone, Default, PartialEq)]
+pub struct BackgroundGlyph {
+    /// Icon name resolved by `Icon { name }` — see `components::icons`.
+    pub icon: Box<str>,
+    /// Palette slot: "crimson" | "violet" | "sky" | "citron" (bluish lime).
+    #[serde(default)]
+    pub tone: Box<str>,
+    /// Horizontal placement as a percentage of viewport width (0..=100).
+    #[serde(default)]
+    pub x: u8,
+    /// Vertical placement as a percentage of viewport height (0..=100).
+    #[serde(default)]
+    pub y: u8,
+    /// Rendered size in px before per-glyph scaling.
+    #[serde(default = "default_glyph_size")]
+    pub size: u32,
+    /// Multiplier on the base drift cycle; keeps neighbours out of lockstep.
+    #[serde(default = "default_one_f32")]
+    pub rate: f32,
+    /// Negative start offset (seconds) so the field is not synchronised.
+    #[serde(default)]
+    pub delay: f32,
+    /// Extra rotation amplitude in degrees.
+    #[serde(default = "default_rot")]
+    pub spin: f32,
+}
+
+fn default_glyph_opacity() -> u8 {
+    30
+}
+fn default_glyph_duration() -> u32 {
+    26
+}
+fn default_glyph_size() -> u32 {
+    132
+}
+fn default_one_f32() -> f32 {
+    1.0
+}
+fn default_rot() -> f32 {
+    6.0
 }
 
 /// Opacity scalar 0.0..=1.0 for a 0..=100 intensity percent. Clamped so a
 /// typo in `site.md` can never push a layer opaque or negative.
 pub fn background_alpha(intensity: u8) -> f32 {
     (intensity.min(100) as f32 / 100.0).clamp(0.0, 1.0)
+}
+
+/// Glyph opacity: `intensity` sets the ceiling, `glyph_opacity` the share of
+/// it. Clamped to 0.0..=1.0; the glyph layer is atmosphere, never content.
+pub fn glyph_alpha(intensity: u8, glyph_opacity: u8) -> f32 {
+    (background_alpha(intensity) * background_alpha(glyph_opacity)).clamp(0.0, 1.0)
+}
+
+/// Percentage clamp for glyph placement — keeps glyphs on screen even if
+/// `site.md` carries a bad number.
+pub fn glyph_percent(value: u8) -> f32 {
+    (value.min(100) as f32).clamp(0.0, 100.0)
+}
+
+/// Drift cycle in seconds, floored at 4s so a fat-fingered `rate` can never
+/// produce a strobing field.
+pub fn glyph_duration(base: u32, rate: f32) -> f32 {
+    let rate = if rate.is_finite() && rate > 0.0 {
+        rate.clamp(0.25, 4.0)
+    } else {
+        1.0
+    };
+    (base.max(4) as f32 * rate).clamp(4.0, 240.0)
+}
+
+/// Rendered size in px, clamped so a glyph can never dominate the viewport.
+pub fn glyph_size(size: u32) -> f32 {
+    (size.clamp(40, 420)) as f32
+}
+
+/// Spin amplitude in degrees, clamped to keep the field calm.
+pub fn glyph_spin(spin: f32) -> f32 {
+    if spin.is_finite() {
+        spin.clamp(-45.0, 45.0)
+    } else {
+        default_rot()
+    }
+}
+
+/// Animation delay in seconds; non-finite input collapses to 0.
+pub fn glyph_delay(delay: f32) -> f32 {
+    if delay.is_finite() {
+        delay.clamp(-240.0, 0.0)
+    } else {
+        0.0
+    }
 }
 
 #[derive(Deserialize, Debug, Clone, Default, PartialEq)]

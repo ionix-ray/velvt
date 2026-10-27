@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 test('check horizontal overflow', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 800 });
-  await page.goto('http://localhost:8080/achivements');
+  await page.goto('/achivements');
   
   const scrollW = await page.evaluate(() => document.documentElement.scrollWidth);
   const viewportW = await page.evaluate(() => window.innerWidth);

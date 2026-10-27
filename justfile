@@ -17,6 +17,12 @@ dev:
         PORT=$((PORT + 1))
         if [ $PORT -gt 8100 ]; then echo "no free port 8080-8100"; exit 1; fi
     done
+    # Always drop stale WASM/JS artifacts first — the served bundle is
+    # regenerated from scratch, no old hashed files can leak in.
+    rm -rf target/dx/vaelvet-ui/debug/web
+    # public/ is a build INPUT: a stale theme.css here shadows the source
+    # stylesheet and kills hot reload. Keep it in lockstep.
+    cp -a velvet-ui/assets/theme.css velvet-ui/public/assets/theme.css
     echo "→ dx serve --port $PORT"
     cd velvet-ui && dx serve --port $PORT --open
 

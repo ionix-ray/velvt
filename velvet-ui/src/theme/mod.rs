@@ -2,3 +2,4 @@
 
 pub mod brand;
 pub mod tokens;
+pub mod wordmark;

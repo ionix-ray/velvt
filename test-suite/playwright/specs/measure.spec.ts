@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 test('measure padding', async ({ page }) => {
-  await page.goto('http://localhost:8080/achivements');
+  await page.goto('/achivements');
   const container = page.locator('.v-case-hero .v-container');
   const box = await container.boundingBox();
   const vp = page.viewportSize();

@@ -43,3 +43,59 @@ Picked up by `autonomous-iterate`. One row = one PR. AC must be Given/When/Then 
 | ID | Task | AC sketch | Effort | Status |
 |----|------|-----------|--------|--------|
 | S3-01 | Markdown-backed case study pages (`/cases`, `/cases/tag/:tag`, `/cases/:slug`) replicating shalgo's `/blog` content-loading logic (TOML frontmatter + `build.rs` codegen + pulldown-cmark) on Vaelvet's own theme | Clicking "View Case Study" on a tagged `CaseItem` navigates to `/cases/{slug}` and renders the matching markdown from `docs/cse_studies/`; untagged items keep the legacy external-link behaviour; tag chips link to `/cases/tag/:tag` | M | DONE |
+
+## Sprint S4 — Server resilience & config-driven hardening (P0)
+Feature file: `docs/features/server-resilience.feature` · Priorities/stages: `docs/ROADMAP.md`
+| ID | Task | AC sketch | Effort | Status |
+|----|------|-----------|--------|--------|
+| S4-01 | TOML config loading with CLI > env > file > defaults precedence | Given malformed TOML, server falls back to defaults with `tracing::error`, no panic | M | IN-PROGRESS |
+| S4-02 | Graceful shutdown (SIGTERM/SIGINT, injectable signal source) | In-flight requests complete on container stop; shutdown testable without real signals | M | IN-PROGRESS |
+| S4-03 | Request timeout + concurrency + body limits (config-driven layers) | Slow handler → 408; layer stack asserted by test | S | IN-PROGRESS |
+| S4-04 | `spawn_blocking` fs + TOCTOU closed (single canonical check+read) | All 9 traversal/SPA/gzip integration tests pass unchanged | M | IN-PROGRESS |
+| S4-05 | Dead `ServerError` variants wired or removed | No test-only variant remains in prod enum | S | IN-PROGRESS |
+| S4-06 | k6 load testing | — | — | OOS (user decision 2026-10-25) |
+
+## Sprint S5 — UI bugs, single-source config, cinematic cards (P1)
+Feature file: `docs/features/ui-cinematic-experience.feature`
+| ID | Task | AC sketch | Effort | Status |
+|----|------|-----------|--------|--------|
+| S5-01 | Fix dead reveal observer + invisible VELVT heatmap | Heatmap cells reach opacity > 0 on scroll-in (Playwright) | M | IN-PROGRESS |
+| S5-02 | Social links single-sourced from `content/site.md` | Strip + footer render identical config-driven href set; SSR test | M | IN-PROGRESS |
+| S5-03 | Dead code purge (`next_hint.rs`, dead CSS blocks, dup devtools script) | Grep shows zero references; theme.css shrinks, stays ≤40 KB gz | M | IN-PROGRESS |
+| S5-04 | hex-ui card port: sparkline signal-board + saturate-spring hover, `variant` on `CardStep` | Backward-compatible default; Playwright asserts sparkline + hover state | L | IN-PROGRESS |
+| S5-05 | Full reduced-motion gating (rotate-border, cinematic-pan, pulse-dot, heatmap) | Reduced-motion run green; no element left invisible | S | IN-PROGRESS |
+| S5-06 | Nav labels derive from `site.nav` (kill 3-way drift) | home/mobile/site.md labels identical; index map preserved | S | IN-PROGRESS |
+| S5-07 | SSR tests for 7 untested components | social_strip, footer, hero, process, section_dots, scroll_progress covered | M | IN-PROGRESS |
+| S5-08 | `just build` syncs theme.css → `public/assets/` | Container never ships stale CSS | S | TODO (after S4 justfile merge) |
+
+## Sprint S6 — Security & compliance (P0)
+Feature file: `docs/features/security-compliance.feature` · Matrix: `docs/SECURITY-COMPLIANCE.md`
+| ID | Task | AC sketch | Effort | Status |
+|----|------|-----------|--------|--------|
+| S6-01 | Code-grounded compliance matrix (OWASP 10 + LLM 10 + CIS L1) | Every row cites file:line + test + status | M | IN-PROGRESS |
+| S6-02 | Header + traversal controls green | Integration tests pass | S | DONE |
+| S6-03 | Residual risk register (TLS@edge, CSP styles, reporting, rate limit, SHA pins, cosign) | Each gap tracked with severity + S6-xx ID, none hidden | S | IN-PROGRESS |
+| S6-04 | Gating audit/deny + gitleaks + SBOM | CI fails on CVE; no `\|\| true` | M | IN-PROGRESS |
+| S6-05 | AI-agent surface governance documented | Prompt-injection + inner_html boundary + agency controls cited | M | IN-PROGRESS |
+| S6-06 | Rate limiting (per-IP, config-driven) | 429 over threshold; config toggle; TDD | M | TODO |
+| S6-07 | Cosign signing + SLSA provenance | Image verifiable on pull | M | TODO |
+
+## Sprint S7 — Repo hygiene & gating CI (P0)
+Feature file: `docs/features/build-hygiene.feature`
+| ID | Task | AC sketch | Effort | Status |
+|----|------|-----------|--------|--------|
+| S7-01 | Remove tracked junk (test-dist 18 MB, test-results, .codegraph db) + gitignore | `git ls-files` grep empty for all three | S | IN-PROGRESS |
+| S7-02 | Dedupe `screenshot.spec.ts` | One spec source | S | IN-PROGRESS |
+| S7-03 | CI audit gating, stale trigger removal, single test run | audit fails pipeline on findings | S | IN-PROGRESS |
+| S7-04 | Coverage job in CI (`--fail-under-lines 90`) | PR red below 90% | S | IN-PROGRESS |
+| S7-05 | harden-runner on publish + fix `cloudbuild.yaml --target runtime` | GCB build no longer references missing stage | S | IN-PROGRESS |
+| S7-06 | Fresh small deterministic build (clean-wasm, theme.css sync, no lazy, no dup) | Budgets: WASM ≤1.5 MB gz, css ≤40 KB gz | M | IN-PROGRESS |
+| S7-07 | SHA-pin GitHub Actions | Every action pinned to verified SHA | S | TODO |
+
+## Sprint S8 — Agent / model / skill / context engineering (P2)
+| ID | Task | AC sketch | Effort | Status |
+|----|------|-----------|--------|--------|
+| S8-01 | Persona→task→skill→model mapping maintained | `docs/PERSONA-MAP.md` current | S | DONE |
+| S8-02 | Context engineering via graft graph | `graft ask` used for orientation; ~82K tok saved/pass | S | DONE |
+| S8-03 | Token-economy rules for fan-out agents | Scope-limited prompts, progressive disclosure | S | DONE |
+| S8-04 | Gemini via `agy` wired as secondary model | `agy` present, routing documented | S | DONE |

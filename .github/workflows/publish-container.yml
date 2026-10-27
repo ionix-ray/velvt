@@ -1,3 +1,4 @@
+# TODO(security): SHA-pin all actions once verified
 name: Publish Container
 
 on:
@@ -13,8 +14,15 @@ jobs:
   build-and-push:
     runs-on: ubuntu-latest
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          persist-credentials: false
 
       - name: Log in to the Container registry
         uses: docker/login-action@v3

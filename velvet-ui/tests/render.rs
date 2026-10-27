@@ -3,6 +3,7 @@
 
 use vaelvet_ui::Site;
 use vaelvet_ui::components::dynamic_background::DynamicBackground;
+use vaelvet_ui::config::{background_alpha, glyph_alpha};
 use vaelvet_ui::routes::Home;
 
 use dioxus::prelude::*;
@@ -86,10 +87,24 @@ fn dynamic_background_renders_all_layers_with_config_alpha() {
         html.contains("aria-hidden=\"true\""),
         "decorative bg must be aria-hidden"
     );
+    // Config drives the style contract: intensity → --v-bg-alpha and the
+    // glyph share → --v-bg-glyph-alpha. Assert the wiring using the same
+    // functions the component uses, not a magic number that drifts when the
+    // brand tunes its background.
+    let site = Site::load();
+    let bg = &site.background;
+    let alpha = background_alpha(bg.intensity);
     assert!(
-        html.contains("--v-bg-alpha:0.8"),
+        html.contains(&format!("--v-bg-alpha:{alpha}")),
         "config intensity must drive --v-bg-alpha, got: {html}"
     );
+    if bg.show_glyphs {
+        let glyph = glyph_alpha(bg.intensity, bg.glyph_opacity);
+        assert!(
+            html.contains(&format!("--v-bg-glyph-alpha:{glyph}")),
+            "config glyph share must drive --v-bg-glyph-alpha, got: {html}"
+        );
+    }
 }
 
 #[test]
@@ -184,6 +199,75 @@ fn home_has_no_raw_unwrap_expect_in_output() {
 
 // ── Structural ──────────────────────────────────────────────────────────────
 
+// ── Reveal observer ⇄ CSS contract ─────────────────────────────────────────
+
+/// `scroll::install_reveal` adds [`scroll::REVEALED_CLASS`] to every element
+/// matching [`scroll::REVEAL_SELECTOR`]. The stylesheet must consume exactly
+/// that class for both the entrance state (`.v-reveal*`) and the analytics
+/// heatmap (`.v-heatmap-container`) — otherwise the observer is a no-op and
+/// the heatmap cells stay at `opacity: 0` forever.
+#[test]
+fn theme_css_consumes_the_reveal_class_the_observer_adds() {
+    use vaelvet_ui::scroll::{REVEAL_SELECTOR, REVEALED_CLASS};
+
+    let css = include_str!("../assets/theme.css");
+    assert_eq!(REVEALED_CLASS, "is-revealed");
+
+    for hook in [
+        ".v-reveal.is-revealed",
+        ".v-reveal-left.is-revealed",
+        ".v-reveal-right.is-revealed",
+        ".v-heatmap-container.is-revealed",
+    ] {
+        assert!(
+            css.contains(hook),
+            "theme.css must style `{hook}` — the observer applies `{REVEALED_CLASS}`"
+        );
+    }
+
+    // Every selector the observer watches must be a real selector the
+    // stylesheet also keys off, and vice versa for the heatmap container.
+    for token in REVEAL_SELECTOR.split(',') {
+        let token = token.trim();
+        assert!(
+            token.starts_with('.'),
+            "reveal selector `{token}` must be a class selector"
+        );
+        assert!(
+            css.contains(token),
+            "theme.css has no rule for observed selector `{token}`"
+        );
+    }
+    assert!(
+        REVEAL_SELECTOR.contains(".v-heatmap-container"),
+        "the heatmap must be observed or its cells never leave opacity:0"
+    );
+}
+
+/// The heatmap renders with the observer's hooks so `install_reveal` can
+/// find it, and its cells carry the animation-delay stagger.
+#[test]
+fn heatmap_renders_with_observer_hooks_and_cells() {
+    let html = render_home();
+    assert!(
+        html.contains("v-heatmap-container v-reveal"),
+        "heatmap container must carry the reveal hook"
+    );
+    let cells = html.matches("v-heatmap-cell").count();
+    assert!(
+        cells >= 7 * 33,
+        "7x33 heatmap grid must render, got {cells}"
+    );
+    assert!(
+        html.contains("v-heatmap-cell--active"),
+        "VELVT letter cells must be active"
+    );
+    assert!(
+        html.contains("animation-delay:"),
+        "heatmap cells stagger via animation-delay"
+    );
+}
+
 #[test]
 fn home_renders_loader_and_progress() {
     let html = render_home();
@@ -197,7 +281,6 @@ fn home_renders_navigation_elements() {
     assert!(html.contains("v-topbar"), "topbar must exist");
     assert!(html.contains("v-stack-nav"), "stacked nav must exist");
     assert!(html.contains("v-spindle"), "section spindle must exist");
-    // Note: next-hint component was removed per user request; no longer asserted.
 }
 
 #[test]

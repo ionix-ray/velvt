@@ -2,6 +2,7 @@
 //! Social strip is rendered globally by the Home route, not here.
 
 use crate::Site;
+use crate::theme::wordmark::Wordmark;
 use dioxus::prelude::*;
 
 #[component]
@@ -45,32 +46,13 @@ pub fn HeroPanel(site: Site) -> Element {
                                     // Running sparkle border — child element so its
                                     // border-only mask never hides the video inside.
                                     div { class: "v-sparkle-border" }
-                                    // Transparent animated SVG wordmark first: the page
-                                    // background shows through the tile. MP4/image
-                                    // remain as config fallbacks.
-                                    if let Some(svg) = &site.hero.logo_svg {
-                                        img {
-                                            class: "v-hero__logo-svg",
-                                            src: "{svg}",
-                                            alt: "Velvt animated logo"
-                                        }
-                                    } else if let Some(video) = &site.hero.video {
-                                        video {
-                                            class: "v-hero-3d-logo__video",
-                                            src: "{video}",
-                                            poster: "{site.hero.logo}",
-                                            autoplay: true,
-                                            "loop": true,
-                                            muted: true,
-                                            playsinline: true,
-                                            title: "Velvt Video"
-                                        }
-                                    } else {
-                                        img {
-                                            class: "v-hero-3d-logo__img",
-                                            src: "{site.hero.logo}",
-                                            alt: "Velvt Logo"
-                                        }
+                                    // Inline wordmark: real DOM, so CSS owns the wordmark
+                                    // colour (`--wordmark`) and the ambient field shows
+                                    // straight through the transparent tile. The configured
+                                    // MP4/raster remain the fallback if motion is reduced.
+                                    Wordmark {
+                                        class: "v-logo-svg v-hero__logo-svg".to_string(),
+                                        title: Some("Velvt".to_string()),
                                     }
                                 }
                             }

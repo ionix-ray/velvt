@@ -1,7 +1,7 @@
 //! Stacked right-side navigation panel.
 
 use crate::Site;
-use crate::theme::brand::brand_mark;
+use crate::theme::wordmark::Wordmark;
 use dioxus::prelude::*;
 
 #[component]
@@ -19,7 +19,7 @@ pub fn StackedNav(
     rsx! {
         nav { class: "{class}", aria_label: "Section navigation",
             div { class: "v-stack-nav__brand",
-                img { src: brand_mark(), alt: "VELVT" }
+                Wordmark { class: "v-logo-svg v-logo-svg--nav".to_string(), title: None }
                 div { class: "v-logo-sheen", "aria-hidden": "true" }
             }
             for (i, item) in site.nav.iter().enumerate() {

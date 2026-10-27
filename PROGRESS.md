@@ -408,3 +408,51 @@ review/merge decision.
 - Raised light-mode radial presence so dynamism reads on Porcelain.
 - Validation: cargo 98+15+18+9 green, clippy/fmt clean, 297 Playwright runs
   green, release WASM build green; screenshots verified light/dark.
+
+## 2026-10-25
+
+### Architecture & efficiency audit (fan-out, 4 parallel agents)
+Full-codebase audit across server, frontend, hex-ui card recon, security posture.
+Key findings carried into `docs/ROADMAP.md` + `docs/features/*.feature`:
+1. **Server**: no graceful shutdown, no timeouts/limits, blocking fs in async
+   handlers + TOCTOU check→read window, dead `config_file` field (never loaded),
+   dead error variants, hardcoded defaults (not config-driven).
+2. **No RPC/broker/channels exist anywhere** — architecture is static-site
+   delivery; broker/RPC deliberately scoped OUT in ROADMAP (deletion test fails
+   for speculative infra). k6 load testing ruled out by user.
+3. **Frontend**: reveal observer adds class CSS never consumes → VELVT heatmap
+   stuck `opacity:0` forever (real bug); social URLs duplicated across 4 places
+   with drifting sets; `next_hint.rs` dead; ~10 dead CSS blocks; nav labels
+   triplicated and inconsistent; devtools script duplicated in index.html;
+   reduced-motion gaps on infinite animations (border rotate, pan, pulse).
+4. **Hygiene**: 18 MB `test-dist/` + `.codegraph/intelligence.db` +
+   `test-results/.last-run.json` tracked in git; `cloudbuild.yaml --target
+   runtime` names a nonexistent stage; CI `cargo audit` non-gating (`|| true`);
+   coverage never runs in CI.
+5. **hex-ui recon**: single-branch repo, card system uncommitted in working
+   tree; 6 agency card variants (signal-board, marquee-nights,
+   spotlight-portrait, wrapped, press-proof, contact-sheet), pure inline CSS +
+   Dioxus 0.7 — directly portable; ported targets chosen: sparkline
+   signal-board draw-in + saturate-spring hover.
+
+### Documentation produced this session
+- `docs/features/server-resilience.feature` (S4, P0)
+- `docs/features/build-hygiene.feature` (S7, P0)
+- `docs/features/ui-cinematic-experience.feature` (S5, P1)
+- `docs/features/security-compliance.feature` (S6, P0)
+- `docs/ROADMAP.md` — priority (P0-P3) + stage (S4-S8) + status + OOS register
+- `docs/SECURITY-COMPLIANCE.md` — OWASP 10 / LLM 10 / CIS L1 matrix (agent)
+- `TASKS.md` — sprints S4-S8 appended, AC tied to feature files
+- `docs/PERSONA-MAP.md` — model routing + token/context engineering extended
+
+### In flight (background fan-out)
+- Agent A: server hardening S4-01..05 (TDD, disjoint scope: server/, justfile, Containerfile)
+- Agent B: hygiene + CI S7-01..05 (scope: .gitignore, .github, cloudbuild, test-suite)
+- Agent C: UI S5-01..07 (scope: velvet-ui/, content/site.md, playwright specs)
+- Agent D: compliance matrix S6-01..03
+
+### Decisions
+- k6 / load testing: OUT (user, 2026-10-25). k6 binary present but no test
+  files will ship.
+- RPC/broker: OUT — no async workload exists; revisit only if dynamic backend
+  lands (ROADMAP "Explicitly out of scope").

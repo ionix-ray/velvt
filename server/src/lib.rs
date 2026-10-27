@@ -3,6 +3,9 @@ pub mod error;
 pub mod handlers;
 pub mod middleware;
 
+#[cfg(test)]
+mod test_support;
+
 use axum::Router;
 use std::net::SocketAddr;
 

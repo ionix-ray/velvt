@@ -162,6 +162,21 @@
   --glass-border-rgb: 204, 43, 43;  /* brand crimson */
   --glass-border-subtle: rgba(var(--glass-border-rgb), 0.15);
 
+  /* wordmark — the MASTER LOGO's own spec: light-dark(#aa0729, #ededed).
+     Never re-derived: the drawio source bakes these two values, so the
+     wordmark stays byte-identical to the brand artwork in both themes.
+     The emblem is a raster, so this is the single source of truth for the
+     lockup's text colour. */
+  --wordmark: #aa0729;
+  --logo-svg-ratio: 874 / 344;
+
+  /* ambient glyph tones — crimson is the brand, the rest are atmospheric
+     companions chosen to sit beside it without competing with it. */
+  --glyph-crimson: #cc2b2b;
+  --glyph-violet: #7b3fa8;
+  --glyph-sky: #3d8fd6;
+  --glyph-citron: #9fc94f;
+
   /* cinematic dynamic gradients — visible drift on Porcelain, never muddy */
   --cinematic-radial-1: rgba(204, 43, 43, 0.10);
   --cinematic-radial-2: rgba(20, 0, 0, 0.06);
@@ -184,6 +199,14 @@
   --accent: var(--crimson-light);
   --accent-hover: var(--crimson);
   --accent-soft: rgba(184, 60, 43, 0.12);
+
+  /* On Obsidian the master logo resolves to #ededed via light-dark() — so the
+     wordmark follows it exactly rather than borrowing a warm brand tint. */
+  --wordmark: #ededed;
+  --glyph-crimson: #e0553f;
+  --glyph-violet: #b083e0;
+  --glyph-sky: #63b0e8;
+  --glyph-citron: #bfe06a;
 
   /* glassmorphism */
   --glass-bg: rgba(212, 62, 62, 0.05);
@@ -300,63 +323,70 @@ ul { list-style: none; }
   display: flex;
   align-items: center;
   justify-content: center;
-  /* Give the brand container an explicit size matching the logo so the
-     absolutely-positioned iris rings have a well-defined origin to orbit. */
+  /* Fixed-size stage for the icon swarm: the V formation (±168px legs)
+     and the collapsing-to-emblem path both measure from this centre. */
   width: 280px;
   height: 280px;
   max-width: 80vw;
   max-height: 80vw;
 }
 
-/* Camera-iris aperture: three blade rings step down around the mark like a
-   lens stopping down, then a single flash marks the moment focus lands.
-   Lives inside .v-loader__brand so all coordinates are relative to the logo
-   container, ensuring the rings always orbit the icon regardless of viewport. */
-.v-loader__iris {
+/* ── Icon swarm: the logo builds itself ─────────────────────────────────
+   13 scope-of-work Carbon-style glyphs (advertising, photography, celebrity,
+   PR, video, podcast, venue, gifting…) fly in from every viewport edge,
+   assemble into the letter V around the emblem, hold, then collapse INTO
+   the mark as it resolves to brand crimson. Transform/opacity only,
+   aria-hidden + pointer-events:none, killed under prefers-reduced-motion. */
+.v-loader__swarm {
   position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 2; /* paint above the logo image (z-index: 1) */
-}
-.v-loader__iris-ring {
-  position: absolute;
-  top: 50%;
   left: 50%;
-  border-radius: 50%;
-  border: 2.5px solid var(--text-primary);
-  box-shadow:
-    0 0 18px color-mix(in srgb, var(--text-primary) 60%, transparent),
-    inset 0 0 8px color-mix(in srgb, var(--text-primary) 30%, transparent);
-  animation: v-iris-blade 1.8s var(--ease-out) infinite;
+  top: 50%;
+  width: 0;
+  height: 0;
+  z-index: 0; /* below the emblem (z:1) — icons merge into the mark */
+  pointer-events: none;
 }
-.v-loader__iris-ring--1 { width: 240px; height: 240px; margin: -120px 0 0 -120px; }
-.v-loader__iris-ring--2 { width: 180px; height: 180px; margin: -90px 0 0 -90px; animation-delay: 0.2s; border-color: var(--text-primary); }
-.v-loader__iris-ring--3 { width: 120px; height: 120px; margin: -60px 0 0 -60px; animation-delay: 0.4s; border-color: var(--text-primary); }
-@keyframes v-iris-blade {
-  0%   { transform: scale(1.5) rotate(0deg); opacity: 0; }
-  12%  { opacity: 1; }
-  55%  { transform: scale(1) rotate(45deg); opacity: 0.7; }
-  85%  { transform: scale(0.35) rotate(90deg); opacity: 0; }
-  100% { transform: scale(0.35) rotate(90deg); opacity: 0; }
-}
-.v-loader__iris-flash {
+.v-loader__icon {
   position: absolute;
-  inset: 0;
-  border-radius: 50%;
-  background:
-    radial-gradient(circle, var(--off-white) 0%, color-mix(in srgb, var(--crimson-light) 65%, transparent) 35%, transparent 70%);
+  left: 0;
+  top: 0;
+  width: 26px;
+  height: 26px;
+  margin: -13px 0 0 -13px;
   opacity: 0;
-  animation: v-iris-flash 1.8s linear infinite;
+  animation: v-swarm-gather 2.15s var(--ease-out) var(--d, 0ms) both;
 }
-@keyframes v-iris-flash {
-  0%, 72% { opacity: 0; }
-  78%     { opacity: 1; transform: scale(1.15); }
-  90%, 100% { opacity: 0; transform: scale(1); }
+.v-loader__icon svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 0 8px color-mix(in srgb, currentColor 45%, transparent));
 }
+.v-loader__icon--crimson { color: var(--glyph-crimson); }
+.v-loader__icon--violet  { color: var(--glyph-violet); }
+.v-loader__icon--sky     { color: var(--glyph-sky); }
+.v-loader__icon--citron  { color: var(--glyph-citron); }
+@keyframes v-swarm-gather {
+  0% {
+    opacity: 0;
+    transform: translate(calc(var(--fx) + var(--sx)), calc(var(--fy) + var(--sy))) scale(0.3) rotate(-35deg);
+  }
+  12% { opacity: 1; }
+  55% { opacity: 1; transform: translate(var(--fx), var(--fy)) scale(1) rotate(0deg); }
+  72% { opacity: 1; transform: translate(var(--fx), var(--fy)) scale(1.08) rotate(0deg); }
+  100% { opacity: 0; transform: translate(0, 0) scale(0.08) rotate(25deg); }
+}
+/* Return visit in the same session — intro gated off, swarm never shows. */
+.v-loader--revisit .v-loader__swarm { display: none; }
+@media (max-width: 480px) {
+  /* Keep the V formation inside narrow viewports (±168px legs). */
+  .v-loader__swarm { transform: scale(0.55); }
+}
+
 .v-loader__logo {
   position: relative;
-  z-index: 1; /* iris rings (z:2) paint above this */
-  width: 160px;  /* smaller than the rings so they frame it */
+  z-index: 1;
+  width: 160px;
   max-width: 60vw;
   height: auto;
   object-fit: contain;
@@ -462,12 +492,10 @@ ul { list-style: none; }
   border-bottom: var(--border);
   margin-bottom: var(--s3);
 }
-.v-stack-nav__brand img {
-  height: 38px;
-  width: auto;
-  max-width: 160px;
-  display: block;
-  object-fit: contain;
+.v-stack-nav__brand .v-logo-svg {
+  width: 148px;
+  height: auto;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.22));
 }
 
 .v-stack-nav__item {
@@ -521,23 +549,34 @@ ul { list-style: none; }
 }
 .v-topbar.hidden { transform: translateY(-100%); }
 
+/* The brand slot now holds the full lockup (emblem + wordmark), so it is
+   width-driven off the lockup's intrinsic 874:344 ratio and vertically
+   centred on the topbar strip instead of being a fixed square badge. */
 .v-topbar__brand {
   position: absolute;
-  top: clamp(10px, 1.4vw, 20px);
+  top: 50%;
   left: clamp(10px, 1.4vw, 20px);
+  translate: 0 -50%;
   display: block;
-  width: clamp(64px, 7vw, 104px);
-  height: clamp(64px, 7vw, 104px);
+  width: clamp(100px, 9.5vw, 136px);
   z-index: 10000;
-}
-.v-topbar__brand img {
-  width: 100%;
-  height: 100%;
-  display: block;
-  object-fit: cover;
   border-radius: 0;
+  transition: width var(--d-med) var(--ease);
+}
+/* Inline SVG lockup: width-driven, height from the intrinsic ratio so the
+   wordmark never distorts. `currentColor` on the text picks up --wordmark. */
+.v-logo-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: var(--logo-svg-ratio);
+  color: var(--wordmark);
   filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.28));
 }
+.v-logo-svg--nav { width: clamp(104px, 100%, 150px); }
+/* Text inside the lockup is vector and inherits; keep it selectable-free so
+   the sheen overlay can rake across cleanly. */
+.v-logo-svg text { user-select: none; }
 
 .v-topbar__actions {
   display: flex;
@@ -583,70 +622,6 @@ ul { list-style: none; }
   transition: border-color var(--d-fast) var(--ease);
 }
 .v-theme-toggle:hover { border-color: var(--accent); }
-
-/* ----- Next Hint (bottom center) ---------------------------------------- */
-.v-next-hint {
-  position: fixed;
-  bottom: var(--s4);
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 999;
-  display: flex;
-  align-items: center;
-  gap: var(--s2);
-  /* Frosted pill, not bare text — stays legible over scrollable panel
-     content (e.g. showcase cards) instead of looking glued on top of it. */
-  padding: var(--s2) var(--s3);
-  border-radius: 999px;
-  background: var(--bg-nav);
-  backdrop-filter: blur(14px) saturate(140%);
-  border: var(--border);
-  font-size: 0.65rem;
-  font-weight: 500;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-  color: var(--text-muted);
-  opacity: 0.6;
-  transition: opacity var(--d-med) var(--ease);
-}
-.v-next-hint:hover { opacity: 1; }
-.v-next-hint.hidden { opacity: 0; pointer-events: none; }
-
-/* Left variant - Previous button */
-.v-next-hint--left {
-  left: calc(50% - 6rem);
-}
-.v-next-hint--left .v-next-hint__arrow::after {
-  right: auto;
-  left: -3px;
-  border-top: none;
-  border-right: none;
-  border-bottom: 2px solid var(--accent);
-  border-left: 2px solid var(--accent);
-}
-
-/* Right variant - Next button */
-.v-next-hint--right {
-    left: calc(50% + 2rem);
-}
-
-.v-next-hint__arrow {
-  width: 28px;
-  height: 2px;
-  background: var(--accent);
-  position: relative;
-}
-.v-next-hint__arrow::after {
-  content: '';
-  position: absolute;
-  right: -3px;
-  top: -5px;
-  width: 10px;
-  height: 10px;
-  border-top: 2px solid var(--accent);
-  border-right: 2px solid var(--accent);
-  transform: rotate(45deg);
-}
 
 /* ----- Spindle Navigation (Flat list) ------------ */
 .v-spindle {
@@ -724,7 +699,7 @@ ul { list-style: none; }
 }
 @media (prefers-reduced-motion: reduce) {
   .v-spindle-item { transition: none; }
-  .v-loader__iris { display: none; }
+  .v-loader__swarm { display: none; }
   .v-loader { transition: none; }
   .v-loader__logo { animation: none; filter: none; opacity: 1; }
   .v-loader__fill { animation: none; width: 100%; }
@@ -732,24 +707,6 @@ ul { list-style: none; }
 }
 @media (max-width: 768px) {
   .v-spindle { display: none; }
-}
-
-/* ----- Glassmorphism & Green Tags --------------------------------------- */
-.v-glass-card {
-  background: var(--glass-bg);
-  backdrop-filter: blur(16px) saturate(180%);
-  -webkit-backdrop-filter: blur(16px) saturate(180%);
-  border: var(--glass-border);
-  border-radius: 24px;
-  padding: var(--s5);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1);
-  transition: transform var(--d-fast) var(--ease), border-color var(--d-fast) var(--ease);
-  position: relative;
-  overflow: hidden;
-}
-.v-glass-card:hover {
-  transform: translateY(-5px);
-  border-color: var(--accent);
 }
 
 .v-tag--green {
@@ -909,14 +866,28 @@ ul { list-style: none; }
 }
 
 /* ----- Reveal Animation ------------------------------------------------- */
-/* Base: slide up + fade (default for most cards) */
-.v-reveal {
+/* ONE mechanism: `scroll.rs` adds `.is-revealed` when a target crosses the
+   viewport threshold (IntersectionObserver). Pre-reveal the target is hidden;
+   post-reveal the entrance keyframes play (`fill: both`) and the element lands
+   on its declared final value — so reduced motion (`animation: none`) and a
+   stalled observer still end on a VISIBLE element, never an invisible one.
+
+   Base: slide up + fade (default for most cards) */
+.v-reveal,
+.v-reveal-left,
+.v-reveal-right {
+  opacity: 0;
+}
+.v-reveal.is-revealed {
+  opacity: 1;
   animation: peek-up 0.65s var(--ease-out) both;
 }
-.v-reveal-left {
+.v-reveal-left.is-revealed {
+  opacity: 1;
   animation: peek-left 0.65s var(--ease-out) both;
 }
-.v-reveal-right {
+.v-reveal-right.is-revealed {
+  opacity: 1;
   animation: peek-right 0.65s var(--ease-out) both;
 }
 
@@ -961,18 +932,13 @@ ul { list-style: none; }
   to   { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-/* Delay utilities */
-.v-delay-1 { animation-delay: 80ms; }
-.v-delay-2 { animation-delay: 160ms; }
-.v-delay-3 { animation-delay: 240ms; }
-.v-delay-4 { animation-delay: 320ms; }
-.v-delay-5 { animation-delay: 400ms; }
-
-/* Reduced-motion: collapse all animations to instant */
+/* Reduced-motion: land the final (visible) state, no motion. */
 @media (prefers-reduced-motion: reduce) {
-  .v-reveal, .v-reveal-left, .v-reveal-right {
-    animation-duration: 0.001ms !important;
-    animation-delay: 0ms !important;
+  .v-reveal,
+  .v-reveal-left,
+  .v-reveal-right {
+    opacity: 1 !important;
+    animation: none !important;
   }
 }
 
@@ -1293,66 +1259,6 @@ ul { list-style: none; }
   .v-hologram__scanlines { background: none; }
 }
 
-/* --- Services ----------------------------------------------------------- */
-.v-services__grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--s5);
-  align-items: start;
-}
-.v-service-item {
-  padding: var(--s3) 0;
-  border-bottom: var(--border);
-  cursor: default;
-  transition: padding-left var(--d-fast) var(--ease);
-}
-.v-service-item:hover { padding-left: var(--s3); }
-.v-service-item__header {
-  display: flex;
-  align-items: center;
-  gap: var(--s3);
-}
-.v-service-item__num {
-  font-family: var(--font-mono);
-  font-size: 0.7rem;
-  color: var(--accent);
-  min-width: 2rem;
-}
-.v-service-item h3 {
-  font-size: 1.1rem;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-.v-service-item p {
-  font-size: 0.88rem;
-  color: var(--text-secondary);
-  margin-top: var(--s2);
-  margin-left: 3.2rem;
-  line-height: 1.6;
-}
-.v-service-card {
-  border: var(--border);
-  border-radius: 2px;
-  padding: var(--s5);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: var(--s3);
-  text-align: center;
-  background: var(--bg-card);
-}
-.v-service-card__icon {
-  width: 64px;
-  height: 64px;
-  border: var(--border);
-  border-radius: 2px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--accent);
-}
-
 /* --- Story / Timeline --------------------------------------------------- */
 .v-timeline {
   position: relative;
@@ -1412,35 +1318,6 @@ ul { list-style: none; }
   grid-template-columns: 2fr 1fr;
   gap: var(--s3);
   margin-top: var(--s5);
-}
-.v-dash-card {
-  border: var(--border);
-  border-radius: 2px;
-  padding: var(--s4);
-  background: var(--bg-card);
-  transition: border-color var(--d-fast) var(--ease);
-}
-.v-dash-card:hover { border-color: var(--accent); }
-.v-dash-card__header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: var(--s3);
-}
-.v-dash-card__header h3 { font-size: 0.9rem; }
-.v-dash-card__live {
-  font-size: 0.7rem;
-  color: #22C55E;
-  display: flex;
-  align-items: center;
-  gap: var(--s1);
-}
-.v-dash-card__live-dot {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: #22C55E;
-  animation: pulse-dot 1.5s infinite;
 }
 .v-chart-bars {
   display: flex;
@@ -1545,7 +1422,6 @@ ul { list-style: none; }
 .v-showcase__grid .v-process__step:nth-child(even) { animation-name: peek-left; }
 .v-showcase__grid .v-process__step:nth-child(odd)  { animation-name: peek-right; }
 
-
 /* Cinematic Background Mesh */
 .v-cinematic-bg {
   position: absolute;
@@ -1596,64 +1472,6 @@ ul { list-style: none; }
   gap: var(--s3);
   margin-top: var(--s5);
 }
-.v-case-card {
-  border: none;
-  border-radius: 10px;
-  overflow: hidden;
-  /* Transparent glass — adapts to dark/light page bg */
-  background: transparent;
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  outline: 1px solid var(--glass-border-subtle);
-  transition: all var(--d-med) var(--ease);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
-  height: 460px;
-  display: flex;
-  flex-direction: column;
-  /* Peek-in animation: case cards scale from center */
-  animation: peek-scale 0.65s var(--ease-out) both;
-  position: relative;
-}
-.v-case-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14);
-}
-.v-case-card__visual {
-  height: 180px;
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--bg-secondary);
-}
-.v-case-card__metric {
-  padding: var(--s2) var(--s3);
-  border: var(--border);
-  border-radius: 2px;
-  background: var(--bg-card);
-  font-family: var(--font-sans);
-  font-size: 1.4rem;
-  color: var(--accent);
-  font-weight: 600;
-  letter-spacing: 0.02em;
-}
-.v-case-card__body { 
-  padding: var(--s4); 
-  flex: 1;
-  overflow-y: auto;
-}
-.v-case-card__client {
-  font-weight: 600;
-  font-size: 1rem;
-  margin-bottom: var(--s1);
-}
-.v-case-card__desc {
-  font-size: 0.85rem;
-  color: var(--text-secondary);
-  line-height: 1.6;
-  margin-bottom: var(--s3);
-}
 .v-tags { display: flex; gap: var(--s1); flex-wrap: wrap; }
 .v-tag {
   padding: 0.15rem 0.4rem;
@@ -1663,66 +1481,6 @@ ul { list-style: none; }
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--text-muted);
-}
-
-/* --- PR Gallery --------------------------------------------------------- */
-.v-pr-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: var(--s2);
-  margin-top: var(--s5);
-}
-.v-pr-item {
-  border: var(--border);
-  border-radius: 2px;
-  overflow: hidden;
-  aspect-ratio: 1;
-  position: relative;
-  cursor: pointer;
-  transition: all var(--d-med) var(--ease);
-  background: var(--bg-secondary);
-}
-.v-pr-item:first-child {
-  grid-column: span 2;
-  grid-row: span 2;
-}
-.v-pr-item:hover {
-  border-color: var(--accent);
-}
-.v-pr-item__source {
-  position: absolute;
-  top: var(--s2);
-  left: var(--s2);
-  padding: 0.15rem 0.5rem;
-  border: var(--border);
-  border-radius: 2px;
-  font-size: 0.62rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  background: var(--bg-card);
-  z-index: 2;
-}
-.v-pr-item__overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, transparent 40%, var(--overlay-gradient-end));
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  padding: var(--s3);
-  opacity: 0;
-  transition: opacity var(--d-med) var(--ease);
-  z-index: 2;
-}
-.v-pr-item:hover .v-pr-item__overlay { opacity: 1; }
-.v-pr-item__overlay h4 { font-size: 0.85rem; text-transform: none; letter-spacing: 0; }
-.v-pr-item__overlay p {
-  font-size: 0.75rem;
-  color: var(--text-secondary);
-  margin-top: var(--s1);
-  text-transform: none;
-  letter-spacing: 0;
 }
 
 /* --- Creative Studio / Showcase Blocks ---------------------------------- */
@@ -1749,86 +1507,6 @@ ul { list-style: none; }
 .v-tile--wide { grid-column: span 2; }
 .v-tile--full { grid-column: 1 / -1; }
 
-/* --- AI Marketing ------------------------------------------------------- */
-.v-ai__grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--s5);
-  align-items: start;
-  margin-top: var(--s5);
-}
-.v-ai__interface {
-  border: var(--border);
-  border-radius: 2px;
-  padding: var(--s4);
-  background: var(--bg-card);
-}
-.v-ai__header {
-  display: flex;
-  align-items: center;
-  gap: var(--s2);
-  margin-bottom: var(--s3);
-  padding-bottom: var(--s3);
-  border-bottom: var(--border);
-}
-.v-ai__avatar {
-  width: 36px;
-  height: 36px;
-  border-radius: 2px;
-  background: var(--accent);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--off-white);
-  font-size: 0.8rem;
-  font-weight: 700;
-}
-.v-ai__name { font-weight: 600; font-size: 0.85rem; }
-.v-ai__status { font-size: 0.7rem; color: #22C55E; }
-.v-ai__messages { display: flex; flex-direction: column; gap: var(--s2); }
-.v-ai__msg {
-  padding: var(--s2) var(--s3);
-  border-radius: 2px;
-  max-width: 85%;
-  font-size: 0.85rem;
-  line-height: 1.55;
-}
-.v-ai__msg--bot {
-  background: var(--accent-soft);
-  border: var(--border);
-  align-self: flex-start;
-}
-.v-ai__msg--user {
-  background: var(--bg-secondary);
-  border: var(--border);
-  align-self: flex-end;
-}
-.v-ai__features { display: grid; gap: var(--s3); }
-.v-ai__feature {
-  padding: var(--s3);
-  border: var(--border);
-  border-radius: 2px;
-  display: flex;
-  align-items: center;
-  gap: var(--s3);
-  transition: border-color var(--d-fast) var(--ease);
-  background: var(--bg-card);
-}
-.v-ai__feature:hover { border-color: var(--accent); }
-.v-ai__feature-icon {
-  width: 40px;
-  height: 40px;
-  border: var(--border);
-  border-radius: 2px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--accent);
-  flex-shrink: 0;
-}
-.v-ai__feature h4 { font-size: 0.85rem; text-transform: none; letter-spacing: 0; margin-bottom: 2px; }
-.v-ai__feature p { font-size: 0.78rem; color: var(--text-muted); text-transform: none; letter-spacing: 0; }
-
 /* --- Social Grid -------------------------------------------------------- */
 .v-social {
   display: grid;
@@ -1837,62 +1515,6 @@ ul { list-style: none; }
   gap: var(--s2);
   margin-top: var(--s5);
 }
-.v-social__post {
-  border: var(--border);
-  border-radius: 2px;
-  overflow: hidden;
-  position: relative;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--bg-secondary);
-  transition: all var(--d-med) var(--ease);
-}
-.v-social__post:first-child {
-  grid-column: span 2;
-  grid-row: span 2;
-}
-.v-social__post:hover { border-color: var(--accent); }
-.v-social__icon { font-size: 2rem; opacity: 0.6; }
-.v-social__post:first-child .v-social__icon { font-size: 3rem; }
-.v-social__label {
-  position: absolute;
-  bottom: var(--s2);
-  left: var(--s2);
-  font-size: 0.68rem;
-  color: var(--text-secondary);
-  display: flex;
-  align-items: center;
-  gap: var(--s1);
-}
-
-/* --- Awards ------------------------------------------------------------- */
-.v-awards {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: var(--s3);
-  margin-top: var(--s5);
-}
-.v-award-card {
-  text-align: center;
-  padding: var(--s4) var(--s3);
-  border: var(--border);
-  border-radius: 2px;
-  background: var(--bg-card);
-  transition: all var(--d-med) var(--ease);
-}
-.v-award-card:hover {
-  transform: translateY(-4px);
-  border-color: var(--accent);
-}
-.v-award-card__icon {
-  font-size: 2rem;
-  margin-bottom: var(--s3);
-  display: block;
-}
-.v-award-card h4 { font-size: 0.85rem; margin-bottom: var(--s1); text-transform: none; letter-spacing: 0; }
-.v-award-card p { font-size: 0.78rem; color: var(--text-muted); text-transform: none; letter-spacing: 0; }
 
 /* --- CTA ---------------------------------------------------------------- */
 .v-cta {
@@ -1990,30 +1612,6 @@ ul { list-style: none; }
   color: var(--crimson-light);
   text-align: left;
   padding: var(--s1) 0;
-}
-
-/* --- Client Banner (marquee) -------------------------------------------- */
-.v-banner__marquee {
-  overflow: hidden;
-  margin-top: var(--s5);
-}
-.v-banner__track {
-  display: flex;
-  gap: var(--s6);
-  animation: v-banner-scroll 20s linear infinite;
-}
-.v-banner__logo {
-  font-family: var(--font-sans);
-  font-size: 1.2rem;
-  color: var(--text-muted);
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
-  white-space: nowrap;
-}
-@keyframes v-banner-scroll {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
 }
 
 /* --- Work With Us (inquiry) --------------------------------------------- */
@@ -2145,17 +1743,11 @@ ul { list-style: none; }
     25% { transform: translateY(-3px); }
     75% { transform: translateY(-2px); }
   }
-  .v-services__grid { grid-template-columns: 1fr; }
   .v-dashboard { grid-template-columns: 1fr; }
   .v-cases { grid-template-columns: 1fr 1fr; }
-  .v-awards { grid-template-columns: repeat(2, 1fr); }
-  .v-pr-grid { grid-template-columns: repeat(2, 1fr); }
-  .v-pr-item:first-child { grid-column: span 2; grid-row: span 1; }
   .v-process { grid-template-columns: repeat(3, 1fr); }
   .v-process::before { display: none; }
-  .v-ai__grid { grid-template-columns: 1fr; }
   .v-social { grid-template-columns: repeat(2, 1fr); grid-template-rows: auto; }
-  .v-social__post:first-child { grid-column: span 2; grid-row: span 1; }
   .v-footer__cols { flex-direction: column; gap: var(--s4); }
   .v-showcase__grid { grid-template-columns: 1fr 1fr; }
   .v-timeline::before { left: 16px; }
@@ -2165,8 +1757,8 @@ ul { list-style: none; }
 }
 
 @media (max-width: 768px) {
-  .v-topbar__brand { width: 60px; height: 60px; top: 8px; left: 8px; }
-  .v-topbar { padding-left: calc(60px + 8px + var(--s3)); }
+  .v-topbar__brand { width: 132px; }
+  .v-topbar { padding-left: calc(132px + 8px + var(--s3)); }
   .v-panels {
     flex-direction: column;
     overflow-x: hidden;
@@ -2186,7 +1778,6 @@ ul { list-style: none; }
   }
   .v-section { min-height: auto; padding: var(--s5) 0; }
   .v-dots { display: none; }
-  .v-next-hint { display: none; }
   .v-stack-nav { display: none; }
   .v-process { grid-template-columns: 1fr 1fr; }
   .v-cases { grid-template-columns: 1fr; }
@@ -2194,20 +1785,16 @@ ul { list-style: none; }
   .v-tile--wide, .v-tile--full {
     grid-column: span 1;
   }
-  .v-awards { grid-template-columns: 1fr; }
-  .v-pr-grid { grid-template-columns: 1fr; }
-  .v-pr-item:first-child { grid-column: span 1; grid-row: span 1; }
   .v-footer__cols { flex-direction: column; gap: var(--s4); }
   .v-footer__bottom { text-align: center; }
   .v-social { grid-template-columns: 1fr; }
-  .v-social__post:first-child { grid-column: span 1; grid-row: span 1; }
 }
 
 @media (max-width: 480px) {
   .v-process { grid-template-columns: 1fr; }
   .v-stats-grid { grid-template-columns: 1fr; }
-  .v-topbar__brand { width: 52px; height: 52px; top: 6px; left: 6px; }
-  .v-topbar { padding-left: calc(52px + 6px + var(--s2)); }
+  .v-topbar__brand { width: 112px; }
+  .v-topbar { padding-left: calc(112px + 6px + var(--s2)); }
   .v-about-grid { gap: var(--s4); }
   .v-tile { min-height: 0; }
 }
@@ -2393,23 +1980,49 @@ ul { list-style: none; }
 }
 [data-theme="light"] .v-heatmap-cell { background: rgba(0, 0, 0, 0.05); }
 
-/* The cascading reveal animation */
+/* The cascading reveal — driven by ONE mechanism: `scroll.rs` adds
+   `.is-revealed` to the container when it crosses the viewport threshold.
+   The final state is DECLARED (not only animated), so an element whose
+   animation is disabled — reduced motion, or a stalled observer — still
+   lands visible instead of at opacity 0. */
 .v-heatmap-container.is-revealed .v-heatmap-cell {
-  animation: heatmap-sweep 0.6s cubic-bezier(0.1, 0.8, 0.2, 1) forwards;
+  opacity: 1;
+  transform: scale(1);
+  animation: heatmap-sweep 0.6s cubic-bezier(0.1, 0.8, 0.2, 1) both;
 }
 .v-heatmap-container.is-revealed .v-heatmap-cell--active {
-  animation: heatmap-sweep-active 0.6s cubic-bezier(0.1, 0.8, 0.2, 1) forwards, heatmap-pulse 3s infinite alternate;
+  background: var(--crimson);
+  box-shadow: 0 0 12px var(--crimson-light);
+  animation:
+    heatmap-sweep-active 0.6s cubic-bezier(0.1, 0.8, 0.2, 1) both,
+    heatmap-pulse 3s infinite alternate;
 }
 
 @keyframes heatmap-sweep {
+  from { opacity: 0; transform: scale(0.8); }
   to { opacity: 1; transform: scale(1); }
 }
 @keyframes heatmap-sweep-active {
+  from { opacity: 0; transform: scale(0.8); background: transparent; box-shadow: none; }
   to { opacity: 1; transform: scale(1); background: var(--crimson); box-shadow: 0 0 12px var(--crimson-light); }
 }
 @keyframes heatmap-pulse {
   from { filter: brightness(1); }
   to { filter: brightness(1.3); }
+}
+
+/* Reduced motion: the board is a static graphic — visible, no sweep, no pulse. */
+@media (prefers-reduced-motion: reduce) {
+  .v-heatmap-cell,
+  .v-heatmap-container.is-revealed .v-heatmap-cell {
+    opacity: 1 !important;
+    transform: none !important;
+    animation: none !important;
+  }
+  .v-heatmap-cell--active {
+    background: var(--crimson);
+    box-shadow: 0 0 12px var(--crimson-light);
+  }
 }
 
 /* Floating Stats over the heatmap */
@@ -2552,9 +2165,6 @@ ul { list-style: none; }
 }
 .v-about-stat .v-sparkle-border::before {
   animation-duration: 5s;
-}
-.v-case-card .v-sparkle-border::before {
-  animation-duration: 6s;
 }
 
 .v-team-card::before {
@@ -2760,8 +2370,6 @@ ul { list-style: none; }
 .v-tile--clickable { cursor: pointer; }
 .v-tile--showcase { min-height: 200px; }
 
-.v-tags { display: flex; gap: var(--s1); flex-wrap: wrap; }
-
 .v-btn-tile {
   display: inline-flex;
   align-items: center;
@@ -2930,11 +2538,9 @@ ul { list-style: none; }
   gap: var(--s2);
 }
 .v-footer-panel__wordmark {
-  width: clamp(64px, 6vw, 96px);
-  height: clamp(64px, 6vw, 96px);
+  width: clamp(140px, 13vw, 200px);
+  height: auto;
   display: block;
-  object-fit: cover;
-  border-radius: 0;
   filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.28));
   margin-bottom: var(--s2);
 }
@@ -3390,8 +2996,6 @@ ul { list-style: none; }
   width: 100%;
 }
 
-
-
 /* Experience Section Badge */
 .v-experience-badge {
   position: absolute;
@@ -3437,7 +3041,6 @@ ul { list-style: none; }
   color: var(--text-secondary);
   line-height: 1.5;
 }
-
 
 /* ═══════════════════════════════════════════════════════════════════════════
    IMMERSIVE BRAND LAYER — ambient aurora, film grain, logo sheen
@@ -3724,12 +3327,14 @@ button:focus-visible {
 /* --- Animated SVG wordmark ----------------------------------------------------
    Self-contained transparent SVG (emblem + vector text in baked
    crimson-light, readable on Porcelain and Obsidian alike). */
+/* Hero lockup: the same inline SVG as the nav, scaled for the hero column.
+   `animation` lives on the wrapper (`.v-logo-wrap`) so the sheen can stay
+   independent of the float. */
 .v-hero__logo-svg {
-  width: clamp(240px, 26vw, 380px);
+  width: clamp(280px, 30vw, 420px);
   height: auto;
   display: block;
   filter: drop-shadow(0 10px 28px rgba(0, 0, 0, 0.22));
-  animation: v-logo-float 7s ease-in-out infinite;
 }
 @keyframes v-logo-float {
   0%, 100% { transform: translateY(0); }
@@ -3741,15 +3346,95 @@ button:focus-visible {
 @media (max-width: 768px) {
   .v-dynamic-bg__layer--fast,
   .v-dynamic-bg__beam { display: none; }
-  .v-hero__logo-svg { width: clamp(200px, 62vw, 320px); }
+  .v-hero__logo-svg { width: clamp(230px, 66vw, 340px); }
 }
 @media (max-width: 480px) {
-  .v-hero__logo-svg { width: clamp(180px, 72vw, 280px); }
+  .v-hero__logo-svg { width: clamp(200px, 76vw, 290px); }
 }
 
 /* --- Reduced motion: still frame only ----------------------------------------- */
 @media (prefers-reduced-motion: reduce) {
   .v-dynamic-bg__layer,
   .v-dynamic-bg__beam { animation: none; }
-  .v-hero__logo-svg { animation: none; }
+  .v-dynamic-bg__glyphs { display: none; }
+  .v-hero-3d-wrapper .v-logo-wrap { animation: none; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   AMBIENT GLYPH FIELD — the "creative" half of the background blend
+   Floating service icons: camera, lens, venue, talent, grand party, creator,
+   clapper, spotlight, aperture. Each drifts on its own cycle so the field
+   never pulses in lockstep.
+   GPU discipline: transform/opacity only, promoted with will-change, driven by
+   per-glyph custom properties emitted from Rust (see config.rs clamps).
+   Legibility: capped opacity + a brand scrim between field and content.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.v-dynamic-bg__glyphs {
+  position: absolute;
+  inset: 0;
+}
+.v-bg-glyph {
+  position: absolute;
+  left: var(--gx, 10%);
+  top: var(--gy, 40%);
+  width: var(--gw, 132px);
+  height: var(--gw, 132px);
+  margin: calc(var(--gw, 132px) / -2) 0 0 calc(var(--gw, 132px) / -2);
+  color: var(--glyph-crimson);
+  opacity: var(--v-bg-glyph-alpha, 0.3);
+  will-change: transform, opacity;
+  animation: v-glyph-drift var(--gdur, 30s) ease-in-out infinite;
+  animation-delay: var(--gdelay, 0s);
+}
+.v-bg-glyph__icon {
+  width: 100%;
+  height: 100%;
+  display: block;
+  filter: drop-shadow(0 0 18px currentColor);
+}
+.v-bg-glyph--violet { color: var(--glyph-violet); }
+.v-bg-glyph--sky    { color: var(--glyph-sky); }
+.v-bg-glyph--citron { color: var(--glyph-citron); }
+
+/* One keyframe pair, amplitude driven per glyph by --gspin. */
+@keyframes v-glyph-drift {
+  0%   { transform: translate3d(0, 0, 0) rotate(0deg); }
+  25%  { transform: translate3d(10px, -18px, 0) rotate(calc(var(--gspin, 6deg) * 0.6)); }
+  50%  { transform: translate3d(-8px, -30px, 0) rotate(var(--gspin, 6deg)); }
+  75%  { transform: translate3d(-16px, -12px, 0) rotate(calc(var(--gspin, 6deg) * -0.4)); }
+  100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+}
+
+/* Legibility scrim — sits above glyphs, below page content. Pulls contrast
+   back exactly where the text column lives (left-of-centre on desktop) and
+   keeps the right column open so the field still breathes. */
+.v-dynamic-bg__scrim {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(52% 46% at 34% 50%, var(--bg-primary) 0%, transparent 72%),
+    linear-gradient(180deg, var(--bg-primary) 0%, transparent 26%, transparent 74%, var(--bg-primary) 100%);
+  opacity: 0.55;
+}
+[data-theme="dark"] .v-dynamic-bg__scrim { opacity: 0.42; }
+
+/* Responsive: the field thins out rather than disappearing, so phones still
+   read the brand as "creative agency" without paying for 9 live animations. */
+@media (max-width: 1024px) {
+  .v-bg-glyph { width: calc(var(--gw, 132px) * 0.72); height: calc(var(--gw, 132px) * 0.72); }
+  .v-bg-glyph:nth-child(n + 7) { display: none; }
+}
+@media (max-width: 768px) {
+  .v-bg-glyph { width: calc(var(--gw, 132px) * 0.55); height: calc(var(--gw, 132px) * 0.55); }
+  .v-bg-glyph:nth-child(n + 5) { display: none; }
+  .v-dynamic-bg__scrim { opacity: 0.68; }
+}
+@media (max-width: 480px) {
+  .v-bg-glyph:nth-child(n + 4) { display: none; }
+  .v-dynamic-bg__scrim { opacity: 0.78; }
+}
+
+/* Coarse pointer / battery saver: keep the mesh, drop the field. */
+@media (update: slow) {
+  .v-bg-glyph { animation: none; }
 }

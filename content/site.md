@@ -81,10 +81,116 @@ label = "Celebrity Partnerships"
 
 ## Background
 
+Whole-site ambient field. Two layers: a gradient mesh (`mesh`) and floating
+service glyphs (`show_glyphs`). Everything is clamped in `config.rs`, so a
+mistyped value here can never flood the page or strobe a visitor.
+`intensity` is the master ceiling; `glyph_opacity` is the glyph layer's share
+of it. All values are validated by unit tests in `velvet-ui/src/config.rs`.
+
 ```toml
 [background]
-enabled   = true
-intensity = 80
+enabled       = true
+intensity     = 90    # 0..=100 — master ceiling for every layer
+mesh          = true  # drifting crimson spotlights + stage beam
+show_glyphs   = true  # floating service icons
+glyph_opacity = 60    # glyph share of intensity (0..=100)
+glyph_duration = 30   # base drift cycle, seconds; per-glyph `rate` scales it
+
+# The glyphs name the work: photography, venue, talent, parties, creators.
+# tone  → crimson | violet | sky | citron
+# x, y  → viewport percentage placement
+# size  → px (40..420), rate → cycle multiplier, delay → phase offset (s)
+# spin  → rotation amplitude in degrees (clamped ±45)
+
+[[background.glyphs]]
+icon = "camera"
+tone = "crimson"
+x = 8
+y = 30
+size = 250
+rate = 1.0
+delay = 0.0
+spin = 8.0
+
+[[background.glyphs]]
+icon = "venue"
+tone = "violet"
+x = 84
+y = 22
+size = 215
+rate = 1.25
+delay = -6.0
+spin = -6.0
+
+[[background.glyphs]]
+icon = "talent"
+tone = "sky"
+x = 76
+y = 68
+size = 235
+rate = 0.9
+delay = -12.0
+spin = 5.0
+
+[[background.glyphs]]
+icon = "grand-party"
+tone = "citron"
+x = 18
+y = 74
+size = 225
+rate = 1.15
+delay = -18.0
+spin = -8.0
+
+[[background.glyphs]]
+icon = "creator"
+tone = "violet"
+x = 46
+y = 12
+size = 190
+rate = 1.4
+delay = -9.0
+spin = 7.0
+
+[[background.glyphs]]
+icon = "clapper"
+tone = "sky"
+x = 58
+y = 84
+size = 205
+rate = 1.05
+delay = -15.0
+spin = -5.0
+
+[[background.glyphs]]
+icon = "lens"
+tone = "crimson"
+x = 30
+y = 46
+size = 170
+rate = 1.6
+delay = -3.0
+spin = 10.0
+
+[[background.glyphs]]
+icon = "spotlight"
+tone = "citron"
+x = 92
+y = 52
+size = 180
+rate = 0.85
+delay = -21.0
+spin = -4.0
+
+[[background.glyphs]]
+icon = "aperture"
+tone = "crimson"
+x = 68
+y = 40
+size = 160
+rate = 1.3
+delay = -11.0
+spin = 12.0
 ```
 
 ## Services
@@ -128,8 +234,16 @@ title  = "Venue"
 body   = "Our colocation space for podcasts, with a full suite for hosting small meetings, co-working sessions and shooting short films."
 [[services.items]]
 num    = "09"
-title  = "Gift Card Solution"
-body   = "End-to-end generation and lifecycle management of custom coupons and gift cards."
+title  = "Corporate Gifting"
+body   = "End-to-end corporate gifting — custom coupons, gift cards and curated hampers, from design to lifecycle management."
+[[services.items]]
+num    = "10"
+title  = "Video Editing"
+body   = "Post-production craft — edits, colour, sound and motion graphics that turn raw footage into stories worth watching."
+[[services.items]]
+num    = "11"
+title  = "Podcast Production"
+body   = "Full-stack podcast production — studio, recording, editing and distribution under one roof."
 ```
 
 ## Story
@@ -354,7 +468,7 @@ links = [
   { label = "Celebrity Management", href = "#" },
   { label = "Influencer Campaigns", href = "#" },
   { label = "Custom Branding", href = "#" },
-  { label = "Gift Card Solutions", href = "#" },
+  { label = "Corporate Gifting", href = "#" },
 ]
 [[footer.columns]]
 title = "Company"

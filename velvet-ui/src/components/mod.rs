@@ -12,7 +12,6 @@ pub mod icons;
 pub mod loader;
 pub mod markdown_renderer;
 pub mod mobile_nav;
-pub mod next_hint;
 pub mod process_panel;
 pub mod scroll_progress;
 pub mod section_dots;

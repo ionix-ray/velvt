@@ -1,6 +1,6 @@
 //! Top bar — fixed brand + menu toggle + theme toggle.
 
-use crate::theme::brand::brand_mark;
+use crate::theme::wordmark::Wordmark;
 use dioxus::prelude::*;
 
 #[component]
@@ -9,9 +9,13 @@ pub fn TopBar(menu_open: Signal<bool>, theme: Signal<String>) -> Element {
 
     rsx! {
         header { class: "v-topbar", id: "topbar",
-            div { class: "v-topbar__brand",
+            a {
+                class: "v-topbar__brand",
+                href: "/",
+                "data-spa": "true",
+                aria_label: "Velvt — home",
                 div { class: "v-logo-wrap",
-                    img { src: brand_mark(), alt: "VELVT" }
+                    Wordmark { class: "v-logo-svg".to_string(), title: None }
                     div { class: "v-logo-sheen", "aria-hidden": "true" }
                 }
             }

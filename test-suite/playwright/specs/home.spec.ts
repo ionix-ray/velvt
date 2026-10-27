@@ -32,9 +32,12 @@ test("home: hero renders transparent animated SVG logo over dynamic background",
   await expect(wrapper).toBeVisible();
 
   // Transparent SVG wordmark is the hero visual (page bg shows through).
-  const logo = page.locator("img.v-hero__logo-svg");
+  const logo = page.locator("svg.v-hero__logo-svg");
   await expect(logo).toBeVisible();
-  await expect(logo).toHaveAttribute("src", /velvt-logo\.svg/);
+  const heroMark = await logo.evaluate(
+    (el) => el.querySelector("image")?.getAttribute("href") ?? "",
+  );
+  expect(heroMark).toContain("velvet-mark");
   const bg = await logo.evaluate((el) => getComputedStyle(el).backgroundColor);
   expect(bg).toMatch(/rgba?\(0,\s*0,\s*0,\s*0\)|transparent/);
 
@@ -44,6 +47,16 @@ test("home: hero renders transparent animated SVG logo over dynamic background",
   await expect(dyn).toHaveAttribute("aria-hidden", "true");
   await expect(page.locator(".v-bg-video__media")).toHaveCount(0);
   await expect(page.locator("video.v-bg-video__media")).toHaveCount(0);
+
+  // Ambient glyph field on desktop: at least five service glyphs, one sky-toned.
+  const glyphs = page.locator(".v-dynamic-bg__glyphs .v-bg-glyph");
+  expect(await glyphs.count()).toBeGreaterThanOrEqual(5);
+  expect(
+    await page.locator(".v-dynamic-bg__glyphs .v-bg-glyph--sky").count(),
+  ).toBeGreaterThan(0);
+
+  // Legibility scrim sits between the field and page content (aria-hidden).
+  await expect(page.locator(".v-dynamic-bg__scrim")).toBeAttached();
 });
 
 test("topbar: theme toggle flips html[data-theme]", async ({ page }) => {
@@ -189,9 +202,12 @@ test("scroll: panels container has smooth scroll-behavior", async ({ page }) => 
 
 test("brand: logo renders in topbar", async ({ page }) => {
   await page.goto("/");
-  const logo = page.locator(".v-topbar__brand img");
+  const logo = page.locator(".v-topbar__brand svg.v-logo-svg");
   await expect(logo).toBeVisible();
-  await expect(logo).toHaveAttribute("alt", "VELVT");
+  await expect(logo).toHaveAttribute("aria-label", "Velvt");
+  // Wordmark colour comes from the --wordmark token, never default black.
+  const colour = await logo.evaluate((el) => getComputedStyle(el).color);
+  expect(colour).not.toBe("rgb(0, 0, 0)");
 });
 
 test("brand: logo is NOT in hero content but in loader with animation", async ({ page }) => {
@@ -201,7 +217,7 @@ test("brand: logo is NOT in hero content but in loader with animation", async ({
 
   const logo = page.locator(".v-loader__logo");
   await expect(logo).toBeVisible({ timeout: 6000 });
-  await expect(logo).toHaveAttribute("alt", "VELVT");
+  await expect(logo).toHaveAttribute("aria-label", "Velvt");
   await expect(logo).toHaveCSS("animation-name", /v-loader-logo/);
 });
 
@@ -219,35 +235,36 @@ test("ui: glassmorphism cards and green tags render", async ({ page }) => {
   await expect(cta).toBeAttached();
 });
 
-test("brand: floating badge anchored top-left and overflows the topbar strip", async ({ page }) => {
+test("brand: lockup anchored top-left and vertically centred on the topbar strip", async ({ page }) => {
   await page.goto("/");
   const topbar = page.locator(".v-topbar");
   const brand = topbar.locator(".v-topbar__brand");
-  const logo = brand.locator("img");
+  const logo = brand.locator("svg.v-logo-svg");
 
   await expect(topbar).toBeVisible();
   await expect(brand).toBeVisible();
   await expect(logo).toBeVisible();
-  await expect(logo).toHaveAttribute("alt", "VELVT");
+  await expect(logo).toHaveAttribute("aria-label", "Velvt");
 
   const topbarBox = await topbar.boundingBox();
   const brandBox = await brand.boundingBox();
+  const logoBox = await logo.boundingBox();
   expect(topbarBox).not.toBeNull();
   expect(brandBox).not.toBeNull();
+  expect(logoBox).not.toBeNull();
 
-  if (topbarBox && brandBox) {
-    // Anchored near the top-left corner with a small breathing inset.
+  if (topbarBox && brandBox && logoBox) {
+    // Anchored near the left edge of the strip with a small breathing inset.
     expect(brandBox.x).toBeGreaterThanOrEqual(topbarBox.x);
     expect(brandBox.x - topbarBox.x).toBeLessThanOrEqual(20);
-    expect(brandBox.y).toBeGreaterThanOrEqual(topbarBox.y);
-    expect(brandBox.y - topbarBox.y).toBeLessThanOrEqual(20);
-    // Square mark.
-    expect(Math.abs(brandBox.width - brandBox.height)).toBeLessThanOrEqual(1);
-    // Badge overflows below the topbar strip — the strip's bottom border
-    // re-emerges to the right of the badge.
-    expect(brandBox.y + brandBox.height).toBeGreaterThan(
-      topbarBox.y + topbarBox.height,
-    );
+    // Vertically centred on the strip — no square badge overhang below it.
+    const brandCentre = brandBox.y + brandBox.height / 2;
+    const topbarCentre = topbarBox.y + topbarBox.height / 2;
+    expect(Math.abs(brandCentre - topbarCentre)).toBeLessThanOrEqual(2);
+    // Wide lockup (intrinsic 874:344 ≈ 2.54), never a square mark.
+    const ratio = logoBox.width / logoBox.height;
+    expect(ratio).toBeGreaterThanOrEqual(2.3);
+    expect(ratio).toBeLessThanOrEqual(2.8);
   }
 
   // Sharp corners, not pill-rounded.
@@ -257,26 +274,33 @@ test("brand: floating badge anchored top-left and overflows the topbar strip", a
   expect(radius).toBeLessThanOrEqual(2);
 });
 
-test("brand: floating badge scales across desktop, tablet, and phone viewports", async ({ page }) => {
+test("brand: lockup scales across desktop, tablet, and phone viewports", async ({ page }) => {
   const viewports = [
-    { name: "desktop", w: 1440, h: 900, minSide: 86, maxSide: 108 },
-    { name: "tablet", w: 768, h: 1024, minSide: 56, maxSide: 66 },
-    { name: "phone", w: 380, h: 720, minSide: 48, maxSide: 58 },
+    { name: "desktop", w: 1440, h: 900, minWidth: 112, maxWidth: 176 },
+    { name: "tablet", w: 768, h: 1024, minWidth: 120, maxWidth: 144 },
+    { name: "phone", w: 380, h: 720, minWidth: 100, maxWidth: 124 },
   ] as const;
 
   for (const v of viewports) {
     await page.setViewportSize({ width: v.w, height: v.h });
     await page.goto("/");
     const brand = page.locator(".v-topbar__brand");
+    const logo = brand.locator("svg.v-logo-svg");
     const actions = page.locator(".v-topbar__actions");
     await expect(brand).toBeVisible();
     const brandBox = await brand.boundingBox();
+    const logoBox = await logo.boundingBox();
     const actionsBox = await actions.boundingBox();
     expect(brandBox, `brand box on ${v.name}`).not.toBeNull();
+    expect(logoBox, `logo box on ${v.name}`).not.toBeNull();
     expect(actionsBox, `actions box on ${v.name}`).not.toBeNull();
-    if (brandBox && actionsBox) {
-      expect(brandBox.width).toBeGreaterThanOrEqual(v.minSide);
-      expect(brandBox.width).toBeLessThanOrEqual(v.maxSide);
+    if (brandBox && logoBox && actionsBox) {
+      expect(brandBox.width, `brand width on ${v.name}`).toBeGreaterThanOrEqual(v.minWidth);
+      expect(brandBox.width, `brand width on ${v.name}`).toBeLessThanOrEqual(v.maxWidth);
+      // Lockup keeps its intrinsic wide ratio at every size — never square.
+      const ratio = logoBox.width / logoBox.height;
+      expect(ratio, `brand ratio on ${v.name}`).toBeGreaterThanOrEqual(2.3);
+      expect(ratio, `brand ratio on ${v.name}`).toBeLessThanOrEqual(2.8);
       // Actions cluster never collides with the badge.
       expect(actionsBox.x).toBeGreaterThan(brandBox.x + brandBox.width);
       // Actions cluster sits inside the viewport.
@@ -287,24 +311,28 @@ test("brand: floating badge scales across desktop, tablet, and phone viewports",
 
 test("brand: topbar and stacked navigation share the same brand mark", async ({ page }) => {
   await page.goto("/");
-  const topbarLogo = page.locator(".v-topbar__brand img");
+  const topbarLogo = page.locator(".v-topbar__brand svg.v-logo-svg");
   const menuBtn = page.locator(".v-topbar__menu-btn");
   await menuBtn.click();
-  const navLogo = page.locator(".v-stack-nav__brand img");
+  const navLogo = page.locator(".v-stack-nav__brand svg.v-logo-svg");
 
-  const topbarSrc = await topbarLogo.getAttribute("src");
-  const navSrc = await navLogo.getAttribute("src");
-  expect(topbarSrc).toBe(navSrc);
-  expect(topbarSrc).toContain("velvet-mark");
+  const topbarMark = await topbarLogo.evaluate(
+    (el) => el.querySelector("image")?.getAttribute("href") ?? "",
+  );
+  const navMark = await navLogo.evaluate(
+    (el) => el.querySelector("image")?.getAttribute("href") ?? "",
+  );
+  expect(topbarMark).toBe(navMark);
+  expect(topbarMark).toContain("velvet-mark");
 });
 
 test("brand: logo renders in stacked navigation", async ({ page }) => {
   await page.goto("/");
   const menuBtn = page.locator(".v-topbar__menu-btn");
   await menuBtn.click();
-  const logo = page.locator(".v-stack-nav__brand img");
+  const logo = page.locator(".v-stack-nav__brand svg.v-logo-svg");
   await expect(logo).toBeVisible();
-  await expect(logo).toHaveAttribute("alt", "VELVT");
+  await expect(logo).toHaveAttribute("aria-label", "Velvt");
 });
 
 // ── Footer panel (7th scroll panel) ─────────────────────────────────────────
@@ -343,8 +371,11 @@ test("footer: renders the real brand logo in the standard footer block", async (
 
   const logo = page.locator(".v-footer-panel__wordmark");
   await expect(logo).toBeVisible();
-  await expect(logo).toHaveAttribute("alt", /Velvt/i);
-  await expect(logo).toHaveAttribute("src", /velvet-mark/);
+  await expect(logo).toHaveAttribute("aria-label", /Velvt/i);
+  const mark = await logo.evaluate(
+    (el) => el.querySelector("image")?.getAttribute("href") ?? "",
+  );
+  expect(mark).toContain("velvet-mark");
 });
 
 // ── Social strip (all panels except last) ────────────────────────────────────
@@ -372,11 +403,11 @@ test("social-strip: hidden (aria-hidden) on footer panel", async ({ page }) => {
   await expect(strip).toHaveClass(/v-social-strip--hidden/);
 });
 
-// ── Brand badge (oversized square mark, pinned top-left) ────────────────────
+// ── Brand lockup (wide inline-SVG mark, centred on the topbar strip) ─────────
 
 test("brand: topbar mark is inside the fixed header strip", async ({ page }) => {
   await page.goto("/");
-  const badge = page.locator(".v-topbar__brand img");
+  const badge = page.locator(".v-topbar__brand svg.v-logo-svg");
   const brand = page.locator(".v-topbar__brand");
   await expect(badge).toBeVisible();
 
@@ -396,7 +427,7 @@ test("brand: topbar mark is inside the fixed header strip", async ({ page }) => 
 test("brand: topbar actions cluster stays clear of the brand badge", async ({ page }) => {
   await page.goto("/");
   await page.waitForSelector(".v-loader", { state: "hidden" });
-  const badge = page.locator(".v-topbar__brand img");
+  const badge = page.locator(".v-topbar__brand svg.v-logo-svg");
   const actions = page.locator(".v-topbar__actions");
   const badgeBox = await badge.boundingBox();
   const actionsBox = await actions.boundingBox();
@@ -518,13 +549,13 @@ test("social-strip: still visible (not display:none) on mobile viewports", async
   expect(display).not.toBe("none");
 });
 
-// ── Loader: camera-iris entrance/exit ───────────────────────────────────────
+// ── Loader: clean cinematic entrance (iris rings removed by design) ─────────
 
-test("loader: three aperture blade rings and a flash render behind the mark while loading", async ({ page }) => {
+test("loader: intro is clean — no dark iris rings or flash behind the mark", async ({ page }) => {
   await page.goto("/");
-  const rings = page.locator(".v-loader__iris-ring");
-  await expect(rings).toHaveCount(3);
-  await expect(page.locator(".v-loader__iris-flash")).toBeAttached();
+  await expect(page.locator(".v-loader__iris")).toHaveCount(0);
+  await expect(page.locator(".v-loader__iris-ring")).toHaveCount(0);
+  await expect(page.locator(".v-loader__iris-flash")).toHaveCount(0);
 });
 
 test("loader: hides via clip-path collapse, not display:none, and stops blocking clicks", async ({ page }) => {
@@ -540,6 +571,55 @@ test("loader: hides via clip-path collapse, not display:none, and stops blocking
   await expect(loader).toHaveClass(/\bhidden\b/, { timeout: 10000 });
   const pointerEvents = await loader.evaluate((el) => getComputedStyle(el).pointerEvents);
   expect(pointerEvents).toBe("none");
+});
+
+// ── Loader: cinematic icon swarm — scope icons build the V logo ────────────
+
+test("loader: 13 colorful scope icons swarm in V formation around the mark", async ({ page }) => {
+  await page.goto("/");
+  const swarm = page.locator(".v-loader__swarm");
+  await expect(swarm).toBeAttached();
+  const icons = page.locator(".v-loader__swarm .v-loader__icon");
+  await expect(icons).toHaveCount(13);
+  for (const tone of ["crimson", "violet", "sky", "citron"]) {
+    expect(await page.locator(`.v-loader__icon--${tone}`).count()).toBeGreaterThanOrEqual(1);
+  }
+  // Official Carbon Design System glyph names — direct from @carbon/icons.
+  const names = await icons.evaluateAll((els) => els.map((el) => el.getAttribute("data-name")));
+  for (const n of ["camera", "microphone", "star--filled", "location--filled", "volume--up"]) {
+    expect(names).toContain(n);
+  }
+  const anim = await icons.first().evaluate((el) => getComputedStyle(el).animationName);
+  expect(anim).toBe("v-swarm-gather");
+  const pointer = await swarm.evaluate((el) => getComputedStyle(el).pointerEvents);
+  expect(pointer).toBe("none");
+});
+
+test("loader: swarm icons cover the full scope (mic, gift, video, megaphone)", async ({ page }) => {
+  await page.goto("/");
+  for (const name of ["mic", "gift", "video", "megaphone"]) {
+    await expect(page.locator(`.v-loader__icon[data-name="${name}"]`)).toHaveCount(1);
+  }
+});
+
+test("reduced-motion: loader icon swarm is hidden", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+  const swarm = page.locator(".v-loader__swarm");
+  await expect(swarm).toBeAttached();
+  const display = await swarm.evaluate((el) => getComputedStyle(el).display);
+  expect(display).toBe("none");
+});
+
+test("loader: revisit within session skips the full intro (fast hide)", async ({ page }) => {
+  await page.goto("/");
+  const loader = page.locator(".v-loader");
+  await expect(loader).toHaveClass(/\bhidden\b/, { timeout: 10000 });
+  // Second visit in the same session: intro is gated off — hidden well
+  // before the first-visit cinematic timeline (~2.6s) completes.
+  await page.reload();
+  await expect(loader).toHaveClass(/v-loader--revisit/);
+  await expect(loader).toHaveClass(/\bhidden\b/, { timeout: 1800 });
 });
 
 test("footer: services column reads Celebrity Management, not Celebrity Booking", async ({ page }) => {
@@ -1102,6 +1182,15 @@ test("animations: reduced-motion disables peek-in card animations", async ({ pag
   expect(parseFloat(animDuration)).toBeLessThanOrEqual(0.01);
 });
 
+test("reduced-motion: ambient glyph field is hidden", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+  const glyphs = page.locator(".v-dynamic-bg__glyphs");
+  await expect(glyphs).toBeAttached();
+  const display = await glyphs.evaluate((el) => getComputedStyle(el).display);
+  expect(display).toBe("none");
+});
+
 test("cards: all v-process__step and v-team-card have v-sparkle-border attached", async ({ page }) => {
   await page.goto("/");
   await page.waitForSelector(".v-loader", { state: "hidden" });
@@ -1123,7 +1212,7 @@ test("cards: all v-process__step and v-team-card have v-sparkle-border attached"
 test("ambient: fixed cinematic aurora layer sits behind panels", async ({ page }) => {
   await page.goto("/");
   await page.waitForSelector(".v-loader", { state: "hidden" });
-  await page.waitForSelector(".v-topbar__brand img");
+  await page.waitForSelector(".v-topbar__brand svg.v-logo-svg");
   const before = await page.evaluate(() => {
     const cs = getComputedStyle(document.body, "::before");
     return { position: cs.position, zIndex: cs.zIndex, background: cs.backgroundImage, animation: cs.animationName };
