@@ -3255,6 +3255,12 @@ button:focus-visible {
   .v-hero-3d-wrapper::before { animation: none !important; }
   .v-card-sheen,
   .v-btn--primary::after { display: none; }
+  /* Cinematic card sparkle border (rotate-border) — killed under reduced motion. */
+  .v-sparkle-border::before { animation: none !important; }
+  /* Cinematic-pan gradient mesh — killed under reduced motion. */
+  .v-cinematic-bg { animation: none !important; }
+  /* Hero badge pulse-dot — lands on a visible dot, no pulsing. */
+  .v-hero__badge-dot { animation: none !important; opacity: 1; }
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════

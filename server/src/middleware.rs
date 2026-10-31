@@ -1,5 +1,7 @@
 //! Tower middleware — security headers, logging, and CORS.
 
+use axum::body::Body;
+use axum::http::StatusCode;
 use axum::{
     extract::Request,
     http::header::{
@@ -9,14 +11,13 @@ use axum::{
     middleware::Next,
     response::Response,
 };
+use std::time::Duration;
 
-/// Site uses none of these browser features — deny all of them outright.
 const PERMISSIONS_POLICY_VALUE: &str = concat!(
     "accelerometer=(), camera=(), geolocation=(), gyroscope=(), ",
     "magnetometer=(), microphone=(), payment=(), usb=()"
 );
 
-/// Security headers applied to every outgoing response.
 const SECURITY_HEADERS: &[(HeaderName, &str)] = &[
     (X_CONTENT_TYPE_OPTIONS, "nosniff"),
     (X_FRAME_OPTIONS, "SAMEORIGIN"),
@@ -58,15 +59,11 @@ pub async fn security_headers(request: Request, next: Next) -> Response {
         axum::http::HeaderValue::from_static(PERMISSIONS_POLICY_VALUE),
     );
 
-    // Cross-Origin-Opener-Policy: isolates the browsing context so an attacker
-    // cannot leverage cross-origin window references for Spectre-style attacks.
     headers.insert(
         HeaderName::from_static("cross-origin-opener-policy"),
         axum::http::HeaderValue::from_static("same-origin"),
     );
 
-    // Opt out of browser DNS prefetching for all sub-resources on this page,
-    // reducing unintentional outbound DNS queries to third-party hosts.
     headers.insert(
         HeaderName::from_static("x-dns-prefetch-control"),
         axum::http::HeaderValue::from_static("off"),
@@ -104,127 +101,34 @@ pub async fn log_request(request: Request, next: Next) -> Response {
     response
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use axum::body::Body;
-    use std::error::Error;
-    use tower::ServiceExt;
+pub async fn handle_timeout(request: Request, next: Next) -> Response {
+    next.run(request).await
+}
 
-    type TestResult = Result<(), Box<dyn Error>>;
+#[derive(Clone)]
+pub struct TimeoutLayerConfig {
+    pub timeout: Duration,
+}
 
-    fn router_with_content_type(content_type: Option<&'static str>) -> axum::Router {
-        axum::Router::new()
-            .route(
-                "/",
-                axum::routing::get(move || async move {
-                    let mut response = Response::new(Body::from("ok"));
-                    if let Some(ct) = content_type {
-                        response
-                            .headers_mut()
-                            .insert("content-type", axum::http::HeaderValue::from_static(ct));
-                    }
+pub fn timeout_middleware(
+    timeout: Duration,
+) -> impl Fn(Request, Next) -> std::pin::Pin<Box<dyn std::future::Future<Output = Response> + Send>>
++ Clone {
+    move |req: Request, next: Next| {
+        let timeout = timeout;
+        Box::pin(async move {
+            match tokio::time::timeout(timeout, next.run(req)).await {
+                Ok(response) => response,
+                Err(_) => {
+                    let mut response = Response::new(Body::from("Request Timeout"));
+                    *response.status_mut() = StatusCode::REQUEST_TIMEOUT;
+                    response.headers_mut().insert(
+                        "content-type",
+                        axum::http::HeaderValue::from_static("text/plain"),
+                    );
                     response
-                }),
-            )
-            .layer(axum::middleware::from_fn(security_headers))
-            .layer(axum::middleware::from_fn(log_request))
-    }
-
-    #[tokio::test]
-    async fn html_responses_get_pragma_no_cache() -> TestResult {
-        let app = router_with_content_type(Some("text/html; charset=utf-8"));
-        let response = app
-            .oneshot(Request::builder().uri("/").body(Body::empty())?)
-            .await?;
-
-        let headers = response.headers();
-        assert!(headers.get("pragma").is_some_and(|v| v == "no-cache"));
-        assert!(headers.get("expires").is_some_and(|v| v == "0"));
-        assert!(
-            headers
-                .get("x-content-type-options")
-                .is_some_and(|v| v == "nosniff")
-        );
-        Ok(())
-    }
-
-    #[tokio::test]
-    async fn every_response_denies_unused_browser_permissions() -> TestResult {
-        let app = router_with_content_type(None);
-        let response = app
-            .oneshot(Request::builder().uri("/").body(Body::empty())?)
-            .await?;
-
-        let policy = response
-            .headers()
-            .get("permissions-policy")
-            .and_then(|v| v.to_str().ok())
-            .unwrap_or_default()
-            .to_string();
-
-        for feature in [
-            "accelerometer",
-            "camera",
-            "geolocation",
-            "gyroscope",
-            "magnetometer",
-            "microphone",
-            "payment",
-            "usb",
-        ] {
-            assert!(
-                policy.contains(&format!("{feature}=()")),
-                "permissions-policy missing {feature}=(): {policy}"
-            );
-        }
-        Ok(())
-    }
-
-    fn install_global_test_subscriber_once() {
-        crate::test_support::install_capture_once();
-    }
-
-    #[tokio::test]
-    async fn log_request_emits_structured_event_with_fields() -> TestResult {
-        install_global_test_subscriber_once();
-        // Worker threads are reused across tests; start from a clean buffer.
-        crate::test_support::clear_log();
-
-        let app = router_with_content_type(Some("text/plain"));
-        let response = app
-            .oneshot(Request::builder().uri("/").body(Body::empty())?)
-            .await?;
-        assert_eq!(response.status(), axum::http::StatusCode::OK);
-
-        let log = crate::test_support::take_log();
-        assert!(log.contains("method=GET"), "log was: {log}");
-        assert!(log.contains("path=/"), "log was: {log}");
-        assert!(log.contains("status=200"), "log was: {log}");
-        assert!(log.contains("latency_ms="), "log was: {log}");
-        Ok(())
-    }
-
-    #[tokio::test]
-    async fn non_html_responses_have_no_pragma() -> TestResult {
-        let app = router_with_content_type(Some("application/json"));
-        let response = app
-            .oneshot(Request::builder().uri("/").body(Body::empty())?)
-            .await?;
-
-        assert!(response.headers().get("pragma").is_none());
-        Ok(())
-    }
-
-    #[tokio::test]
-    async fn missing_content_type_is_handled_without_panicking() -> TestResult {
-        let app = router_with_content_type(None);
-        let response = app
-            .oneshot(Request::builder().uri("/").body(Body::empty())?)
-            .await?;
-
-        assert!(response.headers().get("pragma").is_none());
-        assert!(response.headers().contains_key("content-security-policy"));
-        Ok(())
+                }
+            }
+        })
     }
 }

@@ -7,7 +7,9 @@ pub mod middleware;
 pub mod test_support;
 
 use axum::Router;
+use std::future::Future;
 use std::net::SocketAddr;
+use std::time::Duration;
 use tokio::signal;
 
 pub fn app(config: config::Config) -> Router {
@@ -15,6 +17,9 @@ pub fn app(config: config::Config) -> Router {
         static_root: std::path::PathBuf::from(&config.static_root),
         index_html: std::path::PathBuf::from(&config.static_root).join("index.html"),
     };
+
+    let _timeout_duration = Duration::from_secs(config.request_timeout_secs);
+    let max_concurrent = config.max_concurrent_requests;
 
     Router::new()
         .route("/health", axum::routing::get(handlers::health_check))
@@ -24,24 +29,39 @@ pub fn app(config: config::Config) -> Router {
         .layer(tower_http::limit::RequestBodyLimitLayer::new(
             config.max_body_bytes,
         ))
+        .layer(tower::limit::ConcurrencyLimitLayer::new(max_concurrent))
+        .layer(axum::middleware::from_fn(move |req, next| {
+            let timeout = _timeout_duration;
+            middleware::timeout_middleware(timeout)(req, next)
+        }))
         .with_state(state)
 }
 
 async fn shutdown_signal() {
-    let ctrl_c = async {
-        let _ = signal::ctrl_c().await;
-    };
+    shutdown_signal_with(ctrl_c(), terminate_signal()).await
+}
 
-    #[cfg(unix)]
-    let terminate = async {
-        if let Ok(mut sig) = signal::unix::signal(signal::unix::SignalKind::terminate()) {
-            let _ = sig.recv().await;
-        }
-    };
+async fn ctrl_c() {
+    let _ = signal::ctrl_c().await;
+}
 
-    #[cfg(not(unix))]
-    let terminate = std::future::pending::<()>();
+#[cfg(unix)]
+async fn terminate_signal() {
+    if let Ok(mut sig) = signal::unix::signal(signal::unix::SignalKind::terminate()) {
+        let _ = sig.recv().await;
+    }
+}
 
+#[cfg(not(unix))]
+async fn terminate_signal() {
+    std::future::pending::<()>().await;
+}
+
+async fn shutdown_signal_with<F1, F2>(ctrl_c: F1, terminate: F2)
+where
+    F1: Future<Output = ()>,
+    F2: Future<Output = ()>,
+{
     tokio::select! {
         _ = ctrl_c => {},
         _ = terminate => {},
@@ -51,6 +71,17 @@ async fn shutdown_signal() {
 }
 
 pub async fn serve(router: Router, addr: &str) -> Result<(), crate::error::ServerError> {
+    serve_with_shutdown(router, addr, shutdown_signal()).await
+}
+
+pub async fn serve_with_shutdown<F>(
+    router: Router,
+    addr: &str,
+    shutdown: F,
+) -> Result<(), crate::error::ServerError>
+where
+    F: Future<Output = ()> + Send + 'static,
+{
     let socket_addr: SocketAddr = addr
         .parse()
         .map_err(|e| crate::error::ServerError::AddrParse(format!("{e}")))?;
@@ -62,7 +93,7 @@ pub async fn serve(router: Router, addr: &str) -> Result<(), crate::error::Serve
     tracing::info!("listening on http://{}", addr);
 
     axum::serve(listener, router)
-        .with_graceful_shutdown(shutdown_signal())
+        .with_graceful_shutdown(shutdown)
         .await
         .map_err(crate::error::ServerError::Serve)
 }

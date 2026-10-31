@@ -479,3 +479,5 @@ Key findings carried into `docs/ROADMAP.md` + `docs/features/*.feature`:
 - Push coverage ≥90% (add targeted SSR/unit tests for uncovered components/routes)
 - Address remaining S5/S6/S7 TODO items as needed
 - Final reconciliation of TASKS/PROGRESS/ROADMAP
+
+- S7 verified: gitignore correct, CI workflows gated, coverage job present, tracked junk removed; docs updated (TASKS/STATE).

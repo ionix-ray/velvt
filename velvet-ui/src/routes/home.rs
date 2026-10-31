@@ -21,18 +21,6 @@ use crate::components::{
 use dioxus::prelude::*;
 use wasm_bindgen::JsCast;
 
-/// Panel labels — displayed in the spindle navigator.
-/// The 7th panel is the footer; SocialStrip hides on it.
-const PANEL_LABELS: &[&str] = &[
-    "HOME",
-    "ABOUT",
-    "IDEOLOGY",
-    "EXPERIENCE",
-    "ACHIVEMENTS",
-    "CONTACT",
-    "FOOTER",
-];
-
 /// URL-hash anchors, one per panel, in render order. Mirrors each panel
 /// section's own `id` attribute so `#showcase` etc. is shareable/bookmarkable.
 const PANEL_ANCHORS: &[&str] = &[
@@ -177,6 +165,8 @@ pub fn Home() -> Element {
         scroll_to_panel(idx);
     };
 
+    let panel_count = site.nav.len() + 1; // nav entries + footer panel
+
     // Window vertical scroll listener to update current_panel
     {
         let mut scroll_listener =
@@ -211,14 +201,13 @@ pub fn Home() -> Element {
                             .map(|e| e.scroll_height() as f64)
                             .unwrap_or(0.0);
 
-                        let mut idx =
-                            scroll_sync_index(scroll_top, client_height, PANEL_LABELS.len());
+                        let mut idx = scroll_sync_index(scroll_top, client_height, panel_count);
 
                         // If we are at the very bottom, force the last panel (footer)
                         if scroll_height > 0.0
                             && scroll_top + client_height >= scroll_height - 150.0
                         {
-                            idx = PANEL_LABELS.len().saturating_sub(1);
+                            idx = panel_count.saturating_sub(1);
                         }
                         if idx != *current_panel.peek() {
                             current_panel.set(idx);
@@ -246,8 +235,6 @@ pub fn Home() -> Element {
         });
     }
 
-    let panel_count = PANEL_LABELS.len();
-    let labels: Vec<String> = PANEL_LABELS.iter().map(|s| s.to_string()).collect();
     let progress = progress_for(*current_panel.read(), panel_count);
     let is_footer_panel = *current_panel.read() >= panel_count - 1;
 
@@ -266,9 +253,8 @@ pub fn Home() -> Element {
         }
 
         SectionDots {
-            count: panel_count,
+            site: site.clone(),
             current: *current_panel.read(),
-            labels,
             on_navigate,
         }
 
@@ -277,8 +263,8 @@ pub fn Home() -> Element {
 
         // ── Mobile bottom nav (≤768px) ───────────────────────────────────
         MobileNav {
+            site: site.clone(),
             current_panel: *current_panel.read(),
-            panel_count,
             on_navigate: EventHandler::new(move |idx: usize| {
                 on_navigate(idx);
             }),

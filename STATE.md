@@ -28,7 +28,7 @@
 
 ## Boot restate (2026-10-25)
 - confirmed: user "go now" — full hardening + docs + fan-out authorized; k6/load-test excluded by user; RPC/broker excluded (no async workload).
-- current task: enterprise hardening pass — audit done, feature files + ROADMAP + sprints S4-S8 written, 4 background agents implementing S4/S5/S6/S7.
+- current task: enterprise hardening pass — S7 repo hygiene & gating CI verified (gitignore, CI gating, coverage job, tracked junk removed); docs updated.
 - next 1: collect agent results (server hardening, UI fixes + hex-ui card port, hygiene/CI, compliance matrix); strip any k6 artifacts written by agent A.
 - next 2: run gates myself — `just lint`, `just test`, `just coverage` (≥90%), `just build` (WASM ≤1.5 MB gz, theme.css ≤40 KB gz), targeted Playwright.
 - next 3: reconcile ROADMAP/TASKS/PROGRESS statuses to final, apply S5-08 justfile theme.css sync, report findings + social-config answer to user.

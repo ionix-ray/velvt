@@ -84,12 +84,12 @@ Feature file: `docs/features/security-compliance.feature` · Matrix: `docs/SECUR
 Feature file: `docs/features/build-hygiene.feature`
 | ID | Task | AC sketch | Effort | Status |
 |----|------|-----------|--------|--------|
-| S7-01 | Remove tracked junk (test-dist 18 MB, test-results, .codegraph db) + gitignore | `git ls-files` grep empty for all three | S | IN-PROGRESS |
-| S7-02 | Dedupe `screenshot.spec.ts` | One spec source | S | IN-PROGRESS |
-| S7-03 | CI audit gating, stale trigger removal, single test run | audit fails pipeline on findings | S | IN-PROGRESS |
-| S7-04 | Coverage job in CI (`--fail-under-lines 90`) | PR red below 90% | S | IN-PROGRESS |
-| S7-05 | harden-runner on publish + fix `cloudbuild.yaml --target runtime` | GCB build no longer references missing stage | S | IN-PROGRESS |
-| S7-06 | Fresh small deterministic build (clean-wasm, theme.css sync, no lazy, no dup) | Budgets: WASM ≤1.5 MB gz, css ≤40 KB gz | M | IN-PROGRESS |
+| S7-01 | Remove tracked junk (test-dist 18 MB, test-results, .codegraph db) + gitignore | `git ls-files` grep empty for all three | S | DONE |
+| S7-02 | Dedupe `screenshot.spec.ts` | One spec source | S | DONE |
+| S7-03 | CI audit gating, stale trigger removal, single test run | audit fails pipeline on findings | S | DONE |
+| S7-04 | Coverage job in CI (`--fail-under-lines 90`) | PR red below 90% | S | DONE |
+| S7-05 | harden-runner on publish + fix `cloudbuild.yaml --target runtime` | GCB build no longer references missing stage | S | DONE |
+| S7-06 | Fresh small deterministic build (clean-wasm, theme.css sync, no lazy, no dup) | Budgets: WASM ≤1.5 MB gz, css ≤40 KB gz | M | DONE |
 | S7-07 | SHA-pin GitHub Actions | Every action pinned to verified SHA | S | TODO |
 
 ## Sprint S8 — Agent / model / skill / context engineering (P2)

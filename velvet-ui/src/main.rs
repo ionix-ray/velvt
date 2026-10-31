@@ -21,6 +21,7 @@ fn App() -> Element {
     // Install reveal observer + SPA link interceptor after first render.
     use_effect(move || {
         let _ = scroll::install_reveal();
+        scroll::rescan_reveals(); // re-scan for reveal targets mounted after observer install
         let _ = spa::install_spa_link_interceptor();
     });
 
