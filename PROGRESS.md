@@ -456,3 +456,26 @@ Key findings carried into `docs/ROADMAP.md` + `docs/features/*.feature`:
   files will ship.
 - RPC/broker: OUT — no async workload exists; revisit only if dynamic backend
   lands (ROADMAP "Explicitly out of scope").
+
+## 2026-10-27 (current session)
+
+### Completed
+1. **Fan-out completion & stabilization**
+   - Resumed fan-out from interrupted state: verified staged deletions of tracked junk (test-dist/, .codegraph/, test-results/, duplicate screenshot.spec.ts) per S7-01/S7-02
+   - CI workflows updated (S7-03): removed `|| true` from cargo audit in pr-gate/deploy, collapsed triple test to single `cargo test --workspace --no-fail-fast`, removed stale `refactor/production-grade` trigger, added coverage gate job with `--fail-under-lines 90`
+   - publish-container.yml (S7-05): added step-security/harden-runner, persist-credentials false
+   - cloudbuild.yaml (S7-05): removed `--target runtime` reference
+   - justfile (S7-06): confirmed `clean-wasm` + theme.css sync in build flow; `coverage` gate added
+   - .gitignore (S7-01): added `/test-dist`, `/test-results`, `/.codegraph`, graft/, db journals
+   - Server config fixed: `Config` index_path/index_html logic aligned to tests (empty default with derivation; correct precedence across CLI/env/file); all server tests pass
+   - Gates: `just lint` clean, `just test` 43 tests pass (velvet-ui/velvet-server), `just build` succeeds (WASM 474KB gz, theme.css 71KB), `just coverage` 87.01% lines (floor 90% — needs additional coverage on low-coverage UI modules)
+   - Knowledge graph rebuilt with `graft build` (621 nodes, 352 edges)
+
+### In progress
+- Coverage gap to reach ≥90% (velvet-ui low-coverage: routes/home.rs, routes/case_study.rs, components/*, spa.rs)
+- E2E tests running (Playwright) — 323 test results seen, some failures visible in earlier logs
+
+### Next
+- Push coverage ≥90% (add targeted SSR/unit tests for uncovered components/routes)
+- Address remaining S5/S6/S7 TODO items as needed
+- Final reconciliation of TASKS/PROGRESS/ROADMAP

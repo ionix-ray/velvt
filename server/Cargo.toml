@@ -9,7 +9,7 @@ license      = "MIT"
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "fs", "signal", "sync", "time"] }
 axum = "0.7"
 tower = { version = "0.4", features = ["timeout", "limit"] }
-tower-http = { version = "0.5", features = ["fs", "trace", "cors"] }
+tower-http = { version = "0.5", features = ["fs", "trace", "cors", "limit"] }
 tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
 serde = { version = "1", features = ["derive"] }
@@ -21,3 +21,4 @@ http-body-util = "0.1"
 
 [lints]
 workspace = true
+

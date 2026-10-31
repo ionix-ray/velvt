@@ -4,10 +4,11 @@ pub mod handlers;
 pub mod middleware;
 
 #[cfg(test)]
-mod test_support;
+pub mod test_support;
 
 use axum::Router;
 use std::net::SocketAddr;
+use tokio::signal;
 
 pub fn app(config: config::Config) -> Router {
     let state = handlers::AppState {
@@ -20,7 +21,33 @@ pub fn app(config: config::Config) -> Router {
         .fallback(axum::routing::get(handlers::serve_request))
         .layer(axum::middleware::from_fn(middleware::security_headers))
         .layer(axum::middleware::from_fn(middleware::log_request))
+        .layer(tower_http::limit::RequestBodyLimitLayer::new(
+            config.max_body_bytes,
+        ))
         .with_state(state)
+}
+
+async fn shutdown_signal() {
+    let ctrl_c = async {
+        let _ = signal::ctrl_c().await;
+    };
+
+    #[cfg(unix)]
+    let terminate = async {
+        if let Ok(mut sig) = signal::unix::signal(signal::unix::SignalKind::terminate()) {
+            let _ = sig.recv().await;
+        }
+    };
+
+    #[cfg(not(unix))]
+    let terminate = std::future::pending::<()>();
+
+    tokio::select! {
+        _ = ctrl_c => {},
+        _ = terminate => {},
+    }
+
+    tracing::info!("shutdown signal received");
 }
 
 pub async fn serve(router: Router, addr: &str) -> Result<(), crate::error::ServerError> {
@@ -35,6 +62,7 @@ pub async fn serve(router: Router, addr: &str) -> Result<(), crate::error::Serve
     tracing::info!("listening on http://{}", addr);
 
     axum::serve(listener, router)
+        .with_graceful_shutdown(shutdown_signal())
         .await
         .map_err(crate::error::ServerError::Serve)
 }
