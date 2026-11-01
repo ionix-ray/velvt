@@ -276,6 +276,19 @@ mod tests {
         );
     }
 
+    #[component]
+    fn WrapRevisit() -> Element {
+        rsx! {
+            Loader { hidden: false, revisit: true }
+        }
+    }
+
+    #[test]
+    fn revisit_loader_carries_revisit_modifier() {
+        let html = render(WrapRevisit);
+        assert!(html.contains("v-loader--revisit"));
+    }
+
     #[test]
     fn hidden_loader_carries_the_hidden_modifier() {
         let html = render(WrapHidden);

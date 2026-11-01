@@ -595,6 +595,21 @@ mod tests {
     }
 
     #[test]
+    fn site_md_process_and_studio_have_entries_with_cultural_assets() {
+        let site = Site::load();
+        assert_eq!(site.process.steps.len(), 5);
+        for step in &site.process.steps {
+            assert!(!step.title.is_empty());
+            assert!(step.image.is_some());
+        }
+        assert_eq!(site.studio.items.len(), 7);
+        for item in &site.studio.items {
+            assert!(!item.title.is_empty());
+            assert!(item.image.is_some());
+        }
+    }
+
+    #[test]
     fn parse_or_default_falls_back_on_malformed_toml() {
         let site = parse_or_default("this is not valid toml {{{");
         assert_eq!(site, Site::default());
@@ -638,5 +653,37 @@ mod tests {
                 }
             }
         }
+    }
+
+    #[test]
+    fn background_alpha_and_glyph_clamps() {
+        assert_eq!(background_alpha(80), 0.8);
+        assert_eq!(background_alpha(150), 1.0);
+        assert!((glyph_alpha(80, 30) - 0.24).abs() < 1e-4);
+        assert_eq!(glyph_percent(50), 50.0);
+        assert_eq!(glyph_percent(150), 100.0);
+        assert_eq!(glyph_duration(26, 1.0), 26.0);
+        assert_eq!(glyph_duration(26, -1.0), 26.0);
+        assert_eq!(glyph_duration(26, f32::NAN), 26.0);
+        assert_eq!(glyph_size(10), 40.0);
+        assert_eq!(glyph_size(500), 420.0);
+        assert_eq!(glyph_spin(10.0), 10.0);
+        assert_eq!(glyph_spin(100.0), 45.0);
+        assert_eq!(glyph_spin(f32::NAN), default_rot());
+        assert_eq!(glyph_delay(-10.0), -10.0);
+        assert_eq!(glyph_delay(-300.0), -240.0);
+        assert_eq!(glyph_delay(10.0), 0.0);
+        assert_eq!(glyph_delay(f32::NAN), 0.0);
+    }
+
+    #[test]
+    fn defaults_return_expected_values() {
+        assert!(default_true());
+        assert_eq!(default_intensity(), 80);
+        assert_eq!(default_glyph_opacity(), 30);
+        assert_eq!(default_glyph_duration(), 26);
+        assert_eq!(default_glyph_size(), 132);
+        assert_eq!(default_one_f32(), 1.0);
+        assert_eq!(default_rot(), 6.0);
     }
 }

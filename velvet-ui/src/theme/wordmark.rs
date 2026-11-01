@@ -125,6 +125,34 @@ mod tests {
         }
     }
 
+    #[component]
+    fn WrapWordmarkNoTitle() -> Element {
+        rsx! {
+            Wordmark {
+                class: "v-wordmark--default".to_string(),
+                title: None,
+            }
+        }
+    }
+
+    #[component]
+    fn WrapEmblemNoTitle() -> Element {
+        rsx! {
+            Emblem {
+                class: "v-emblem--default".to_string(),
+                title: None,
+            }
+        }
+    }
+
+    #[test]
+    fn wordmark_and_emblem_default_to_velvt_label() {
+        let wm = render(WrapWordmarkNoTitle);
+        assert!(wm.contains("aria-label=\"Velvt\""));
+        let em = render(WrapEmblemNoTitle);
+        assert!(em.contains("aria-label=\"Velvt\""));
+    }
+
     #[test]
     fn wordmark_is_inline_svg_with_currentcolor_text() {
         let html = render(WrapWordmark);

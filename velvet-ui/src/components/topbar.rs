@@ -61,6 +61,40 @@ pub(crate) fn toggle_theme(current: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use dioxus::prelude::VirtualDom;
+
+    #[component]
+    fn WrapTopBarClosed() -> Element {
+        let menu_open = use_signal(|| false);
+        let theme = use_signal(|| "light".to_string());
+        rsx! { TopBar { menu_open, theme } }
+    }
+
+    #[component]
+    fn WrapTopBarOpen() -> Element {
+        let menu_open = use_signal(|| true);
+        let theme = use_signal(|| "dark".to_string());
+        rsx! { TopBar { menu_open, theme } }
+    }
+
+    fn render(component: fn() -> Element) -> String {
+        let mut dom = VirtualDom::new(component);
+        dom.rebuild_in_place();
+        dioxus_ssr::render(&dom)
+    }
+
+    #[test]
+    fn renders_topbar_with_brand_and_controls() {
+        let html = render(WrapTopBarClosed);
+        assert!(html.contains("v-topbar"));
+        assert!(html.contains("v-logo-wrap"));
+        assert!(html.contains("v-theme-toggle"));
+        assert!(html.contains("v-topbar__menu-btn"));
+        assert!(!html.contains("v-topbar__menu-btn active"));
+
+        let open_html = render(WrapTopBarOpen);
+        assert!(open_html.contains("v-topbar__menu-btn active"));
+    }
 
     #[test]
     fn theme_icon_is_sun_for_dark_and_moon_otherwise() {

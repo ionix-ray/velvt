@@ -251,4 +251,26 @@ mod tests {
             "Hi%20there%3F%0AFrom:%20a@b.com"
         );
     }
+
+    #[component]
+    fn WrapCta() -> Element {
+        rsx! {
+            CtaPanel { site: Site::load().clone() }
+        }
+    }
+
+    fn render(component: fn() -> Element) -> String {
+        let mut dom = dioxus::prelude::VirtualDom::new(component);
+        dom.rebuild_in_place();
+        dioxus_ssr::render(&dom)
+    }
+
+    #[test]
+    fn renders_cta_panel_form_and_contact_details() {
+        let html = render(WrapCta);
+        assert!(html.contains("v-cta"));
+        assert!(html.contains("v-form-row"));
+        assert!(html.contains("v-btn--primary"));
+        assert!(html.contains("Send Inquiry"));
+    }
 }

@@ -447,4 +447,11 @@ mod tests {
         let html = render_icon("definitely-not-an-icon");
         assert!(html.contains("<circle"), "fallback dot missing");
     }
+
+    #[test]
+    fn pretty_label_capitalizes_first_char_or_empty() {
+        assert_eq!(pretty_label("twitter"), "Twitter");
+        assert_eq!(pretty_label("linkedin"), "Linkedin");
+        assert_eq!(pretty_label(""), "");
+    }
 }

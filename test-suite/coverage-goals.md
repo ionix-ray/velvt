@@ -14,3 +14,9 @@
 3. CSP header present; no inline scripts beyond curtain CSS.
 4. Reduced-motion media query disables parallax.
 5. No `unwrap`/`expect`/`panic` in shipping binary (`just lint`).
+6. All cards maintain transparent background (alpha <= 0.2) in both dark and light modes.
+7. Background VELVT animated heatmap grid is deleted; stats render in clean 4-column glass cards (`.v-stat-grid--four`).
+8. Workflow (`workflow-01` to `05`) and Experience Studio (`studio-01` to `07`) feature authentic Odia/Indian cultural production photography.
+9. Panoramic `.v-tile--full` cards maintain bounded height (< 500px), photo frame height `clamp(170px, 18vw, 235px)`, `object-position: center 36%`.
+10. WebKit scroll-snap reveal testing uses window-level coordinate scrolling to avoid oversnap.
+11. Multi-project Playwright suite: 100% passing across chromium, webkit, and reduced-motion (327+ tests).

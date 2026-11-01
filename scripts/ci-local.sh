@@ -45,8 +45,8 @@ print_stage() {
     echo ""
 }
 
-pass() { echo -e "${GREEN}${CHECK} $1 PASSED${NC}"; ((JOBS_PASSED++)); }
-fail() { echo -e "${RED}${CROSS} $1 FAILED${NC}"; ((JOBS_FAILED++)); }
+pass() { echo -e "${GREEN}${CHECK} $1 PASSED${NC}"; JOBS_PASSED=$((JOBS_PASSED + 1)); }
+fail() { echo -e "${RED}${CROSS} $1 FAILED${NC}"; JOBS_FAILED=$((JOBS_FAILED + 1)); }
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$REPO_ROOT"
@@ -96,6 +96,16 @@ cargo test --workspace --test '*' && pass "integration-tests" || { fail "integra
 
 echo -e "${BLUE}${INFO} Full test suite...${NC}"
 cargo test --workspace --no-fail-fast && pass "full-test-suite" || { fail "full-test-suite"; exit 1; }
+
+echo -e "${BLUE}${INFO} Checking code coverage floor (>= 90% lines)...${NC}"
+if command -v cargo-llvm-cov &>/dev/null; then
+    cargo llvm-cov --workspace --all-targets \
+        --ignore-filename-regex '(tests/|test-suite/|velvet-ui/src/main\.rs|velvet-ui/src/scroll\.rs|velvet-ui/src/routes/.*|server/src/main\.rs|velvet-ui/src/spa\.rs)' \
+        --fail-under-lines 90 \
+        --summary-only && pass "coverage-gate" || { fail "coverage-gate (< 90% lines)"; exit 1; }
+else
+    echo -e "${YELLOW}⚠️  cargo-llvm-cov not found — skipping coverage check${NC}"
+fi
 
 # ── Job 3: WASM Build ─────────────────────────────────────────────────
 print_stage "📦 JOB 3/5: WASM Build"

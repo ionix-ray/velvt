@@ -1,0 +1,4 @@
+[advisories]
+# RUSTSEC-2026-0386: `AsyncFd::new` and related constructors violate I/O safety in tokio 1.52.3.
+# Informational advisory for an API not used in this web frontend/server.
+ignore = ["RUSTSEC-2026-0386"]

@@ -1119,19 +1119,70 @@ test("workflow: each of the 5 cards renders a photo with text positioned below i
   }
 });
 
-test("studio: experience design showcase cards render photos", async ({ page }) => {
+test("studio: experience design showcase cards render photos and creator seeding framing", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto("/#experience");
   await page.waitForSelector(".v-loader", { state: "hidden" });
   await page.locator("#experience").scrollIntoViewIfNeeded();
 
-  const tiles = page.locator("#experience .v-process__step");
-  const count = await tiles.count();
-  expect(count).toBeGreaterThan(0);
+  const tiles = page.locator("#experience .v-showcase__grid .v-process__step");
+  await expect(tiles).toHaveCount(7);
 
-  const firstTile = tiles.first();
-  const photo = firstTile.locator(".v-card-photo-frame img.v-card-photo");
-  await expect(photo).toBeVisible();
+  const expectedStudioImages = [
+    "/assets/images/studio-01-summit.webp",
+    "/assets/images/studio-02-ambassador.webp",
+    "/assets/images/studio-03-festival.webp",
+    "/assets/images/studio-04-interactive.webp",
+    "/assets/images/studio-05-venue.webp",
+    "/assets/images/studio-06-celebrity.webp",
+    "/assets/images/studio-07-creators.webp",
+  ];
+
+  for (let i = 0; i < 7; i++) {
+    const tile = tiles.nth(i);
+    await expect(tile).toBeVisible();
+
+    const photoFrame = tile.locator(".v-card-photo-frame");
+    await expect(photoFrame).toBeVisible();
+
+    const photoImg = photoFrame.locator("img.v-card-photo");
+    await expect(photoImg).toBeVisible();
+    await expect(photoImg).toHaveAttribute("src", expectedStudioImages[i]);
+
+    const heading = tile.locator("h4");
+    await expect(heading).toBeVisible();
+
+    const photoBox = await photoFrame.boundingBox();
+    const headingBox = await heading.boundingBox();
+    expect(photoBox).not.toBeNull();
+    expect(headingBox).not.toBeNull();
+    if (photoBox && headingBox) {
+      expect(photoBox.y + photoBox.height).toBeLessThanOrEqual(headingBox.y + 4);
+    }
+  }
+
+  // Verify Creator Seeding specific panoramic framing and height bounds
+  const creatorTile = tiles.nth(6);
+  await expect(creatorTile).toHaveClass(/v-tile--full/);
+  await expect(creatorTile).toHaveClass(/v-tile--showcase/);
+
+  const creatorBox = await creatorTile.boundingBox();
+  expect(creatorBox).not.toBeNull();
+  if (creatorBox) {
+    expect(creatorBox.height).toBeLessThan(500);
+  }
+
+  const creatorFrame = creatorTile.locator(".v-card-photo-frame");
+  const frameBox = await creatorFrame.boundingBox();
+  expect(frameBox).not.toBeNull();
+  if (frameBox) {
+    expect(frameBox.height).toBeLessThanOrEqual(250);
+  }
+
+  const objectPos = await creatorTile.locator("img.v-card-photo").evaluate((el) => {
+    return getComputedStyle(el).objectPosition;
+  });
+  expect(objectPos).toContain("36%");
 });
 
 // ── Transparent Cards: TDD Spec ───────────────────────────────────────────────
