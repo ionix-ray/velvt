@@ -487,5 +487,5 @@ label = "linkedin"
 href  = "https://linkedin.com/company/velvt"
 [[footer.socials]]
 label = "instagram"
-href  = "https://instagram.com/velvt"
+href  = "https://www.instagram.com/velvt_official/"
 ```
