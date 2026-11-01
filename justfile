@@ -275,3 +275,9 @@ ci:
 #        just ci-local --skip-wasm (Rust-only changes, faster)
 ci-local *args:
     bash scripts/ci-local.sh {{ args }}
+
+
+# ── Security / Policy ────────────────────────────────────────────────────────
+# Full security gate (SAST + SCA + Secrets + Trivy FS). Mirrors CI.
+security:
+	@bash scripts/security-gate.sh

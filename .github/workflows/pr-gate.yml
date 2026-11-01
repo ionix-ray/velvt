@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: read
+  security-events: write
   pull-requests: read
 
 concurrency:
@@ -24,24 +25,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@v2
+        uses: step-security/harden-runner@91182cccc01eb5e619899d80e4e971d6181294a7 # v2.10.1
         with:
           egress-policy: audit
 
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
+          fetch-depth: 0
           persist-credentials: false
 
       - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@1482605bfc5719782e1267fd0c0cc350fe7646b8 # stable
         with:
           toolchain: ${{ env.RUST_VERSION }}
           components: clippy, rustfmt
           targets: wasm32-unknown-unknown
 
       - name: Cache cargo
-        uses: actions/cache@v4
+        uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57 # v4.2.0
         with:
           path: |
             ~/.cargo/registry
@@ -50,19 +52,23 @@ jobs:
           key: ${{ runner.os }}-cargo-pr-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-pr-
 
-      - name: Check formatting
-        run: cargo fmt --all -- --check
+      - name: Run unified security + quality gate
+        run: bash scripts/security-gate.sh
 
-      - name: Clippy (zero warnings)
-        run: cargo clippy --workspace --all-targets -- -D warnings
+      - name: Upload Trivy SARIF to GitHub Security
+        if: always()
+        uses: github/codeql-action/upload-sarif@662472033e021d55d94146f66f6058822b0b39fd # v3.27.0
+        with:
+          sarif_file: security-reports/trivy-fs.sarif
+
+      - name: Upload Gitleaks SARIF to GitHub Security
+        if: always()
+        uses: github/codeql-action/upload-sarif@662472033e021d55d94146f66f6058822b0b39fd # v3.27.0
+        with:
+          sarif_file: security-reports/gitleaks.sarif
 
       - name: Unit & Integration Tests
         run: cargo test --workspace --all-targets
-
-      - name: Security Audit (CVEs)
-        run: |
-          cargo install cargo-audit --locked
-          cargo audit --deny warnings
 
       - name: Install Dioxus CLI
         run: cargo install dioxus-cli --version "=${{ env.DIOXUS_CLI_VERSION }}" --locked
@@ -70,7 +76,7 @@ jobs:
       - name: Install wasm-opt (binaryen)
         run: sudo apt-get install -y --no-install-recommends binaryen
 
-      - name: WASM Build Gate (release — catches compile-time errors)
+      - name: WASM Build Gate (release)
         working-directory: velvet-ui
         run: dx build --platform web --release
 
@@ -85,23 +91,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@v2
+        uses: step-security/harden-runner@91182cccc01eb5e619899d80e4e971d6181294a7 # v2.10.1
         with:
           egress-policy: audit
 
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           persist-credentials: false
 
       - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@1482605bfc5719782e1267fd0c0cc350fe7646b8 # stable
         with:
           toolchain: ${{ env.RUST_VERSION }}
           components: llvm-tools-preview
 
       - name: Cache cargo
-        uses: actions/cache@v4
+        uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57 # v4.2.0
         with:
           path: |
             ~/.cargo/registry
@@ -110,11 +116,10 @@ jobs:
           key: ${{ runner.os }}-cargo-cov-${{ hashFiles('**/Cargo.lock') }}
           restore-keys: ${{ runner.os }}-cargo-cov-
 
-      # Tag-pinned tool installer (same style as the other actions here).
       - name: Install cargo-llvm-cov
-        uses: taiki-e/install-action@cargo-llvm-cov
+        uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-llvm-cov
 
-      # Gating: fails the PR gate when line coverage drops below the 90% floor
-      # documented in test-suite/coverage-goals.md.
       - name: Coverage floor (90% lines)
         run: cargo llvm-cov --workspace --all-targets --ignore-filename-regex '(velvet-ui/src/main\.rs|velvet-ui/src/scroll\.rs|velvet-ui/src/routes/home\.rs|server/src/main\.rs)' --fail-under-lines 90 --summary-only
