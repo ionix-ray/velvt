@@ -16,7 +16,7 @@ async function effectiveOpacity(
   });
 }
 
-test("reveal: heatmap container gets the observer class and its cells become visible", async ({
+test("reveal: stats container gets the observer class and its cards become visible", async ({
   page,
 }) => {
   await page.goto("/");
@@ -33,18 +33,10 @@ test("reveal: heatmap container gets the observer class and its cells become vis
     })
     .toContain("is-revealed");
 
-  const cell = container.locator(".v-heatmap-cell").first();
+  const statCard = container.locator(".v-about-stat").first();
   await expect
-    .poll(async () => effectiveOpacity(cell), { timeout: 8000 })
+    .poll(async () => effectiveOpacity(statCard), { timeout: 8000 })
     .toBeGreaterThan(0);
-
-  // Active (VELVT letter) cells land on the crimson brand colour.
-  const active = container.locator(".v-heatmap-cell--active").first();
-  await expect
-    .poll(async () => active.evaluate((el) => getComputedStyle(el).backgroundColor), {
-      timeout: 8000,
-    })
-    .toMatch(/181,\s*42,\s*42|212,\s*62,\s*62|204,\s*43,\s*43/);
 });
 
 test("reveal: scroll-in entrance targets are stamped with the observer class", async ({
@@ -62,18 +54,18 @@ test("reveal: scroll-in entrance targets are stamped with the observer class", a
     .toContain("is-revealed");
 });
 
-test("reduced motion: heatmap lands visible with animation off, no scroll needed", async ({
+test("reduced motion: stats land visible with animation off, no scroll needed", async ({
   page,
 }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
   await page.waitForSelector(".v-loader", { state: "hidden" });
 
-  const cell = page.locator(".v-heatmap-cell").first();
-  expect(await effectiveOpacity(cell)).toBeGreaterThan(0);
+  const container = page.locator(".v-heatmap-container");
+  expect(await effectiveOpacity(container)).toBeGreaterThan(0);
 
-  const active = page.locator(".v-heatmap-cell--active").first();
-  await expect(active).toHaveCSS("animation-name", "none");
+  const statCard = page.locator(".v-about-stat").first();
+  expect(await effectiveOpacity(statCard)).toBeGreaterThan(0);
 
   // Entrance sections must not be hidden behind a motion gate either.
   const hero = page.locator("#home .v-reveal-left");

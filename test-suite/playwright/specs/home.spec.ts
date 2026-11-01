@@ -994,9 +994,13 @@ test("about: layout contains top row with stats, story, founder and bottom row w
   await expect(byTheNumbers).toBeVisible();
   await expect(byTheNumbers).toContainText("By the Numbers");
   
-  // Assert heatmap grid is present
+  // Assert stats are present and background heatmap animation is deleted
+  const stats = bottomRow.locator(".v-about-stats");
+  await expect(stats).toBeVisible();
+  const statCards = bottomRow.locator(".v-about-stat");
+  await expect(statCards).toHaveCount(4);
   const heatmap = bottomRow.locator(".v-heatmap-grid");
-  await expect(heatmap).toBeVisible();
+  await expect(heatmap).toHaveCount(0);
 });
 
 test("about: layout proportions and spacing for story and team cards", async ({ page }) => {
@@ -1029,25 +1033,19 @@ test("about: layout proportions and spacing for story and team cards", async ({ 
 });
 
 
-test("about: displays VELVT heatmap grid with floating stats", async ({ page }) => {
+test("about: displays stats cleanly without background VELVT heatmap animation", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto("/#about");
   await page.waitForSelector(".v-loader", { state: "hidden" });
   await page.locator("#about").scrollIntoViewIfNeeded();
 
+  // Background heatmap grid and cells are deleted
   const heatmap = page.locator(".v-heatmap-grid");
-  await expect(heatmap).toBeVisible();
+  await expect(heatmap).toHaveCount(0);
+  const cells = page.locator(".v-heatmap-cell");
+  await expect(cells).toHaveCount(0);
 
-  // Should have exactly 231 cells (7x33)
-  const cells = heatmap.locator(".v-heatmap-cell");
-  await expect(cells).toHaveCount(231);
-
-  // At least some cells should be active
-  const activeCells = heatmap.locator(".v-heatmap-cell--active");
-  const count = await activeCells.count();
-  expect(count).toBeGreaterThan(0);
-
-  // Floating stats exist and have sparkling borders
+  // Stats cards exist and have sparkling borders
   const stats = page.locator(".v-about-stat");
   await expect(stats).toHaveCount(4); // from mock data
   const firstStat = stats.first();

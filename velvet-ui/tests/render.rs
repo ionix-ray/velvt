@@ -244,27 +244,33 @@ fn theme_css_consumes_the_reveal_class_the_observer_adds() {
     );
 }
 
-/// The heatmap renders with the observer's hooks so `install_reveal` can
-/// find it, and its cells carry the animation-delay stagger.
+/// The stats container renders with the observer's hooks so `install_reveal` can
+/// find it, and renders stats cards cleanly without background heatmap cells.
 #[test]
-fn heatmap_renders_with_observer_hooks_and_cells() {
+fn stats_render_cleanly_without_background_heatmap_cells() {
     let html = render_home();
     assert!(
         html.contains("v-heatmap-container v-reveal"),
-        "heatmap container must carry the reveal hook"
-    );
-    let cells = html.matches("v-heatmap-cell").count();
-    assert!(
-        cells >= 7 * 33,
-        "7x33 heatmap grid must render, got {cells}"
+        "stats container must carry the reveal hook"
     );
     assert!(
-        html.contains("v-heatmap-cell--active"),
-        "VELVT letter cells must be active"
+        html.contains("v-about-stats"),
+        "about stats wrapper must render"
     );
-    assert!(
-        html.contains("animation-delay:"),
-        "heatmap cells stagger via animation-delay"
+    assert_eq!(
+        html.matches("class=\"v-about-stat\"").count(),
+        4,
+        "4 stat cards must render"
+    );
+    assert_eq!(
+        html.matches("v-about-stat__value").count(),
+        4,
+        "4 stat card values must render"
+    );
+    assert_eq!(
+        html.matches("v-heatmap-cell").count(),
+        0,
+        "heatmap grid cells must not render"
     );
 }
 
