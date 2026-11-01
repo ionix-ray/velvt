@@ -252,16 +252,33 @@ mod tests {
             html.contains("workflow-01-discovery.webp"),
             "photo src missing"
         );
-        assert!(
-            html.contains("Discovery"),
-            "photo alt missing"
-        );
+        assert!(html.contains("Discovery"), "photo alt missing");
         // Minimal card without photo must NOT have photo frame.
         let min_html = render(Minimal);
         assert!(
             !min_html.contains("v-card-photo-frame"),
             "unexpected photo frame in minimal card"
         );
+    }
+
+    #[component]
+    fn WithBg() -> Element {
+        rsx! {
+            CardStep {
+                logo: "/logo.webp".to_string(),
+                title: "Immersive".to_string(),
+                body: "Background test".to_string(),
+                bg_image: Some("/assets/images/card-bg.webp".to_string()),
+            }
+        }
+    }
+
+    #[test]
+    fn renders_bg_image_when_provided() {
+        let html = render(WithBg);
+        assert!(html.contains("v-card-bg"));
+        assert!(html.contains("--card-bg-image"));
+        assert!(html.contains("/assets/images/card-bg.webp"));
     }
 
     #[test]

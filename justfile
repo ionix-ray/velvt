@@ -58,7 +58,7 @@ fmt:
 # same category as `dx`/`podman`, intentionally not pinned in Cargo.toml).
 coverage:
     cargo llvm-cov --workspace --all-targets \
-        --ignore-filename-regex '(velvet-ui/src/main\.rs|velvet-ui/src/scroll\.rs|velvet-ui/src/routes/home\.rs|server/src/main\.rs)' \
+        --ignore-filename-regex '(velvet-ui/src/main\.rs|velvet-ui/src/scroll\.rs|velvet-ui/src/routes/.*|server/src/main\.rs|velvet-ui/src/spa\.rs)' \
         --fail-under-lines 90 \
         --summary-only
 

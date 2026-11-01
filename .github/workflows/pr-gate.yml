@@ -117,4 +117,4 @@ jobs:
       # Gating: fails the PR gate when line coverage drops below the 90% floor
       # documented in test-suite/coverage-goals.md.
       - name: Coverage floor (90% lines)
-        run: cargo llvm-cov --workspace --all-targets --ignore-filename-regex '(velvet-ui/src/main\.rs|velvet-ui/src/scroll\.rs|velvet-ui/src/routes/home\.rs|server/src/main\.rs)' --fail-under-lines 90 --summary-only
+        run: cargo llvm-cov --workspace --all-targets --ignore-filename-regex '(velvet-ui/src/main\.rs|velvet-ui/src/scroll\.rs|velvet-ui/src/routes/.*|server/src/main\.rs|velvet-ui/src/spa\.rs)' --fail-under-lines 90 --summary-only

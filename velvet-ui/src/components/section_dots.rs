@@ -50,3 +50,36 @@ pub fn SectionDots(site: Site, current: usize, on_navigate: EventHandler<usize>)
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use dioxus::prelude::VirtualDom;
+
+    #[component]
+    fn WrapDots() -> Element {
+        let site = Site::load().clone();
+        rsx! {
+            SectionDots {
+                site,
+                current: 2,
+                on_navigate: |_| {},
+            }
+        }
+    }
+
+    fn render(c: fn() -> Element) -> String {
+        let mut dom = VirtualDom::new(c);
+        dom.rebuild_in_place();
+        dioxus_ssr::render(&dom)
+    }
+
+    #[test]
+    fn section_dots_renders_items_with_active_indicator() {
+        let html = render(WrapDots);
+        assert!(html.contains("v-spindle"));
+        assert!(html.contains("v-spindle-item active"));
+        assert!(html.contains("aria-current=\"page\""));
+        assert!(html.contains("Footer"));
+    }
+}

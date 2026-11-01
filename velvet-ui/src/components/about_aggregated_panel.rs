@@ -151,3 +151,175 @@ fn TeamCard(member: TeamMember) -> Element {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::config::{AnalyticStat, Analytics, Story, StoryItem, TeamMember};
+    use dioxus::prelude::VirtualDom;
+
+    fn render(component: fn() -> Element) -> String {
+        let mut dom = VirtualDom::new(component);
+        dom.rebuild_in_place();
+        dioxus_ssr::render(&dom)
+    }
+
+    #[component]
+    fn WrapPanel() -> Element {
+        let site = Site {
+            story: Story {
+                title: "Our Heritage".into(),
+                sub: "Built on culture".into(),
+                items: vec![StoryItem {
+                    year: "2024".into(),
+                    title: "Foundation".into(),
+                    body: "Started in Bhubaneswar".into(),
+                }],
+            },
+            analytics: Analytics {
+                title: "Impact Metrics".into(),
+                sub: "Real growth numbers".into(),
+                stats: vec![
+                    AnalyticStat {
+                        value: "350+".into(),
+                        label: "Events".into(),
+                        change: "+40%".into(),
+                    },
+                    AnalyticStat {
+                        value: "92%".into(),
+                        label: "Retention".into(),
+                        change: "Top".into(),
+                    },
+                ],
+            },
+            team: vec![TeamMember {
+                name: "Arpita Parhi".into(),
+                eyebrow: "Founder".into(),
+                monogram: "AP".into(),
+                photo: "/assets/images/team/arpita.webp".into(),
+                bio: "Creative Producer".into(),
+                handles: vec![],
+            }],
+            ..Site::load().clone()
+        };
+        rsx! {
+            AboutAggregatedPanel { site }
+        }
+    }
+
+    #[component]
+    fn WrapEmptyMember() -> Element {
+        rsx! {
+            TeamCard { member: TeamMember::default() }
+        }
+    }
+
+    #[component]
+    fn WrapMemberWithPhoto() -> Element {
+        rsx! {
+            TeamCard {
+                member: TeamMember {
+                    name: "Arpita Parhi".into(),
+                    eyebrow: "Founder & Creative Director".into(),
+                    monogram: "AP".into(),
+                    photo: "/assets/images/team/arpita.webp".into(),
+                    bio: "Leading creative production in Odisha.".into(),
+                    handles: vec![crate::config::SocialHandle {
+                        icon: "instagram".into(),
+                        label: "@arpita".into(),
+                        href: "https://instagram.com/arpita".into(),
+                    }],
+                }
+            }
+        }
+    }
+
+    #[component]
+    fn WrapMemberMonogramFallback() -> Element {
+        rsx! {
+            TeamCard {
+                member: TeamMember {
+                    name: "Nihar".into(),
+                    eyebrow: "".into(),
+                    monogram: "".into(),
+                    photo: "".into(),
+                    bio: "".into(),
+                    handles: vec![],
+                }
+            }
+        }
+    }
+
+    #[component]
+    fn WrapMemberCustomMonogram() -> Element {
+        rsx! {
+            TeamCard {
+                member: TeamMember {
+                    name: "Creative Team".into(),
+                    eyebrow: "".into(),
+                    monogram: "CT".into(),
+                    photo: "".into(),
+                    bio: "".into(),
+                    handles: vec![],
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn panel_renders_story_and_clean_stats_without_heatmap_grid() {
+        let html = render(WrapPanel);
+        assert!(html.contains("Our Heritage"));
+        assert!(html.contains("Built on culture"));
+        assert!(html.contains("Foundation"));
+        assert!(html.contains("Started in Bhubaneswar"));
+        assert!(html.contains("Impact Metrics"));
+        assert!(html.contains("350+"));
+        assert!(html.contains("Events"));
+        assert!(html.contains("v-about-stats"));
+        assert!(
+            !html.contains("v-heatmap-grid"),
+            "heatmap grid must remain deleted"
+        );
+    }
+
+    #[test]
+    fn team_card_empty_name_renders_nothing() {
+        let html = render(WrapEmptyMember);
+        assert_eq!(html.trim(), "");
+    }
+
+    #[test]
+    fn team_card_renders_photo_and_two_word_name() {
+        let html = render(WrapMemberWithPhoto);
+        assert!(html.contains("Arpita "));
+        assert!(html.contains("Parhi"));
+        assert!(html.contains("Founder"));
+        assert!(html.contains("Creative Director"));
+        assert!(html.contains("Leading creative production"));
+        assert!(html.contains("img"));
+        assert!(html.contains("/assets/images/team/arpita.webp"));
+        assert!(html.contains("@arpita"));
+        assert!(html.contains("v-team-card__handles"));
+    }
+
+    #[test]
+    fn team_card_placeholder_monogram_fallback() {
+        // Without photo and without monogram -> derives monogram from first letter
+        let html = render(WrapMemberMonogramFallback);
+        assert!(html.contains("Nihar"));
+        assert!(html.contains("v-team-card__photo--placeholder"));
+        assert!(
+            html.contains(">N<"),
+            "placeholder should have derived monogram 'N'"
+        );
+        assert!(!html.contains("<img"));
+    }
+
+    #[test]
+    fn team_card_placeholder_custom_monogram() {
+        let html = render(WrapMemberCustomMonogram);
+        assert!(html.contains("v-team-card__photo--placeholder"));
+        assert!(html.contains("CT"));
+    }
+}

@@ -19,12 +19,18 @@ async function effectiveOpacity(
 test("reveal: stats container gets the observer class and its cards become visible", async ({
   page,
 }) => {
-  await page.goto("/");
+  await page.goto("/#about");
   await page.waitForSelector(".v-loader", { state: "hidden" });
+
+  const about = page.locator("#about");
+  await about.scrollIntoViewIfNeeded();
 
   const container = page.locator(".v-heatmap-container");
   await expect(container).toHaveClass(/v-reveal/);
-  await container.scrollIntoViewIfNeeded();
+  await container.evaluate((el) => {
+    const y = window.scrollY + el.getBoundingClientRect().top - window.innerHeight / 3;
+    window.scrollTo(0, y);
+  });
 
   // One mechanism: scroll.rs stamps `is-revealed`, theme.css consumes it.
   await expect
