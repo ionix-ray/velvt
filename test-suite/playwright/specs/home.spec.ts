@@ -595,9 +595,9 @@ test("loader: 13 colorful scope icons swarm in V formation around the mark", asy
   expect(pointer).toBe("none");
 });
 
-test("loader: swarm icons cover the full scope (mic, gift, video, megaphone)", async ({ page }) => {
+test("loader: swarm icons cover the full scope (microphone, gift, video, volume--up)", async ({ page }) => {
   await page.goto("/");
-  for (const name of ["mic", "gift", "video", "megaphone"]) {
+  for (const name of ["microphone", "gift", "video", "volume--up"]) {
     await expect(page.locator(`.v-loader__icon[data-name="${name}"]`)).toHaveCount(1);
   }
 });
@@ -1077,6 +1077,63 @@ test("ideology: displays cinematic background and transparent cards with sparkle
   await expect(sparkle).toBeVisible();
   const badge = firstStep.locator(".v-experience-badge");
   await expect(badge).toBeVisible();
+});
+
+test("workflow: each of the 5 cards renders a photo with text positioned below it", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto("/#ideology");
+  await page.waitForSelector(".v-loader", { state: "hidden" });
+  await page.locator("#ideology").scrollIntoViewIfNeeded();
+
+  const steps = page.locator("#ideology .v-process__step");
+  await expect(steps).toHaveCount(5);
+
+  const expectedImages = [
+    "/assets/images/workflow-01-discovery.webp",
+    "/assets/images/workflow-02-talent.webp",
+    "/assets/images/workflow-03-production.webp",
+    "/assets/images/workflow-04-execution.webp",
+    "/assets/images/workflow-05-analysis.webp",
+  ];
+
+  for (let i = 0; i < 5; i++) {
+    const card = steps.nth(i);
+    await expect(card).toBeVisible();
+
+    const photoFrame = card.locator(".v-card-photo-frame");
+    await expect(photoFrame).toBeVisible();
+
+    const photoImg = photoFrame.locator("img.v-card-photo");
+    await expect(photoImg).toBeVisible();
+    await expect(photoImg).toHaveAttribute("src", expectedImages[i]);
+
+    const heading = card.locator("h4");
+    await expect(heading).toBeVisible();
+
+    // Verify photo is strictly above the heading text
+    const photoBox = await photoFrame.boundingBox();
+    const headingBox = await heading.boundingBox();
+    expect(photoBox).not.toBeNull();
+    expect(headingBox).not.toBeNull();
+    if (photoBox && headingBox) {
+      expect(photoBox.y + photoBox.height).toBeLessThanOrEqual(headingBox.y + 4);
+    }
+  }
+});
+
+test("studio: experience design showcase cards render photos", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto("/#experience");
+  await page.waitForSelector(".v-loader", { state: "hidden" });
+  await page.locator("#experience").scrollIntoViewIfNeeded();
+
+  const tiles = page.locator("#experience .v-process__step");
+  const count = await tiles.count();
+  expect(count).toBeGreaterThan(0);
+
+  const firstTile = tiles.first();
+  const photo = firstTile.locator(".v-card-photo-frame img.v-card-photo");
+  await expect(photo).toBeVisible();
 });
 
 // ── Transparent Cards: TDD Spec ───────────────────────────────────────────────

@@ -90,7 +90,7 @@ of it. All values are validated by unit tests in `velvet-ui/src/config.rs`.
 ```toml
 [background]
 enabled       = true
-intensity     = 90    # 0..=100 — master ceiling for every layer
+intensity     = 80    # 0..=100 — master ceiling for every layer
 mesh          = true  # drifting crimson spotlights + stage beam
 show_glyphs   = true  # floating service icons
 glyph_opacity = 60    # glyph share of intensity (0..=100)
@@ -308,22 +308,31 @@ sub   = "Every successful campaign starts with deep strategy and ends with measu
 num   = "01"
 title = "Discovery & Strategy"
 body  = "Deep-dive into your brand, audience, and goals to architect the perfect campaign."
+image = "/assets/images/workflow-01-discovery.webp"
+
 [[process.steps]]
 num   = "02"
 title = "Talent & Partner Curation"
 body  = "Strategic selection of celebrities, influencers, vendors, and venues aligned with your vision."
+image = "/assets/images/workflow-02-talent.webp"
+
 [[process.steps]]
 num   = "03"
 title = "Creative Production"
 body  = "World-class visuals, immersive staging, and compelling narratives that captivate audiences."
+image = "/assets/images/workflow-03-production.webp"
+
 [[process.steps]]
 num   = "04"
 title = "Execution & Management"
 body  = "Flawless on-ground delivery with real-time adaptability and compliance at every turn."
+image = "/assets/images/workflow-04-execution.webp"
+
 [[process.steps]]
 num   = "05"
 title = "Performance Analysis"
 body  = "Data-backed measurement, ROI reporting, and insights to optimize your next activation."
+image = "/assets/images/workflow-05-analysis.webp"
 ```
 
 ## Cases
@@ -378,30 +387,43 @@ sub   = "Where creativity meets logistics. We orchestrate high-stakes events wit
 tag   = "Corporate"
 title = "Summit Production"
 body  = "Full-spectrum corporate event production for 500+ attendees with multi-stage setup."
+image = "/assets/images/studio-01-summit.webp"
+
 [[studio.items]]
 tag   = "Celebrity"
 title = "Brand Ambassador Launch"
 body  = "Orchestrated a high-profile celebrity partnership announcement with global media coverage."
+image = "/assets/images/studio-02-ambassador.webp"
+
 [[studio.items]]
 tag   = "Cultural"
 title = "Festival Activation"
 body  = "Heritage-inspired festival with modern production values drawing 10,000+ attendees."
+image = "/assets/images/studio-03-festival.webp"
+
 [[studio.items]]
 tag   = "Product"
 title = "Interactive Launch"
 body  = "AR-powered product launch event blending digital immersion with live attendee engagement."
+image = "/assets/images/studio-04-interactive.webp"
+
 [[studio.items]]
 tag   = "Venue"
 title = "Velvt Venue"
 body  = "Colocation space built for podcasts, co-working, intimate meetings and small film shoots."
+image = "/assets/images/studio-05-venue.webp"
+
 [[studio.items]]
 tag   = "Celebrity"
 title = "Celebrity & Influencer Management"
 body  = "End-to-end celebrity and influencer partnerships — talent discovery, deal-making and on-brand activations that turn famous faces into measurable lift for your brand."
+image = "/assets/images/studio-06-celebrity.webp"
+
 [[studio.items]]
 tag   = "Creators"
 title = "Creator Seeding"
 body  = "Authentic product seeding to a vetted creator network. We match the right makers with your story so the conversation starts where your audience already lives."
+image = "/assets/images/studio-07-creators.webp"
 ```
 
 ## CTA
