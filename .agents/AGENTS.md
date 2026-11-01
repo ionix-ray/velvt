@@ -61,3 +61,15 @@ All carry `.v-reveal` class. `prefers-reduced-motion` MUST collapse all animatio
 1. **Branching & Pull Requests**: All future modifications, new features, bug fixes, or structural changes MUST occur on a separate feature branch. 
 2. **No Direct Commits**: Do not commit directly to `main` or the current stable deployment branch (`refactor/production-grade`).
 3. **Pull Request Protocol**: Changes must be submitted via a pull request (or a completely separate task request) so they can be reviewed and tested in isolation before being merged into the stable base.
+
+## Multimodal Fan-Out & Skill Architecture (Permanent Rule)
+
+All autonomous engineering must follow the Multimodal Fan-Out Architecture detailed in `docs/MULTIMODAL_FANOUT_SYSTEM.md`:
+1. **Fan-Out Delegation**: The primary agent decomposes tasks and fans out to specialized subagents (`frontend-lead`, `backend-lead`, `visual-asset-artist`, `qa-lead`, `doc-keeper`) with strict file-scope whitelisting to prevent merge conflicts.
+2. **Phase-Gated Skill Activation**: UI skills (`cinematic-ui`, `high-end-visual-design`, `ui-ux-pro-max`, `impeccable`, `web-design-guidelines`) are loaded during the design and polish phases, keeping the initial TDD red/green loop fast.
+3. **Multi-Model Tiering**:
+   - **Deep Reasoning Tier (`pro` / `sonnet-4-6`)**: Architecture, Rust logic, Playwright E2E suites, and gate enforcement.
+   - **Fast Lane (`flash` / `haiku-4-5`)**: Targeted unit tests, regex tuning, and lint remediation.
+   - **Routine Ops Lane (`flash_lite` / `haiku-4-5`)**: Documentation syncing (`STATE.md`, `TASKS.md`), changelogs, and formatting.
+   - **Multimodal Visual Generation (`image-generator`)**: Culturally grounded visual asset synthesis (`workflow-03-production.webp`, `studio-07-creators.webp`).
+   - **Multimodal Visual QA**: Inspecting responsive screenshots in dark and light modes across mobile (375px) and desktop (1280px) viewports before delivery.

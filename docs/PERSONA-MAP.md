@@ -21,18 +21,21 @@ Rejected below the 1K-install / 100-star floor per `find-skills-discovery` Steps
 
 | Persona | Owns | Skills loaded |
 |---|---|---|
-| `frontend-lead` | Wordmark lockup, ambient glyph field, `theme.css`, hero tile | `frontend-design`, `high-end-visual-design`, `impeccable`, `ui-ux-pro-max`, `web-design-guidelines` |
-| `qa-lead` | Playwright spec migration to the SVG lockup, Rust test suite | `playwright-best-practices`, `testing-strategy` |
-| `prompt-lead` | Loop design, context budget, prompt shape | `loop-engineering`, `token-economy`, `context-preservation` |
-| `principal-architect` | `graft/` knowledge graph, `[background]` config surface | `system-design-architecture`, `improve-codebase-architecture` |
-| `backend-lead` | `config.rs` clamps, SSR render tests, axum server | `tdd-cycle`, `rust-testing` |
+| `frontend-lead` | Wordmark lockup, ambient glyph field, `theme.css`, hero tile, cinematic cards | `cinematic-ui`, `frontend-design`, `high-end-visual-design`, `impeccable`, `ui-ux-pro-max`, `web-design-guidelines`, `modern-web-guidance` |
+| `visual-asset-artist` | Cultural Odia/Indian photography briefs, WebP generation, responsive framing | `image-generator` subagent, visual media compression |
+| `qa-lead` | Playwright multi-project suite, WebKit reveal compatibility, llvm-cov logic coverage | `cinematic-ui`, `web-design-guidelines`, `chrome-devtools`, `a11y-debugging` |
+| `prompt-lead` | Loop design, context budget, prompt shape, multimodal fan-out | `loop-engineering`, `token-economy`, `context-preservation` |
+| `principal-architect` | Knowledge graph, `[background]` config surface, multimodal fan-out system | `system-design-architecture`, `improve-codebase-architecture` |
+| `backend-lead` | `config.rs` clamps, SSR render tests, axum server, security headers | `tdd-cycle`, `rust-testing`, `modern-web-guidance` |
+
+See `docs/MULTIMODAL_FANOUT_SYSTEM.md` for full fan-out architecture specification.
 
 ## Loop design (loop-engineering)
 
 - Primitive: `ScheduleWakeup`-equivalent — re-run validation only after a file write.
 - Cadence: under 270s (warm cache), never 300s dead zone.
 - Caps: iteration cap 10, deadline 24h, user-stop sentinel = user says "stop".
-- Order per iteration: `fmt` → `clippy -D warnings` → `cargo test` → `dx build` → `playwright`.
+- Order per iteration: `fmt` → `clippy -D warnings` → `cargo test` → `cargo llvm-cov (≥90%)` → `dx build` → `playwright (3 projects)`.
   First non-zero exit aborts the iteration (secure-sdlc gate discipline).
 
 ## Context engineering
@@ -44,14 +47,15 @@ Rejected below the 1K-install / 100-star floor per `find-skills-discovery` Steps
 
 ## Model routing (task → model → agent)
 
-| Task class | Model | Agent / persona | Notes |
-|---|---|---|---|
-| Architecture, threat model, gate decisions | Sonnet 4.6 (default); Opus explicit-only | `principal-architect`, `prompt-lead` | No Opus by default (CLAUDE.md) |
-| Rust feature/bugfix (TDD red-green) | Sonnet 4.6 | `backend-lead` + `tdd-cycle`, `rust-testing` | failing test first, every time |
-| UI / cinematic design & card port | Sonnet 4.6 | `frontend-lead` + `frontend-design`, `impeccable`, `ui-ux-pro-max`, `high-end-visual-design`, `web-design-guidelines` | skills load at polish phase |
-| QA / Playwright specs | Sonnet 4.6 | `qa-lead` + `playwright-best-practices`, `testing-strategy` | |
-| Doc-keeping, compliance matrix, changelogs, bulk copy | Haiku 4.5 | routine ops lane | cheapest lane per CLAUDE.md policy |
-| Bulk doc/codegen, long-context review | Gemini via `agy` (`~/.local/bin/agy`) | secondary lane | use for high-volume, low-judgment passes |
+| Task class | Antigravity / AGY Model | Claude Model | Agent / persona | Notes |
+|---|---|---|---|---|
+| Architecture, threat model, gate decisions | `pro` / `inherit` | `claude-sonnet-4-6` | `principal-architect`, `prompt-lead` | Deep reasoning lane |
+| Rust feature/bugfix (TDD red-green) | `pro` / `inherit` | `claude-sonnet-4-6` | `backend-lead` | failing test first, every time |
+| UI / cinematic design & card port | `pro` / `inherit` | `claude-sonnet-4-6` | `frontend-lead` | `cinematic-ui` + design skills |
+| Visual asset generation | `image-generator` | Midjourney / Imagen | `visual-asset-artist` | Authentic cultural Odia/Indian photography |
+| QA / Playwright multi-project specs | `pro` / `inherit` | `claude-sonnet-4-6` | `qa-lead` | Chromium, WebKit, Reduced Motion |
+| Fast targeted refactors, regex, queries | `flash` | `claude-haiku-4-5` | `code-writer` / fast lane | High token efficiency |
+| Doc-keeping, compliance matrix, changelogs | `flash_lite` | `claude-haiku-4-5` | `doc-keeper` | Cheapest routine ops lane |
 
 ## Token economy (fan-out discipline)
 
