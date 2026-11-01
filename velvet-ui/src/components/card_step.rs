@@ -44,6 +44,9 @@ pub fn CardStep(
     /// Optional immersive background image URL.
     #[props(default)]
     bg_image: Option<String>,
+    /// Optional prominent card photo URL displayed above the text.
+    #[props(default)]
+    photo: Option<String>,
 ) -> Element {
     let base_class = if class_extra.is_empty() {
         "v-process__step v-reveal v-card-immersive".to_string()
@@ -87,6 +90,18 @@ pub fn CardStep(
             if let Some(t) = &tag {
                 span { class: "v-eyebrow", "{t}" }
             }
+            // Dedicated card photo frame — cinematic visual placed above title and text
+            if let Some(p) = &photo {
+                div { class: "v-card-photo-frame",
+                    img {
+                        class: "v-card-photo",
+                        src: "{p}",
+                        alt: "{title}",
+                        loading: "lazy",
+                    }
+                    div { class: "v-card-photo__overlay", "aria-hidden": "true" }
+                }
+            }
             h4 { "{title}" }
             p { "{body}" }
         }
@@ -128,6 +143,19 @@ mod tests {
                 body: "An unforgettable brand launch evening.".to_string(),
                 class_extra: "v-tile--showcase".to_string(),
                 delay_ms: 60,
+            }
+        }
+    }
+
+    #[component]
+    fn WithPhoto() -> Element {
+        rsx! {
+            CardStep {
+                logo: "/assets/images/velvet-mark.webp".to_string(),
+                num: Some("01".to_string()),
+                title: "Discovery & Strategy".to_string(),
+                body: "Deep-dive into brand goals.".to_string(),
+                photo: Some("/assets/images/workflow-01-discovery.webp".to_string()),
             }
         }
     }
@@ -213,6 +241,27 @@ mod tests {
         let html = render(WithNum);
         assert!(html.contains("Discover"), "title missing");
         assert!(html.contains("Deep research"), "body text missing");
+    }
+
+    #[test]
+    fn renders_photo_when_provided() {
+        let html = render(WithPhoto);
+        assert!(html.contains("v-card-photo-frame"), "photo frame missing");
+        assert!(html.contains("v-card-photo"), "photo image missing");
+        assert!(
+            html.contains("workflow-01-discovery.webp"),
+            "photo src missing"
+        );
+        assert!(
+            html.contains("Discovery"),
+            "photo alt missing"
+        );
+        // Minimal card without photo must NOT have photo frame.
+        let min_html = render(Minimal);
+        assert!(
+            !min_html.contains("v-card-photo-frame"),
+            "unexpected photo frame in minimal card"
+        );
     }
 
     #[test]

@@ -326,6 +326,8 @@ pub struct ProcessStep {
     pub num: Box<str>,
     pub title: Box<str>,
     pub body: Box<str>,
+    #[serde(default)]
+    pub image: Option<Box<str>>,
 }
 
 #[derive(Deserialize, Debug, Clone, Default, PartialEq)]
@@ -389,6 +391,8 @@ pub struct StudioItem {
     pub tag: Box<str>,
     pub title: Box<str>,
     pub body: Box<str>,
+    #[serde(default)]
+    pub image: Option<Box<str>>,
 }
 
 #[derive(Deserialize, Debug, Clone, Default, PartialEq)]

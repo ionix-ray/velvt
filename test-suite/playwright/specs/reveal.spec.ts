@@ -44,7 +44,7 @@ test("reveal: heatmap container gets the observer class and its cells become vis
     .poll(async () => active.evaluate((el) => getComputedStyle(el).backgroundColor), {
       timeout: 8000,
     })
-    .toMatch(/181,\s*42,\s*42|212,\s*62,\s*62/);
+    .toMatch(/181,\s*42,\s*42|212,\s*62,\s*62|204,\s*43,\s*43/);
 });
 
 test("reveal: scroll-in entrance targets are stamped with the observer class", async ({

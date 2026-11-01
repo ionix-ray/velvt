@@ -27,6 +27,7 @@ pub fn StudioPanel(site: Site) -> Element {
                                 class_extra: showcase_class_extra(i, site.studio.items.len()),
                                 delay_ms: (i + 1) * 60,
                                 bg_image: Some("/assets/images/card-bg-studio.webp".to_string()),
+                                photo: item.image.as_ref().map(|s| s.to_string()),
                             }
                         }
                     }
