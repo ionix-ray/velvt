@@ -2,6 +2,7 @@
 //!   - Sparkling running border (`.v-sparkle-border`)
 //!   - Logo badge in the top-left corner (`.v-experience-badge`)
 //!   - Optional step number, tag label, title, and body text
+//!   - Optional immersive background image with parallax effects
 //!
 //! Used by `ProcessPanel` (numbered steps) and `StudioPanel` (tagged tiles).
 //! Single source of truth for the cinematic card design pattern so any
@@ -19,6 +20,7 @@ use dioxus::prelude::*;
 /// - `body`        — Card body paragraph text.
 /// - `class_extra` — Additional CSS classes appended to the card root element.
 /// - `delay_ms`    — CSS `animation-delay` / `transition-delay` in milliseconds.
+/// - `bg_image`    — Optional immersive background image URL.
 #[component]
 pub fn CardStep(
     /// Brand mark URL (single source of truth via `site.hero.logo`).
@@ -39,11 +41,14 @@ pub fn CardStep(
     /// Animation / transition delay in milliseconds.
     #[props(default)]
     delay_ms: usize,
+    /// Optional immersive background image URL.
+    #[props(default)]
+    bg_image: Option<String>,
 ) -> Element {
     let base_class = if class_extra.is_empty() {
-        "v-process__step v-reveal".to_string()
+        "v-process__step v-reveal v-card-immersive".to_string()
     } else {
-        format!("v-process__step v-reveal {class_extra}")
+        format!("v-process__step v-reveal v-card-immersive {class_extra}")
     };
 
     let delay_style = if delay_ms > 0 {
@@ -52,12 +57,26 @@ pub fn CardStep(
         String::new()
     };
 
+    let bg_style = if let Some(bg) = &bg_image {
+        format!("--card-bg-image: url('{bg}');")
+    } else {
+        String::new()
+    };
+
+    let combined_style = format!("{delay_style}{bg_style}");
+
     rsx! {
-        div { class: "{base_class}", style: "{delay_style}",
+        div { class: "{base_class}", style: if combined_style.is_empty() { None } else { Some(combined_style.as_str()) },
+            // Immersive background image layer with parallax effect
+            if bg_image.is_some() {
+                div { class: "v-card-bg", "aria-hidden": "true" }
+            }
             // Running sparkling border — pure CSS conic-gradient animation.
             div { class: "v-sparkle-border" }
             // Hover sheen sweep — cinematic light rakes across the card.
             div { class: "v-card-sheen", "aria-hidden": "true" }
+            // Light sweep overlay for immersive effect
+            div { class: "v-card-lightsweep", "aria-hidden": "true" }
             // Brand mark badge — top-left corner branding per design system.
             img { class: "v-experience-badge", src: "{logo}", alt: "Velvt" }
             // Step number (ProcessPanel) — renders inside a circle.
