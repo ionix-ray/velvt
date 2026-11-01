@@ -7,7 +7,7 @@
 //! "back" link slot.
 
 use crate::components::topbar::{theme_icon_for, toggle_theme};
-use crate::theme::brand::brand_mark;
+use crate::theme::wordmark::Wordmark;
 use dioxus::prelude::*;
 
 #[component]
@@ -15,7 +15,7 @@ pub fn CaseHeader(
     #[props(default)] back_href: Option<String>,
     #[props(default)] back_label: Option<String>,
 ) -> Element {
-    let mut theme = use_signal(|| "dark".to_string());
+    let mut theme = use_signal(|| "light".to_string());
 
     // Apply theme attribute to <html> — same pattern as Home (home.rs), kept
     // SSR-safe by the `if let Some(win) = web_sys::window()` guard, which is
@@ -37,7 +37,8 @@ pub fn CaseHeader(
     rsx! {
         header { class: "v-topbar v-topbar--standalone", id: "topbar",
             a { class: "v-topbar__brand", href: "/", "data-spa": "true",
-                img { src: brand_mark(), alt: "VELVT" }
+                aria_label: "Velvt — home",
+                Wordmark { class: "v-logo-svg".to_string(), title: None }
             }
             div { class: "v-topbar__actions",
                 if let (Some(href), Some(label)) = (back_href.clone(), back_label.clone()) {
@@ -87,12 +88,25 @@ mod tests {
         }
     }
 
+    /// The brand must be the real lockup (inline SVG + emblem asset), never a
+    /// bare text fallback — and the wordmark text must inherit `currentColor`
+    /// so CSS owns its colour instead of a baked fill.
     #[test]
-    fn renders_the_brand_image_not_text() {
+    fn renders_the_brand_lockup_not_baked_text() {
         let html = render(WrapNoBack);
-        assert!(html.contains("<img"));
-        assert!(html.contains("velvet-square"));
-        assert!(!html.contains(">VAELVET<"));
+        assert!(html.contains("<svg"), "brand must be an inline svg lockup");
+        assert!(
+            html.contains("velvet-mark"),
+            "lockup must embed the emblem asset"
+        );
+        assert!(
+            html.contains("currentColor"),
+            "wordmark text must inherit currentColor"
+        );
+        assert!(
+            !html.contains(">VAELVET<"),
+            "no hardcoded uppercase text brand"
+        );
     }
 
     #[test]

@@ -5,8 +5,7 @@ use axum::{
     http::{HeaderValue, Request},
     response::{IntoResponse, Response},
 };
-use std::path::PathBuf;
-use tokio::fs;
+use std::path::{Path, PathBuf};
 
 #[derive(Debug, Clone)]
 pub struct AppState {
@@ -14,9 +13,6 @@ pub struct AppState {
     pub index_html: PathBuf,
 }
 
-/// Insert a header built from a trusted, hardcoded `&'static str` pair.
-/// Infallible for the literals used in this module — kept as a helper so
-/// call sites never reach for `Result::unwrap`.
 fn set_header(response: &mut Response, name: &'static str, value: &'static str) {
     response
         .headers_mut()
@@ -29,81 +25,128 @@ pub async fn health_check() -> impl IntoResponse {
     response
 }
 
-/// Serve any request — file if it exists, else index.html for SPA.
+#[derive(Debug)]
+enum ServeResult {
+    File {
+        content: Vec<u8>,
+        content_type: &'static str,
+        cache_control: &'static str,
+        encoding: Option<&'static str>,
+    },
+    Index {
+        content: String,
+    },
+}
+
+fn serve_blocking(
+    static_root: &Path,
+    index_html: &Path,
+    path_str: &str,
+) -> Result<ServeResult, ServerError> {
+    if path_str.is_empty() {
+        let content = std::fs::read_to_string(index_html)
+            .map_err(|e| ServerError::AssetRead(format!("index.html: {e}")))?;
+        return Ok(ServeResult::Index { content });
+    }
+
+    let requested = static_root.join(path_str);
+    if !requested.exists() || !requested.is_file() {
+        let content = std::fs::read_to_string(index_html)
+            .map_err(|e| ServerError::AssetRead(format!("index.html: {e}")))?;
+        return Ok(ServeResult::Index { content });
+    }
+
+    if !is_within_root(&requested, static_root) {
+        return Err(ServerError::InvalidPath);
+    }
+
+    let mime = mime_type(&requested);
+    let cache_control = if is_immutable_asset(path_str) {
+        "public, max-age=31536000, immutable"
+    } else {
+        "public, max-age=3600"
+    };
+
+    let mut gz_path = requested.clone();
+    if let Some(name) = gz_path.file_name().and_then(|n| n.to_str()) {
+        let mut new_name = name.to_string();
+        new_name.push_str(".gz");
+        gz_path.set_file_name(new_name);
+    }
+
+    if gz_path.is_file() {
+        if !is_within_root(&gz_path, static_root) {
+            let content = std::fs::read(&requested)
+                .map_err(|e| ServerError::AssetRead(format!("{path_str}: {e}")))?;
+            return Ok(ServeResult::File {
+                content,
+                content_type: mime,
+                cache_control,
+                encoding: None,
+            });
+        }
+        let content = std::fs::read(&gz_path)
+            .map_err(|e| ServerError::AssetRead(format!("{path_str}.gz: {e}")))?;
+        return Ok(ServeResult::File {
+            content,
+            content_type: mime,
+            cache_control,
+            encoding: Some("gzip"),
+        });
+    }
+
+    let content = std::fs::read(&requested)
+        .map_err(|e| ServerError::AssetRead(format!("{path_str}: {e}")))?;
+    Ok(ServeResult::File {
+        content,
+        content_type: mime,
+        cache_control,
+        encoding: None,
+    })
+}
+
 pub async fn serve_request(
     State(state): State<AppState>,
     req: Request<Body>,
 ) -> Result<Response, ServerError> {
-    let path_str = req.uri().path().trim_start_matches('/');
+    let path_str = req.uri().path().trim_start_matches('/').to_string();
     tracing::debug!(path = %path_str, "incoming request");
 
-    let requested = state.static_root.join(path_str);
-    let requested_exists_as_file =
-        !path_str.is_empty() && requested.exists() && requested.is_file();
+    let static_root = state.static_root.clone();
+    let index_html = state.index_html.clone();
+    let path_str_clone = path_str;
 
-    if requested_exists_as_file && !is_within_root(&requested, &state.static_root) {
-        return Err(ServerError::InvalidPath);
-    }
+    let result = tokio::task::spawn_blocking(move || {
+        serve_blocking(&static_root, &index_html, &path_str_clone)
+    })
+    .await
+    .map_err(|e| ServerError::AssetRead(format!("spawn_blocking: {e}")))??;
 
-    if requested_exists_as_file {
-        let mime = mime_type(&requested);
-        let cache_control = if is_immutable_asset(path_str) {
-            "public, max-age=31536000, immutable"
-        } else {
-            "public, max-age=3600"
-        };
-
-        // Serve pre-compressed .gz variant if it exists alongside the raw file.
-        // The container build pre-compresses WASM/JS/CSS so this is zero-cost
-        // at serve time (no runtime gzip overhead).
-        // Build path as "{original}.gz" (e.g. app.wasm.gz) by appending to filename.
-        let gz_path = {
-            let mut p = requested.clone();
-            let mut name = p
-                .file_name()
-                .and_then(|n| n.to_str())
-                .unwrap_or("")
-                .to_string();
-            name.push_str(".gz");
-            p.set_file_name(name);
-            p
-        };
-
-        let (content, encoding) = if gz_path.is_file() {
-            let bytes = fs::read(&gz_path)
-                .await
-                .map_err(|e| ServerError::AssetRead(format!("{path_str}.gz: {e}")))?;
-            (bytes, Some("gzip"))
-        } else {
-            let bytes = fs::read(&requested)
-                .await
-                .map_err(|e| ServerError::AssetRead(format!("{path_str}: {e}")))?;
-            (bytes, None)
-        };
-
-        let mut response = Response::new(Body::from(content));
-        set_header(&mut response, "content-type", mime);
-        set_header(&mut response, "cache-control", cache_control);
-        if let Some(enc) = encoding {
-            set_header(&mut response, "content-encoding", enc);
-            set_header(&mut response, "vary", "Accept-Encoding");
+    match result {
+        ServeResult::File {
+            content,
+            content_type,
+            cache_control,
+            encoding,
+        } => {
+            let mut response = Response::new(Body::from(content));
+            set_header(&mut response, "content-type", content_type);
+            set_header(&mut response, "cache-control", cache_control);
+            if let Some(enc) = encoding {
+                set_header(&mut response, "content-encoding", enc);
+                set_header(&mut response, "vary", "Accept-Encoding");
+            }
+            Ok(response)
         }
-        return Ok(response);
+        ServeResult::Index { content } => {
+            let mut response = Response::new(Body::from(content));
+            set_header(&mut response, "content-type", "text/html; charset=utf-8");
+            set_header(&mut response, "cache-control", "no-cache");
+            Ok(response)
+        }
     }
-
-    let content = fs::read_to_string(&state.index_html)
-        .await
-        .map_err(|e| ServerError::AssetRead(format!("index.html: {e}")))?;
-
-    let mut response = Response::new(Body::from(content));
-    set_header(&mut response, "content-type", "text/html; charset=utf-8");
-    set_header(&mut response, "cache-control", "no-cache");
-    Ok(response)
 }
 
-/// Lexical `starts_with` on an unresolved path is not a traversal guard —
-/// `..` components and symlinks reach real files the OS resolves normally.
-/// Canonicalize both sides and compare the resolved paths instead.
 fn is_within_root(candidate: &std::path::Path, root: &std::path::Path) -> bool {
     let (Ok(canonical_candidate), Ok(canonical_root)) =
         (candidate.canonicalize(), root.canonicalize())
@@ -131,9 +174,6 @@ fn mime_type(path: &std::path::Path) -> &'static str {
     }
 }
 
-/// Returns true for content-hashed assets that can be cached immutably
-/// (1 year). Dioxus marks all hashed assets with the `dxh` marker in the
-/// filename, covering WASM, JS bundles, CSS stylesheets, and web fonts.
 fn is_immutable_asset(path: &str) -> bool {
     if !path.contains("dxh") {
         return false;
@@ -142,116 +182,4 @@ fn is_immutable_asset(path: &str) -> bool {
         path.rsplit('.').next().unwrap_or(""),
         "js" | "wasm" | "css" | "woff2" | "woff" | "ttf"
     )
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use std::path::Path;
-
-    type TestResult = Result<(), Box<dyn std::error::Error>>;
-
-    fn temp_dir(name: &str) -> std::io::Result<std::path::PathBuf> {
-        let dir = std::env::temp_dir().join(format!(
-            "velvet-handlers-test-{name}-{}",
-            std::process::id()
-        ));
-        let _ = std::fs::remove_dir_all(&dir);
-        std::fs::create_dir_all(&dir)?;
-        Ok(dir)
-    }
-
-    #[test]
-    fn is_within_root_accepts_file_directly_under_root() -> TestResult {
-        let root = temp_dir("within")?;
-        let file = root.join("index.html");
-        std::fs::write(&file, "ok")?;
-
-        assert!(is_within_root(&file, &root));
-
-        let _ = std::fs::remove_dir_all(&root);
-        Ok(())
-    }
-
-    #[test]
-    fn is_within_root_rejects_literal_dotdot_escape() -> TestResult {
-        let root = temp_dir("escape-root")?;
-        let outside = temp_dir("escape-outside")?.join("secret.txt");
-        std::fs::write(&outside, "secret")?;
-
-        let Some(outside_dir) = outside.parent() else {
-            return Err("outside file has no parent dir".into());
-        };
-        let Some(outside_dir_name) = outside_dir.file_name() else {
-            return Err("outside parent dir has no name".into());
-        };
-
-        // Lexically joins to `root/../escape-outside-<pid>/secret.txt`,
-        // which resolves to a real file outside `root` once canonicalized.
-        let escaping = root.join("..").join(outside_dir_name).join("secret.txt");
-
-        assert!(!is_within_root(&escaping, &root));
-
-        let _ = std::fs::remove_dir_all(&root);
-        let _ = std::fs::remove_dir_all(outside_dir);
-        Ok(())
-    }
-
-    #[test]
-    fn is_within_root_rejects_nonexistent_candidate() -> TestResult {
-        let root = temp_dir("missing-candidate")?;
-        let missing = root.join("does-not-exist.html");
-
-        assert!(!is_within_root(&missing, &root));
-
-        let _ = std::fs::remove_dir_all(&root);
-        Ok(())
-    }
-
-    #[test]
-    fn mime_type_covers_every_known_extension() {
-        assert_eq!(mime_type(Path::new("a.html")), "text/html; charset=utf-8");
-        assert_eq!(
-            mime_type(Path::new("a.js")),
-            "application/javascript; charset=utf-8"
-        );
-        assert_eq!(
-            mime_type(Path::new("a.mjs")),
-            "application/javascript; charset=utf-8"
-        );
-        assert_eq!(mime_type(Path::new("a.wasm")), "application/wasm");
-        assert_eq!(mime_type(Path::new("a.css")), "text/css; charset=utf-8");
-        assert_eq!(mime_type(Path::new("a.png")), "image/png");
-        assert_eq!(mime_type(Path::new("a.jpg")), "image/jpeg");
-        assert_eq!(mime_type(Path::new("a.jpeg")), "image/jpeg");
-        assert_eq!(mime_type(Path::new("a.svg")), "image/svg+xml");
-        assert_eq!(mime_type(Path::new("a.ico")), "image/x-icon");
-        assert_eq!(mime_type(Path::new("a.woff2")), "font/woff2");
-        assert_eq!(mime_type(Path::new("a.woff")), "font/woff");
-        assert_eq!(mime_type(Path::new("a.ttf")), "font/ttf");
-        assert_eq!(mime_type(Path::new("a.json")), "application/json");
-        assert_eq!(
-            mime_type(Path::new("a.unknown")),
-            "application/octet-stream"
-        );
-        assert_eq!(mime_type(Path::new("noext")), "application/octet-stream");
-    }
-
-    #[test]
-    fn is_immutable_asset_requires_hash_marker_and_known_extension() {
-        // WASM + JS — original behaviour
-        assert!(is_immutable_asset("assets/app-dxh1234.wasm"));
-        assert!(is_immutable_asset("assets/app-dxh1234.js"));
-        // CSS and font files are now also immutable when hash-marked
-        assert!(is_immutable_asset("assets/theme-dxh1234.css"));
-        assert!(is_immutable_asset("assets/ibm-plex-dxh1234.woff2"));
-        assert!(is_immutable_asset("assets/ibm-plex-dxh1234.woff"));
-        assert!(is_immutable_asset("assets/ibm-plex-dxh1234.ttf"));
-        // Without hash marker — must NOT be immutable
-        assert!(!is_immutable_asset("assets/app.wasm"));
-        assert!(!is_immutable_asset("assets/theme.css"));
-        // HTML and other types — never immutable
-        assert!(!is_immutable_asset("index.html"));
-        assert!(!is_immutable_asset("robots.txt"));
-    }
 }

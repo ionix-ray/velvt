@@ -26,6 +26,8 @@ pub fn ProcessPanel(site: Site) -> Element {
                                 title: step.title.to_string(),
                                 body: step.body.to_string(),
                                 delay_ms: (i + 1) * 120,
+                                bg_image: Some("/assets/images/card-bg-process.webp".to_string()),
+                                photo: step.image.as_ref().map(|s| s.to_string()),
                             }
                         }
                     }

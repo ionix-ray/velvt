@@ -29,3 +29,17 @@
 - `#[allow(clippy::module_inception)]` on component mod.rs files (Dioxus convention)
 - `#[allow(clippy::cast_possible_truncation)]` on enumerate loops (small item counts)
 - `document::Link` for CSP meta tag (static site, no server headers)
+
+## Architecture Audit (2026-10-25)
+- **Single source for links**: `content/site.md` — `[[footer.socials]]` (X/LinkedIn/Instagram), `[[team.handles]]`, `[[footer.columns]]`, `[contact]`. No other file may hold a social URL (was 4x duplicated incl. hardcoded `social_strip.rs` + `index.html` JSON-LD).
+- **No RPC/broker/queue in this repo** — by design. Static delivery only. Don't add messaging infra without a real async workload.
+- **Backlog spine**: `docs/ROADMAP.md` (priority P0-P3 + stage S4-S8 + status) → Gherkin AC in `docs/features/*.feature` → sprint rows in `TASKS.md`. Keep all three in sync; PROGRESS.md stays append-only.
+- **Known bug catalog** (fix status tracked in ROADMAP): reveal observer class `.in` unconsumed; heatmap `.is-revealed` never applied (opacity:0 forever); nav labels triplicated (home.rs/mobile_nav.rs/site.md); theme.css not synced by `just build` (only `just dev`).
+- **Tracked junk removed**: `test-dist/` (18 MB), `test-results/`, `.codegraph/` must stay gitignored.
+- **Compliance matrix**: `docs/SECURITY-COMPLIANCE.md` is the OWASP/LLM/CIS source of truth; residual risks carry `S6-xx` IDs.
+
+## Model / Skill Routing
+- Server/backend Rust work → `tdd-cycle` + `rust-testing`, model Sonnet 4.6.
+- UI/cinematic design → `frontend-design` + `impeccable` + `ui-ux-pro-max` + `high-end-visual-design` (installed under `.agents/skills/`).
+- Doc/compliance/bulk writing → Haiku 4.5 or Gemini via `agy` (present at `~/.local/bin/agy`).
+- Orientation without burning context: `graft ask` against `graft/` graph (~82K tok saved/pass).

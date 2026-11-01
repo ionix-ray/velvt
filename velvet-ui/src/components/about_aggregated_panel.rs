@@ -58,19 +58,7 @@ pub fn AboutAggregatedPanel(site: Site) -> Element {
                                 }
 
                                 div { class: "v-heatmap-container v-reveal",
-                                    // The animated heatmap spelling VELVT
-                                    div { class: "v-heatmap-grid",
-                                        for row in 0..7 {
-                                            for col in 0..33 {
-                                                div {
-                                                    class: if is_active_cell(row, col) { "v-heatmap-cell v-heatmap-cell--active" } else { "v-heatmap-cell" },
-                                                    style: "animation-delay: {col as f64 * 0.05}s;"
-                                                }
-                                            }
-                                        }
-                                    }
-
-                                    // The floating stats cards
+                                    // Stats cards
                                     div { class: "v-about-stats",
                                         for stat in site.analytics.stats.iter() {
                                             div { class: "v-about-stat",
@@ -88,24 +76,6 @@ pub fn AboutAggregatedPanel(site: Site) -> Element {
                 }
             }
         }
-    }
-}
-
-// 7x33 Grid spelling "VELVT"
-fn is_active_cell(row: usize, col: usize) -> bool {
-    let velvt = [
-        "0010001001111101000001000101111100",
-        "0010001001000001000001000100010000",
-        "0010001001000001000001000100010000",
-        "0010001001111001000001000100010000",
-        "0001010001000001000000101000010000",
-        "0001010001000001000000101000010000",
-        "0000100001111101111100010000010000",
-    ];
-    if row < 7 && col < 33 {
-        velvt[row].as_bytes()[col] == b'1'
-    } else {
-        false
     }
 }
 
@@ -151,7 +121,14 @@ fn TeamCard(member: TeamMember) -> Element {
                 if !member.eyebrow.is_empty() {
                     span { class: "v-team-card__eyebrow", "{member.eyebrow}" }
                 }
-                h3 { class: "v-team-card__name", "{member.name}" }
+                h3 { class: "v-team-card__name",
+                    if let Some((first, last)) = member.name.split_once(' ') {
+                        span { style: "color: var(--text-primary);", "{first} " }
+                        span { style: "color: var(--accent);", "{last}" }
+                    } else {
+                        span { style: "color: var(--text-primary);", "{member.name}" }
+                    }
+                }
                 if !member.bio.is_empty() {
                     p { class: "v-team-card__bio", "{member.bio}" }
                 }

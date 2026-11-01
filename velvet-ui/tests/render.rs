@@ -2,12 +2,27 @@
 //! and every panel is present (100 % coverage per coverage-goals.md).
 
 use vaelvet_ui::Site;
+use vaelvet_ui::components::dynamic_background::DynamicBackground;
+use vaelvet_ui::config::{background_alpha, glyph_alpha};
 use vaelvet_ui::routes::Home;
 
 use dioxus::prelude::*;
 
 fn render_home() -> String {
     let mut dom = VirtualDom::new(Home);
+    dom.rebuild_in_place();
+    dioxus_ssr::render(&dom)
+}
+
+#[component]
+fn WrapBg() -> Element {
+    rsx! {
+        DynamicBackground { site: Site::load().clone() }
+    }
+}
+
+fn render_bg() -> String {
+    let mut dom = VirtualDom::new(WrapBg);
     dom.rebuild_in_place();
     dioxus_ssr::render(&dom)
 }
@@ -48,9 +63,48 @@ fn panel_1_home_hero_renders() {
         "hero 3d logo class must appear"
     );
     assert!(
-        html.contains("v-hero-3d-logo__img"),
-        "hero logo img must appear"
+        html.contains("v-hero__logo-svg")
+            || html.contains("v-hero-3d-logo__img")
+            || html.contains("v-hero-3d-logo__video"),
+        "hero logo svg, img, or video must appear"
     );
+}
+
+#[test]
+fn dynamic_background_renders_all_layers_with_config_alpha() {
+    let html = render_bg();
+    assert!(html.contains("v-dynamic-bg"), "bg root missing");
+    assert!(
+        html.contains("v-dynamic-bg__layer--slow"),
+        "slow layer missing"
+    );
+    assert!(
+        html.contains("v-dynamic-bg__layer--fast"),
+        "fast layer missing"
+    );
+    assert!(html.contains("v-dynamic-bg__beam"), "beam missing");
+    assert!(
+        html.contains("aria-hidden=\"true\""),
+        "decorative bg must be aria-hidden"
+    );
+    // Config drives the style contract: intensity → --v-bg-alpha and the
+    // glyph share → --v-bg-glyph-alpha. Assert the wiring using the same
+    // functions the component uses, not a magic number that drifts when the
+    // brand tunes its background.
+    let site = Site::load();
+    let bg = &site.background;
+    let alpha = background_alpha(bg.intensity);
+    assert!(
+        html.contains(&format!("--v-bg-alpha:{alpha}")),
+        "config intensity must drive --v-bg-alpha, got: {html}"
+    );
+    if bg.show_glyphs {
+        let glyph = glyph_alpha(bg.intensity, bg.glyph_opacity);
+        assert!(
+            html.contains(&format!("--v-bg-glyph-alpha:{glyph}")),
+            "config glyph share must drive --v-bg-glyph-alpha, got: {html}"
+        );
+    }
 }
 
 #[test]
@@ -145,6 +199,81 @@ fn home_has_no_raw_unwrap_expect_in_output() {
 
 // ── Structural ──────────────────────────────────────────────────────────────
 
+// ── Reveal observer ⇄ CSS contract ─────────────────────────────────────────
+
+/// `scroll::install_reveal` adds [`scroll::REVEALED_CLASS`] to every element
+/// matching [`scroll::REVEAL_SELECTOR`]. The stylesheet must consume exactly
+/// that class for both the entrance state (`.v-reveal*`) and the analytics
+/// heatmap (`.v-heatmap-container`) — otherwise the observer is a no-op and
+/// the heatmap cells stay at `opacity: 0` forever.
+#[test]
+fn theme_css_consumes_the_reveal_class_the_observer_adds() {
+    use vaelvet_ui::scroll::{REVEAL_SELECTOR, REVEALED_CLASS};
+
+    let css = include_str!("../assets/theme.css");
+    assert_eq!(REVEALED_CLASS, "is-revealed");
+
+    for hook in [
+        ".v-reveal.is-revealed",
+        ".v-reveal-left.is-revealed",
+        ".v-reveal-right.is-revealed",
+        ".v-heatmap-container.is-revealed",
+    ] {
+        assert!(
+            css.contains(hook),
+            "theme.css must style `{hook}` — the observer applies `{REVEALED_CLASS}`"
+        );
+    }
+
+    // Every selector the observer watches must be a real selector the
+    // stylesheet also keys off, and vice versa for the heatmap container.
+    for token in REVEAL_SELECTOR.split(',') {
+        let token = token.trim();
+        assert!(
+            token.starts_with('.'),
+            "reveal selector `{token}` must be a class selector"
+        );
+        assert!(
+            css.contains(token),
+            "theme.css has no rule for observed selector `{token}`"
+        );
+    }
+    assert!(
+        REVEAL_SELECTOR.contains(".v-heatmap-container"),
+        "the heatmap must be observed or its cells never leave opacity:0"
+    );
+}
+
+/// The stats container renders with the observer's hooks so `install_reveal` can
+/// find it, and renders stats cards cleanly without background heatmap cells.
+#[test]
+fn stats_render_cleanly_without_background_heatmap_cells() {
+    let html = render_home();
+    assert!(
+        html.contains("v-heatmap-container v-reveal"),
+        "stats container must carry the reveal hook"
+    );
+    assert!(
+        html.contains("v-about-stats"),
+        "about stats wrapper must render"
+    );
+    assert_eq!(
+        html.matches("class=\"v-about-stat\"").count(),
+        4,
+        "4 stat cards must render"
+    );
+    assert_eq!(
+        html.matches("v-about-stat__value").count(),
+        4,
+        "4 stat card values must render"
+    );
+    assert_eq!(
+        html.matches("v-heatmap-cell").count(),
+        0,
+        "heatmap grid cells must not render"
+    );
+}
+
 #[test]
 fn home_renders_loader_and_progress() {
     let html = render_home();
@@ -158,16 +287,15 @@ fn home_renders_navigation_elements() {
     assert!(html.contains("v-topbar"), "topbar must exist");
     assert!(html.contains("v-stack-nav"), "stacked nav must exist");
     assert!(html.contains("v-spindle"), "section spindle must exist");
-    // Note: next-hint component was removed per user request; no longer asserted.
 }
 
 #[test]
 fn home_loader_uses_icon_mark_not_full_wordmark() {
     let html = render_home();
-    // The loader must reference only-logo.png (the standalone icon) rather than
-    // the full velvet-square wordmark card.
+    // The loader must reference the velvet-mark glyph (the standalone icon)
+    // rather than the full wordmark card.
     assert!(
-        html.contains("only-logo"),
-        "loader must use only-logo.png as the loading symbol"
+        html.contains("velvet-mark"),
+        "loader must use velvet-mark.webp as the loading symbol"
     );
 }

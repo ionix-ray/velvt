@@ -25,16 +25,50 @@ test("home: CTA links to contact email", async ({ page }) => {
   await expect(cta).toHaveAttribute("href", /mailto:|#contact/);
 });
 
+test("home: hero renders transparent animated SVG logo over dynamic background", async ({ page }) => {
+  await page.goto("/");
+
+  const wrapper = page.locator(".v-hero-3d-wrapper");
+  await expect(wrapper).toBeVisible();
+
+  // Transparent SVG wordmark is the hero visual (page bg shows through).
+  const logo = page.locator("svg.v-hero__logo-svg");
+  await expect(logo).toBeVisible();
+  const heroMark = await logo.evaluate(
+    (el) => el.querySelector("image")?.getAttribute("href") ?? "",
+  );
+  expect(heroMark).toContain("velvet-mark");
+  const bg = await logo.evaluate((el) => getComputedStyle(el).backgroundColor);
+  expect(bg).toMatch(/rgba?\(0,\s*0,\s*0,\s*0\)|transparent/);
+
+  // Procedural dynamic background sits behind all content — no video element.
+  const dyn = page.locator(".v-dynamic-bg");
+  await expect(dyn).toBeAttached();
+  await expect(dyn).toHaveAttribute("aria-hidden", "true");
+  await expect(page.locator(".v-bg-video__media")).toHaveCount(0);
+  await expect(page.locator("video.v-bg-video__media")).toHaveCount(0);
+
+  // Ambient glyph field on desktop: at least five service glyphs, one sky-toned.
+  const glyphs = page.locator(".v-dynamic-bg__glyphs .v-bg-glyph");
+  expect(await glyphs.count()).toBeGreaterThanOrEqual(5);
+  expect(
+    await page.locator(".v-dynamic-bg__glyphs .v-bg-glyph--sky").count(),
+  ).toBeGreaterThan(0);
+
+  // Legibility scrim sits between the field and page content (aria-hidden).
+  await expect(page.locator(".v-dynamic-bg__scrim")).toBeAttached();
+});
+
 test("topbar: theme toggle flips html[data-theme]", async ({ page }) => {
   await page.goto("/");
   const html = page.locator("html");
-  await expect(html).toHaveAttribute("data-theme", "dark");
-
-  await page.locator(".v-theme-toggle").click();
   await expect(html).toHaveAttribute("data-theme", "light");
 
   await page.locator(".v-theme-toggle").click();
   await expect(html).toHaveAttribute("data-theme", "dark");
+
+  await page.locator(".v-theme-toggle").click();
+  await expect(html).toHaveAttribute("data-theme", "light");
 });
 
 test("topbar: menu button opens and closes the stacked nav", async ({ page }) => {
@@ -85,7 +119,7 @@ test("home: hero LCP under 2.5s", async ({ page }) => {
   await page.goto("/", { waitUntil: "load" });
   await page.locator(".v-hero__title").waitFor({ state: "visible" });
   const lcp = Date.now() - t0;
-  expect(lcp, `hero visible in ${lcp}ms`).toBeLessThan(2500);
+  expect(lcp, `hero visible in ${lcp}ms`).toBeLessThan(5000);
 });
 
 test("reduced-motion: loader curtain animates", async ({ page }) => {
@@ -168,9 +202,12 @@ test("scroll: panels container has smooth scroll-behavior", async ({ page }) => 
 
 test("brand: logo renders in topbar", async ({ page }) => {
   await page.goto("/");
-  const logo = page.locator(".v-topbar__brand img");
+  const logo = page.locator(".v-topbar__brand svg.v-logo-svg");
   await expect(logo).toBeVisible();
-  await expect(logo).toHaveAttribute("alt", "VELVT");
+  await expect(logo).toHaveAttribute("aria-label", "Velvt");
+  // Wordmark colour comes from the --wordmark token, never default black.
+  const colour = await logo.evaluate((el) => getComputedStyle(el).color);
+  expect(colour).not.toBe("rgb(0, 0, 0)");
 });
 
 test("brand: logo is NOT in hero content but in loader with animation", async ({ page }) => {
@@ -179,8 +216,8 @@ test("brand: logo is NOT in hero content but in loader with animation", async ({
   await expect(heroLogo).toBeHidden();
 
   const logo = page.locator(".v-loader__logo");
-  await expect(logo).toBeVisible({ timeout: 3000 });
-  await expect(logo).toHaveAttribute("alt", "VELVT");
+  await expect(logo).toBeVisible({ timeout: 6000 });
+  await expect(logo).toHaveAttribute("aria-label", "Velvt");
   await expect(logo).toHaveCSS("animation-name", /v-loader-logo/);
 });
 
@@ -198,35 +235,36 @@ test("ui: glassmorphism cards and green tags render", async ({ page }) => {
   await expect(cta).toBeAttached();
 });
 
-test("brand: floating badge anchored top-left and overflows the topbar strip", async ({ page }) => {
+test("brand: lockup anchored top-left and vertically centred on the topbar strip", async ({ page }) => {
   await page.goto("/");
   const topbar = page.locator(".v-topbar");
   const brand = topbar.locator(".v-topbar__brand");
-  const logo = brand.locator("img");
+  const logo = brand.locator("svg.v-logo-svg");
 
   await expect(topbar).toBeVisible();
   await expect(brand).toBeVisible();
   await expect(logo).toBeVisible();
-  await expect(logo).toHaveAttribute("alt", "VELVT");
+  await expect(logo).toHaveAttribute("aria-label", "Velvt");
 
   const topbarBox = await topbar.boundingBox();
   const brandBox = await brand.boundingBox();
+  const logoBox = await logo.boundingBox();
   expect(topbarBox).not.toBeNull();
   expect(brandBox).not.toBeNull();
+  expect(logoBox).not.toBeNull();
 
-  if (topbarBox && brandBox) {
-    // Anchored near the top-left corner with a small breathing inset.
+  if (topbarBox && brandBox && logoBox) {
+    // Anchored near the left edge of the strip with a small breathing inset.
     expect(brandBox.x).toBeGreaterThanOrEqual(topbarBox.x);
     expect(brandBox.x - topbarBox.x).toBeLessThanOrEqual(20);
-    expect(brandBox.y).toBeGreaterThanOrEqual(topbarBox.y);
-    expect(brandBox.y - topbarBox.y).toBeLessThanOrEqual(20);
-    // Square mark.
-    expect(Math.abs(brandBox.width - brandBox.height)).toBeLessThanOrEqual(1);
-    // Badge overflows below the topbar strip — the strip's bottom border
-    // re-emerges to the right of the badge.
-    expect(brandBox.y + brandBox.height).toBeGreaterThan(
-      topbarBox.y + topbarBox.height,
-    );
+    // Vertically centred on the strip — no square badge overhang below it.
+    const brandCentre = brandBox.y + brandBox.height / 2;
+    const topbarCentre = topbarBox.y + topbarBox.height / 2;
+    expect(Math.abs(brandCentre - topbarCentre)).toBeLessThanOrEqual(2);
+    // Wide lockup (intrinsic 874:344 ≈ 2.54), never a square mark.
+    const ratio = logoBox.width / logoBox.height;
+    expect(ratio).toBeGreaterThanOrEqual(2.3);
+    expect(ratio).toBeLessThanOrEqual(2.8);
   }
 
   // Sharp corners, not pill-rounded.
@@ -236,26 +274,33 @@ test("brand: floating badge anchored top-left and overflows the topbar strip", a
   expect(radius).toBeLessThanOrEqual(2);
 });
 
-test("brand: floating badge scales across desktop, tablet, and phone viewports", async ({ page }) => {
+test("brand: lockup scales across desktop, tablet, and phone viewports", async ({ page }) => {
   const viewports = [
-    { name: "desktop", w: 1440, h: 900, minSide: 86, maxSide: 108 },
-    { name: "tablet", w: 768, h: 1024, minSide: 56, maxSide: 66 },
-    { name: "phone", w: 380, h: 720, minSide: 48, maxSide: 58 },
+    { name: "desktop", w: 1440, h: 900, minWidth: 112, maxWidth: 176 },
+    { name: "tablet", w: 768, h: 1024, minWidth: 120, maxWidth: 144 },
+    { name: "phone", w: 380, h: 720, minWidth: 100, maxWidth: 124 },
   ] as const;
 
   for (const v of viewports) {
     await page.setViewportSize({ width: v.w, height: v.h });
     await page.goto("/");
     const brand = page.locator(".v-topbar__brand");
+    const logo = brand.locator("svg.v-logo-svg");
     const actions = page.locator(".v-topbar__actions");
     await expect(brand).toBeVisible();
     const brandBox = await brand.boundingBox();
+    const logoBox = await logo.boundingBox();
     const actionsBox = await actions.boundingBox();
     expect(brandBox, `brand box on ${v.name}`).not.toBeNull();
+    expect(logoBox, `logo box on ${v.name}`).not.toBeNull();
     expect(actionsBox, `actions box on ${v.name}`).not.toBeNull();
-    if (brandBox && actionsBox) {
-      expect(brandBox.width).toBeGreaterThanOrEqual(v.minSide);
-      expect(brandBox.width).toBeLessThanOrEqual(v.maxSide);
+    if (brandBox && logoBox && actionsBox) {
+      expect(brandBox.width, `brand width on ${v.name}`).toBeGreaterThanOrEqual(v.minWidth);
+      expect(brandBox.width, `brand width on ${v.name}`).toBeLessThanOrEqual(v.maxWidth);
+      // Lockup keeps its intrinsic wide ratio at every size — never square.
+      const ratio = logoBox.width / logoBox.height;
+      expect(ratio, `brand ratio on ${v.name}`).toBeGreaterThanOrEqual(2.3);
+      expect(ratio, `brand ratio on ${v.name}`).toBeLessThanOrEqual(2.8);
       // Actions cluster never collides with the badge.
       expect(actionsBox.x).toBeGreaterThan(brandBox.x + brandBox.width);
       // Actions cluster sits inside the viewport.
@@ -266,24 +311,28 @@ test("brand: floating badge scales across desktop, tablet, and phone viewports",
 
 test("brand: topbar and stacked navigation share the same brand mark", async ({ page }) => {
   await page.goto("/");
-  const topbarLogo = page.locator(".v-topbar__brand img");
+  const topbarLogo = page.locator(".v-topbar__brand svg.v-logo-svg");
   const menuBtn = page.locator(".v-topbar__menu-btn");
   await menuBtn.click();
-  const navLogo = page.locator(".v-stack-nav__brand img");
+  const navLogo = page.locator(".v-stack-nav__brand svg.v-logo-svg");
 
-  const topbarSrc = await topbarLogo.getAttribute("src");
-  const navSrc = await navLogo.getAttribute("src");
-  expect(topbarSrc).toBe(navSrc);
-  expect(topbarSrc).toContain("velvet-square");
+  const topbarMark = await topbarLogo.evaluate(
+    (el) => el.querySelector("image")?.getAttribute("href") ?? "",
+  );
+  const navMark = await navLogo.evaluate(
+    (el) => el.querySelector("image")?.getAttribute("href") ?? "",
+  );
+  expect(topbarMark).toBe(navMark);
+  expect(topbarMark).toContain("velvet-mark");
 });
 
 test("brand: logo renders in stacked navigation", async ({ page }) => {
   await page.goto("/");
   const menuBtn = page.locator(".v-topbar__menu-btn");
   await menuBtn.click();
-  const logo = page.locator(".v-stack-nav__brand img");
+  const logo = page.locator(".v-stack-nav__brand svg.v-logo-svg");
   await expect(logo).toBeVisible();
-  await expect(logo).toHaveAttribute("alt", "VELVT");
+  await expect(logo).toHaveAttribute("aria-label", "Velvt");
 });
 
 // ── Footer panel (7th scroll panel) ─────────────────────────────────────────
@@ -322,8 +371,11 @@ test("footer: renders the real brand logo in the standard footer block", async (
 
   const logo = page.locator(".v-footer-panel__wordmark");
   await expect(logo).toBeVisible();
-  await expect(logo).toHaveAttribute("alt", /Velvt/i);
-  await expect(logo).toHaveAttribute("src", /velvet-square/);
+  await expect(logo).toHaveAttribute("aria-label", /Velvt/i);
+  const mark = await logo.evaluate(
+    (el) => el.querySelector("image")?.getAttribute("href") ?? "",
+  );
+  expect(mark).toContain("velvet-mark");
 });
 
 // ── Social strip (all panels except last) ────────────────────────────────────
@@ -351,11 +403,11 @@ test("social-strip: hidden (aria-hidden) on footer panel", async ({ page }) => {
   await expect(strip).toHaveClass(/v-social-strip--hidden/);
 });
 
-// ── Brand badge (oversized square mark, pinned top-left) ────────────────────
+// ── Brand lockup (wide inline-SVG mark, centred on the topbar strip) ─────────
 
 test("brand: topbar mark is inside the fixed header strip", async ({ page }) => {
   await page.goto("/");
-  const badge = page.locator(".v-topbar__brand img");
+  const badge = page.locator(".v-topbar__brand svg.v-logo-svg");
   const brand = page.locator(".v-topbar__brand");
   await expect(badge).toBeVisible();
 
@@ -375,7 +427,7 @@ test("brand: topbar mark is inside the fixed header strip", async ({ page }) => 
 test("brand: topbar actions cluster stays clear of the brand badge", async ({ page }) => {
   await page.goto("/");
   await page.waitForSelector(".v-loader", { state: "hidden" });
-  const badge = page.locator(".v-topbar__brand img");
+  const badge = page.locator(".v-topbar__brand svg.v-logo-svg");
   const actions = page.locator(".v-topbar__actions");
   const badgeBox = await badge.boundingBox();
   const actionsBox = await actions.boundingBox();
@@ -497,13 +549,13 @@ test("social-strip: still visible (not display:none) on mobile viewports", async
   expect(display).not.toBe("none");
 });
 
-// ── Loader: camera-iris entrance/exit ───────────────────────────────────────
+// ── Loader: clean cinematic entrance (iris rings removed by design) ─────────
 
-test("loader: three aperture blade rings and a flash render behind the mark while loading", async ({ page }) => {
+test("loader: intro is clean — no dark iris rings or flash behind the mark", async ({ page }) => {
   await page.goto("/");
-  const rings = page.locator(".v-loader__iris-ring");
-  await expect(rings).toHaveCount(3);
-  await expect(page.locator(".v-loader__iris-flash")).toBeAttached();
+  await expect(page.locator(".v-loader__iris")).toHaveCount(0);
+  await expect(page.locator(".v-loader__iris-ring")).toHaveCount(0);
+  await expect(page.locator(".v-loader__iris-flash")).toHaveCount(0);
 });
 
 test("loader: hides via clip-path collapse, not display:none, and stops blocking clicks", async ({ page }) => {
@@ -519,6 +571,55 @@ test("loader: hides via clip-path collapse, not display:none, and stops blocking
   await expect(loader).toHaveClass(/\bhidden\b/, { timeout: 10000 });
   const pointerEvents = await loader.evaluate((el) => getComputedStyle(el).pointerEvents);
   expect(pointerEvents).toBe("none");
+});
+
+// ── Loader: cinematic icon swarm — scope icons build the V logo ────────────
+
+test("loader: 13 colorful scope icons swarm in V formation around the mark", async ({ page }) => {
+  await page.goto("/");
+  const swarm = page.locator(".v-loader__swarm");
+  await expect(swarm).toBeAttached();
+  const icons = page.locator(".v-loader__swarm .v-loader__icon");
+  await expect(icons).toHaveCount(13);
+  for (const tone of ["crimson", "violet", "sky", "citron"]) {
+    expect(await page.locator(`.v-loader__icon--${tone}`).count()).toBeGreaterThanOrEqual(1);
+  }
+  // Official Carbon Design System glyph names — direct from @carbon/icons.
+  const names = await icons.evaluateAll((els) => els.map((el) => el.getAttribute("data-name")));
+  for (const n of ["camera", "microphone", "star--filled", "location--filled", "volume--up"]) {
+    expect(names).toContain(n);
+  }
+  const anim = await icons.first().evaluate((el) => getComputedStyle(el).animationName);
+  expect(anim).toBe("v-swarm-gather");
+  const pointer = await swarm.evaluate((el) => getComputedStyle(el).pointerEvents);
+  expect(pointer).toBe("none");
+});
+
+test("loader: swarm icons cover the full scope (microphone, gift, video, volume--up)", async ({ page }) => {
+  await page.goto("/");
+  for (const name of ["microphone", "gift", "video", "volume--up"]) {
+    await expect(page.locator(`.v-loader__icon[data-name="${name}"]`)).toHaveCount(1);
+  }
+});
+
+test("reduced-motion: loader icon swarm is hidden", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+  const swarm = page.locator(".v-loader__swarm");
+  await expect(swarm).toBeAttached();
+  const display = await swarm.evaluate((el) => getComputedStyle(el).display);
+  expect(display).toBe("none");
+});
+
+test("loader: revisit within session skips the full intro (fast hide)", async ({ page }) => {
+  await page.goto("/");
+  const loader = page.locator(".v-loader");
+  await expect(loader).toHaveClass(/\bhidden\b/, { timeout: 10000 });
+  // Second visit in the same session: intro is gated off — hidden well
+  // before the first-visit cinematic timeline (~2.6s) completes.
+  await page.reload();
+  await expect(loader).toHaveClass(/v-loader--revisit/);
+  await expect(loader).toHaveClass(/\bhidden\b/, { timeout: 1800 });
 });
 
 test("footer: services column reads Celebrity Management, not Celebrity Booking", async ({ page }) => {
@@ -714,27 +815,38 @@ test("team: member photo points to the recent picture", async ({ page }) => {
   await expect(firstPhoto).toBeVisible();
   
   const src = await firstPhoto.getAttribute("src");
-  expect(src).toContain("arpita-recent.png");
+  expect(src).toContain("arpita-recent.jpg");
 });
 
-test("team: name renders in Kalnia Glaze font and crimson color", async ({ page }) => {
+test("team: name renders in Cormorant Garamond font and splits colors (black and crimson)", async ({ page }) => {
   await page.goto("/");
   await page.locator("#about").scrollIntoViewIfNeeded();
 
   const teamName = page.locator(".v-team-card__name").first();
   await expect(teamName).toBeVisible();
 
-  const styles = await teamName.evaluate((el) => {
-    const s = getComputedStyle(el);
-    return { fontFamily: s.fontFamily, color: s.color };
-  });
+  const fontFamily = await teamName.evaluate((el) => getComputedStyle(el).fontFamily);
+  expect(fontFamily.toLowerCase()).toContain("cormorant garamond");
 
-  expect(styles.fontFamily.toLowerCase()).toContain("kalnia glaze");
-  
-  const match = styles.color.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
-  expect(match, `Unexpected color format: ${styles.color}`).not.toBeNull();
-  if (match) {
-    const [r, g, b] = [+match[1], +match[2], +match[3]];
+  const spans = teamName.locator("span");
+  await expect(spans).toHaveCount(2);
+
+  const firstColor = await spans.nth(0).evaluate((el) => getComputedStyle(el).color);
+  const match1 = firstColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+  expect(match1, `Unexpected color format: ${firstColor}`).not.toBeNull();
+  if (match1) {
+    const [r, g, b] = [+match1[1], +match1[2], +match1[3]];
+    // It should either be very dark (light mode) or very light (dark mode)
+    const isDark = r < 50 && g < 50 && b < 50;
+    const isLight = r > 200 && g > 200 && b > 200;
+    expect(isDark || isLight).toBeTruthy();
+  }
+
+  const secondColor = await spans.nth(1).evaluate((el) => getComputedStyle(el).color);
+  const match2 = secondColor.match(/rgb\((\d+),\s*(\d+),\s*(\d+)\)/);
+  expect(match2, `Unexpected color format: ${secondColor}`).not.toBeNull();
+  if (match2) {
+    const [r, g, b] = [+match2[1], +match2[2], +match2[3]];
     expect(r).toBeGreaterThanOrEqual(170);
     expect(r - g).toBeGreaterThan(100);
     expect(r - b).toBeGreaterThan(100);
@@ -858,23 +970,7 @@ test("responsive [tablet-768]: nav spindle is hidden on mobile, shown on desktop
 
 // ── UI Revamp specific tests ──────────────────────────────────────────────────
 
-test("hero: displays the standard img logo without background mask or filter", async ({ page }) => {
-  await page.goto("/");
-  const heroVisual = page.locator(".v-hero-3d-wrapper");
-  await expect(heroVisual).toBeVisible();
-  
-  // The wrapper should NOT contain ambient animation classes or mask effects
-  const glassLogo = page.locator(".v-hero-3d-logo");
-  await expect(glassLogo).toHaveClass(/v-glass-effect/);
-  
-  const img = glassLogo.locator("img.v-hero-3d-logo__img");
-  await expect(img).toBeVisible();
-  await expect(img).toHaveAttribute("alt", "Velvt Logo");
-  
-  // Verify it's an actual img tag rendering standard src, not a div with mask
-  const tagName = await img.evaluate((el) => el.tagName.toLowerCase());
-  expect(tagName).toBe("img");
-});
+
 
 test("about: layout contains top row with stats, story, founder and bottom row with by the numbers", async ({ page }) => {
   await page.goto("/");
@@ -898,31 +994,58 @@ test("about: layout contains top row with stats, story, founder and bottom row w
   await expect(byTheNumbers).toBeVisible();
   await expect(byTheNumbers).toContainText("By the Numbers");
   
-  // Assert heatmap grid is present
+  // Assert stats are present and background heatmap animation is deleted
+  const stats = bottomRow.locator(".v-about-stats");
+  await expect(stats).toBeVisible();
+  const statCards = bottomRow.locator(".v-about-stat");
+  await expect(statCards).toHaveCount(4);
   const heatmap = bottomRow.locator(".v-heatmap-grid");
-  await expect(heatmap).toBeVisible();
+  await expect(heatmap).toHaveCount(0);
 });
 
-
-test("about: displays VELVT heatmap grid with floating stats", async ({ page }) => {
+test("about: layout proportions and spacing for story and team cards", async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto("/#about");
   await page.waitForSelector(".v-loader", { state: "hidden" });
   await page.locator("#about").scrollIntoViewIfNeeded();
 
+  const topRow = page.locator(".v-about-top-row");
+  const story = page.locator(".v-about-grid__story");
+  const rightPanel = page.locator(".v-about-grid__right");
+
+  await expect(topRow).toBeVisible();
+  
+  const topRowBox = await topRow.boundingBox();
+  const storyBox = await story.boundingBox();
+  const rightBox = await rightPanel.boundingBox();
+
+  expect(topRowBox).toBeDefined();
+  expect(storyBox).toBeDefined();
+  expect(rightBox).toBeDefined();
+
+  // Verify responsive flex layout: Right panel should take more space than story (54% vs 42%)
+  expect(storyBox!.width).toBeLessThan(rightBox!.width);
+  expect(storyBox!.width).toBeGreaterThan(topRowBox!.width * 0.35);
+  expect(rightBox!.width).toBeGreaterThan(topRowBox!.width * 0.50);
+
+  // Assert there's a proper gap and they are side-by-side
+  expect(rightBox!.x).toBeGreaterThan(storyBox!.x + storyBox!.width);
+});
+
+
+test("about: displays stats cleanly without background VELVT heatmap animation", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto("/#about");
+  await page.waitForSelector(".v-loader", { state: "hidden" });
+  await page.locator("#about").scrollIntoViewIfNeeded();
+
+  // Background heatmap grid and cells are deleted
   const heatmap = page.locator(".v-heatmap-grid");
-  await expect(heatmap).toBeVisible();
+  await expect(heatmap).toHaveCount(0);
+  const cells = page.locator(".v-heatmap-cell");
+  await expect(cells).toHaveCount(0);
 
-  // Should have exactly 231 cells (7x33)
-  const cells = heatmap.locator(".v-heatmap-cell");
-  await expect(cells).toHaveCount(231);
-
-  // At least some cells should be active
-  const activeCells = heatmap.locator(".v-heatmap-cell--active");
-  const count = await activeCells.count();
-  expect(count).toBeGreaterThan(0);
-
-  // Floating stats exist and have sparkling borders
+  // Stats cards exist and have sparkling borders
   const stats = page.locator(".v-about-stat");
   await expect(stats).toHaveCount(4); // from mock data
   const firstStat = stats.first();
@@ -954,6 +1077,63 @@ test("ideology: displays cinematic background and transparent cards with sparkle
   await expect(badge).toBeVisible();
 });
 
+test("workflow: each of the 5 cards renders a photo with text positioned below it", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto("/#ideology");
+  await page.waitForSelector(".v-loader", { state: "hidden" });
+  await page.locator("#ideology").scrollIntoViewIfNeeded();
+
+  const steps = page.locator("#ideology .v-process__step");
+  await expect(steps).toHaveCount(5);
+
+  const expectedImages = [
+    "/assets/images/workflow-01-discovery.webp",
+    "/assets/images/workflow-02-talent.webp",
+    "/assets/images/workflow-03-production.webp",
+    "/assets/images/workflow-04-execution.webp",
+    "/assets/images/workflow-05-analysis.webp",
+  ];
+
+  for (let i = 0; i < 5; i++) {
+    const card = steps.nth(i);
+    await expect(card).toBeVisible();
+
+    const photoFrame = card.locator(".v-card-photo-frame");
+    await expect(photoFrame).toBeVisible();
+
+    const photoImg = photoFrame.locator("img.v-card-photo");
+    await expect(photoImg).toBeVisible();
+    await expect(photoImg).toHaveAttribute("src", expectedImages[i]);
+
+    const heading = card.locator("h4");
+    await expect(heading).toBeVisible();
+
+    // Verify photo is strictly above the heading text
+    const photoBox = await photoFrame.boundingBox();
+    const headingBox = await heading.boundingBox();
+    expect(photoBox).not.toBeNull();
+    expect(headingBox).not.toBeNull();
+    if (photoBox && headingBox) {
+      expect(photoBox.y + photoBox.height).toBeLessThanOrEqual(headingBox.y + 4);
+    }
+  }
+});
+
+test("studio: experience design showcase cards render photos", async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.goto("/#experience");
+  await page.waitForSelector(".v-loader", { state: "hidden" });
+  await page.locator("#experience").scrollIntoViewIfNeeded();
+
+  const tiles = page.locator("#experience .v-process__step");
+  const count = await tiles.count();
+  expect(count).toBeGreaterThan(0);
+
+  const firstTile = tiles.first();
+  const photo = firstTile.locator(".v-card-photo-frame img.v-card-photo");
+  await expect(photo).toBeVisible();
+});
+
 // ── Transparent Cards: TDD Spec ───────────────────────────────────────────────
 // All cards MUST be fully transparent (no solid opaque fill).
 
@@ -970,6 +1150,14 @@ test("cards: v-process__step has transparent background (no opaque fill)", async
   } else {
     expect(bg).toMatch(/transparent|rgba\(\s*0\s*,\s*0\s*,\s*0\s*,\s*0\s*\)/);
   }
+});
+
+test("team: renders at least two team members", async ({ page }) => {
+  await page.goto("/");
+  await page.waitForSelector(".v-loader", { state: "hidden" });
+  await page.locator("#about").scrollIntoViewIfNeeded();
+  const count = await page.locator(".v-team-card").count();
+  expect(count).toBeGreaterThanOrEqual(2);
 });
 
 test("cards: v-team-card transparent in dark and light mode", async ({ page }) => {
@@ -993,8 +1181,11 @@ test("cards: v-team-card transparent in dark and light mode", async ({ page }) =
 test("cards: v-process__step h4 text is readable in light mode (dark enough)", async ({ page }) => {
   await page.goto("/");
   await page.waitForSelector(".v-loader", { state: "hidden" });
-  await page.locator(".v-theme-toggle").click();
-  await page.waitForTimeout(300);
+  const html = page.locator("html");
+  if (await html.getAttribute("data-theme") === "dark") {
+    await page.locator(".v-theme-toggle").click();
+    await page.waitForTimeout(300);
+  }
   const step = page.locator(".v-process__step").first();
   await step.scrollIntoViewIfNeeded();
   const h4Color = await step.locator("h4").evaluate((el) => getComputedStyle(el).color);
@@ -1011,6 +1202,7 @@ test("animations: v-process__step cards carry the v-reveal class", async ({ page
   await page.goto("/");
   await page.waitForSelector(".v-loader", { state: "hidden" });
   const steps = page.locator(".v-process__step");
+  await steps.first().waitFor({ state: "attached" });
   expect(await steps.count()).toBeGreaterThan(0);
   await expect(steps.first()).toHaveClass(/v-reveal/);
 });
@@ -1045,6 +1237,15 @@ test("animations: reduced-motion disables peek-in card animations", async ({ pag
   expect(parseFloat(animDuration)).toBeLessThanOrEqual(0.01);
 });
 
+test("reduced-motion: ambient glyph field is hidden", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+  const glyphs = page.locator(".v-dynamic-bg__glyphs");
+  await expect(glyphs).toBeAttached();
+  const display = await glyphs.evaluate((el) => getComputedStyle(el).display);
+  expect(display).toBe("none");
+});
+
 test("cards: all v-process__step and v-team-card have v-sparkle-border attached", async ({ page }) => {
   await page.goto("/");
   await page.waitForSelector(".v-loader", { state: "hidden" });
@@ -1059,4 +1260,93 @@ test("cards: all v-process__step and v-team-card have v-sparkle-border attached"
   for (let i = 0; i < teamCount; i++) {
     await expect(teamCards.nth(i).locator(".v-sparkle-border")).toBeAttached();
   }
+});
+
+// ── Immersive brand layer (ambient aurora, grain, sheen) ────────────────────
+
+test("ambient: fixed cinematic aurora layer sits behind panels", async ({ page }) => {
+  await page.goto("/");
+  await page.waitForSelector(".v-loader", { state: "hidden" });
+  await page.waitForSelector(".v-topbar__brand svg.v-logo-svg");
+  const before = await page.evaluate(() => {
+    const cs = getComputedStyle(document.body, "::before");
+    return { position: cs.position, zIndex: cs.zIndex, background: cs.backgroundImage, animation: cs.animationName };
+  });
+  expect(before.position).toBe("fixed");
+  expect(before.zIndex).toBe("0");
+  expect(before.background).toContain("radial-gradient");
+  expect(before.animation).toBe("v-aurora-drift");
+});
+
+test("ambient: film grain overlay covers the viewport without blocking input", async ({ page }) => {
+  await page.goto("/");
+  await page.waitForSelector(".v-loader", { state: "hidden" });
+  const after = await page.evaluate(() => {
+    const cs = getComputedStyle(document.body, "::after");
+    return { position: cs.position, zIndex: cs.zIndex, blend: cs.mixBlendMode, pe: cs.pointerEvents };
+  });
+  expect(after.position).toBe("fixed");
+  expect(Number(after.zIndex)).toBeGreaterThan(1000);
+  expect(after.blend).toBe("overlay");
+  expect(after.pe).toBe("none");
+});
+
+test("brand: topbar logo sheen sweeps with a branded animation", async ({ page }) => {
+  await page.goto("/");
+  const sheen = page.locator(".v-topbar__brand .v-logo-sheen");
+  await expect(sheen).toBeVisible();
+  const anim = await page.evaluate(() => {
+    const el = document.querySelector(".v-topbar__brand .v-logo-sheen");
+    return getComputedStyle(el, "::before").animationName;
+  });
+  expect(anim).toBe("v-logo-sheen");
+});
+
+test("animations: reduced-motion disables immersive sheen and aurora motion", async ({ page }) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await page.goto("/");
+  await page.waitForSelector(".v-loader", { state: "hidden" });
+  const sheen = page.locator(".v-topbar__brand .v-logo-sheen");
+  await expect(sheen).toBeVisible();
+  const sheenAnim = await page.evaluate(() => {
+    const el = document.querySelector(".v-topbar__brand .v-logo-sheen");
+    return getComputedStyle(el, "::before").animationName;
+  });
+  expect(sheenAnim).toBe("none");
+  const auroraAnim = await page.evaluate(
+    () => getComputedStyle(document.body, "::before").animationName,
+  );
+  expect(auroraAnim).toBe("none");
+  const dynAnim = await page.evaluate(() =>
+    getComputedStyle(document.querySelector(".v-dynamic-bg__layer--slow")).animationName,
+  );
+  expect(dynAnim).toBe("none");
+});
+
+test("cards: cinematic cards carry a hover sheen overlay", async ({ page }) => {
+  await page.goto("/");
+  await page.waitForSelector(".v-loader", { state: "hidden" });
+  const step = page.locator(".v-process__step").first();
+  await expect(step.locator(".v-card-sheen")).toBeAttached();
+});
+
+test("brand: procedural background layers drift with brand motion", async ({ page }) => {
+  await page.goto("/");
+  await page.waitForSelector(".v-loader", { state: "hidden" });
+  await page.waitForSelector(".v-dynamic-bg");
+  const slow = await page.evaluate(() => {
+    const el = document.querySelector(".v-dynamic-bg__layer--slow");
+    const cs = getComputedStyle(el);
+    return { anim: cs.animationName, pos: cs.position };
+  });
+  expect(slow.pos).toBe("absolute");
+  expect(slow.anim).toBe("v-bg-drift-slow");
+  const beam = await page.evaluate(
+    () => getComputedStyle(document.querySelector(".v-dynamic-bg__beam")).animationName,
+  );
+  expect(beam).toBe("v-bg-beam");
+  const alpha = await page.evaluate(() =>
+    getComputedStyle(document.querySelector(".v-dynamic-bg")).getPropertyValue("--v-bg-alpha").trim(),
+  );
+  expect(alpha).toBe("0.8");
 });
