@@ -163,3 +163,4 @@ To prevent context window bloat and degradation during multi-agent workflows:
 2. **Phase-Gated Skill Loading**: Heavy design skills (`ui-ux-pro-max`, `impeccable`) load only during the UI design/polish phase and are kept unloaded during the initial red/green TDD phase.
 3. **Targeted Reading**: Use symbol lookups, grep, or section reads rather than reading entire monolithic files.
 4. **Durable Memory Protocol**: `STATE.md` and `TASKS.md` act as the persistent source of truth so context can be compacted (`/compact`) at any time without losing sprint memory.
+
