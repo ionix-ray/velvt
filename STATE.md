@@ -25,3 +25,10 @@
 - **Lint hygiene**: fixed `cargo fmt` drift across 7 files, fixed `clippy::expect-used` in loader tests, fixed `clippy::useless-conversion` in cases_panel, fixed empty `mod tests {}` in stacked_nav.
 - **133 tests pass** (previously 129), all checks green: `just lint`, `just test`, `just build`.
 - WASM bundle: **441 KB gz** (budget 1.5 MB). Theme CSS: **11 KB gz** (budget 40 KB).
+
+## Boot restate (2026-10-25)
+- confirmed: user "go now" — full hardening + docs + fan-out authorized; k6/load-test excluded by user; RPC/broker excluded (no async workload).
+- current task: enterprise hardening pass — S7 repo hygiene & gating CI verified (gitignore, CI gating, coverage job, tracked junk removed); docs updated.
+- next 1: collect agent results (server hardening, UI fixes + hex-ui card port, hygiene/CI, compliance matrix); strip any k6 artifacts written by agent A.
+- next 2: run gates myself — `just lint`, `just test`, `just coverage` (≥90%), `just build` (WASM ≤1.5 MB gz, theme.css ≤40 KB gz), targeted Playwright.
+- next 3: reconcile ROADMAP/TASKS/PROGRESS statuses to final, apply S5-08 justfile theme.css sync, report findings + social-config answer to user.

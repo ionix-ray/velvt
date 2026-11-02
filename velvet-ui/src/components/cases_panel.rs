@@ -52,9 +52,12 @@ pub fn CasesPanel(site: Site) -> Element {
                     div { class: "v-cases-grid",
                         for (i, case) in all_cases.iter().enumerate() {
                             div {
-                                class: "v-card-modern v-reveal",
-                                style: "transition-delay: {(i + 1) * 80}ms;",
+                                class: "v-card-modern v-reveal v-card-modern-immersive",
+                                style: "transition-delay: {(i + 1) * 80}ms; --card-bg-image: url('/assets/images/card-bg-cases.webp');",
                                 div { class: "v-sparkle-border" }
+                                div { class: "v-card-bg", "aria-hidden": "true" }
+                                div { class: "v-card-sheen", "aria-hidden": "true" }
+                                div { class: "v-card-lightsweep", "aria-hidden": "true" }
                                 div { class: "v-card-modern__image" }
                                 div { class: "v-card-modern__content",
                                     div {

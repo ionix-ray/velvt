@@ -5,8 +5,6 @@ steps:
       - DOCKER_BUILDKIT=1
     args:
       - build
-      - --target
-      - runtime
       - -f
       - Containerfile
       - --cache-from

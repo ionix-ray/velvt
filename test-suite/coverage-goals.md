@@ -5,7 +5,7 @@
 | Unit (Rust) | ≥ 90 %  | `cargo llvm-cov --workspace --html`                      |
 | SSR render  | 100 %   | `velvet-ui/tests/render.rs` — every section asserted     |
 | E2E         | Golden path + reduced-motion + LCP budget | Playwright |
-| WASM bundle | ≤ 1.5 MB gz | `just size`                                          |
+| WASM bundle | ≤ 1.5 MB gz | `just container-size`                         |
 | Lighthouse  | Perf ≥ 90, A11y ≥ 95, BP ≥ 95, SEO ≥ 95 | manual / CI    |
 
 ## Critical assertions (must not regress)

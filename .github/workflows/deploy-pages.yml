@@ -1,10 +1,11 @@
+# TODO(security): SHA-pin all actions once verified
 name: Deploy to GitHub Pages (Production)
 
 # Triggers on push to main AND manual dispatch.
 # PR gating is handled by pr-gate.yml — this job only runs on main merges.
 on:
   push:
-    branches: [main, refactor/production-grade]
+    branches: [main]
   workflow_dispatch:
 
 # Minimal permissions — principle of least privilege.
@@ -67,7 +68,7 @@ jobs:
         run: cargo install cargo-deny --locked --version ${{ env.CARGO_DENY_VERSION }}
 
       - name: Run CVE audit
-        run: cargo audit --deny warnings || true
+        run: cargo audit --deny warnings
 
       - name: Run cargo-deny (licenses + advisories)
         run: |
@@ -116,13 +117,7 @@ jobs:
       - name: Run Clippy (zero warnings enforced)
         run: cargo clippy --workspace --all-targets -- -D warnings
 
-      - name: Run unit tests
-        run: cargo test --workspace --lib
-
-      - name: Run integration tests
-        run: cargo test --workspace --test '*'
-
-      - name: Full test suite (no fail-fast)
+      - name: Run unit + integration tests (no fail-fast)
         run: cargo test --workspace --no-fail-fast
 
   # ═══════════════════════════════════════════════════════════════════════
