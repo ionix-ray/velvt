@@ -4,20 +4,9 @@
 //! content panel, giving the "rolling reel" effect the user requested.
 
 use crate::Site;
-use crate::components::icons::Icon;
-use crate::theme::brand::brand_mark;
+use crate::components::icons::{Icon, pretty_label};
+use crate::theme::wordmark::Wordmark;
 use dioxus::prelude::*;
-
-/// Capitalize the first character — used to turn the lowercase social slug
-/// (`twitter`, `linkedin`, `instagram`) into a presentable aria-label
-/// (`Twitter`, `Linkedin`, `Instagram`) without pulling in a casing crate.
-fn pretty_label(label: &str) -> String {
-    let mut chars = label.chars();
-    match chars.next() {
-        Some(first) => first.to_uppercase().chain(chars).collect(),
-        None => String::new(),
-    }
-}
 
 #[component]
 pub fn FooterPanel(site: Site) -> Element {
@@ -27,12 +16,12 @@ pub fn FooterPanel(site: Site) -> Element {
                 // ── Main Top Row: Brand & Columns ────────────────────────
                 div { class: "v-footer-panel__main",
                     div { class: "v-footer-panel__brand",
-                    img {
-                        class: "v-footer-panel__wordmark",
-                        src: brand_mark(),
-                        alt: "{site.brand.name}",
-                        loading: "lazy",
-                        decoding: "async",
+                    div { class: "v-logo-wrap",
+                        Wordmark {
+                            class: "v-logo-svg v-footer-panel__wordmark".to_string(),
+                            title: Some(site.brand.name.to_string()),
+                        }
+                        div { class: "v-logo-sheen", "aria-hidden": "true" }
                     }
                     p { class: "v-footer-panel__tagline", "{site.brand.tagline}" }
                     p { class: "v-footer-panel__desc", "{site.footer.brand_desc}" }

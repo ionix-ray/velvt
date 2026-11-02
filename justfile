@@ -17,6 +17,12 @@ dev:
         PORT=$((PORT + 1))
         if [ $PORT -gt 8100 ]; then echo "no free port 8080-8100"; exit 1; fi
     done
+    # Always drop stale WASM/JS artifacts first — the served bundle is
+    # regenerated from scratch, no old hashed files can leak in.
+    rm -rf target/dx/vaelvet-ui/debug/web
+    # public/ is a build INPUT: a stale theme.css here shadows the source
+    # stylesheet and kills hot reload. Keep it in lockstep.
+    cp -a velvet-ui/assets/theme.css velvet-ui/public/assets/theme.css
     echo "→ dx serve --port $PORT"
     cd velvet-ui && dx serve --port $PORT --open
 
@@ -52,7 +58,7 @@ fmt:
 # same category as `dx`/`podman`, intentionally not pinned in Cargo.toml).
 coverage:
     cargo llvm-cov --workspace --all-targets \
-        --ignore-filename-regex '(velvet-ui/src/main\.rs|velvet-ui/src/scroll\.rs|velvet-ui/src/routes/home\.rs|server/src/main\.rs)' \
+        --ignore-filename-regex '(velvet-ui/src/main\.rs|velvet-ui/src/scroll\.rs|velvet-ui/src/routes/.*|server/src/main\.rs|velvet-ui/src/spa\.rs)' \
         --fail-under-lines 90 \
         --summary-only
 
@@ -79,6 +85,12 @@ sbom:
 # Playwright e2e (Node only inside test-suite/).
 e2e:
     cd test-suite/playwright && npm ci && npx playwright test
+
+# Hero media pipeline — rebuild the ambient loop + logo SVG from
+# brand-owned sources (requires ffmpeg + python3/PIL).
+media:
+    scripts/build-hero-media.sh
+    python3 scripts/build-logo-svg.py
 
 # Wipe build artifacts.
 clean:

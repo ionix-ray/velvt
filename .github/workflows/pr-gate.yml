@@ -1,3 +1,4 @@
+# TODO(security): SHA-pin all actions once verified
 name: PR Gate
 
 on:
@@ -61,7 +62,7 @@ jobs:
       - name: Security Audit (CVEs)
         run: |
           cargo install cargo-audit --locked
-          cargo audit --deny warnings || true
+          cargo audit --deny warnings
 
       - name: Install Dioxus CLI
         run: cargo install dioxus-cli --version "=${{ env.DIOXUS_CLI_VERSION }}" --locked
@@ -78,3 +79,42 @@ jobs:
           test -f target/dx/vaelvet-ui/release/web/public/index.html \
             && echo "✅ WASM build output verified" \
             || (echo "❌ dist/index.html missing" && exit 1)
+
+  coverage:
+    name: Coverage Gate (≥ 90% lines)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@v2
+        with:
+          egress-policy: audit
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ env.RUST_VERSION }}
+          components: llvm-tools-preview
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-cov-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-cov-
+
+      # Tag-pinned tool installer (same style as the other actions here).
+      - name: Install cargo-llvm-cov
+        uses: taiki-e/install-action@cargo-llvm-cov
+
+      # Gating: fails the PR gate when line coverage drops below the 90% floor
+      # documented in test-suite/coverage-goals.md.
+      - name: Coverage floor (90% lines)
+        run: cargo llvm-cov --workspace --all-targets --ignore-filename-regex '(velvet-ui/src/main\.rs|velvet-ui/src/scroll\.rs|velvet-ui/src/routes/.*|server/src/main\.rs|velvet-ui/src/spa\.rs)' --fail-under-lines 90 --summary-only

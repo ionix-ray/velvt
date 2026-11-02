@@ -1,4 +1,5 @@
-//! Carbon-inspired inline SVG icons. 28×28 viewBox, currentColor strokes.
+//! Inline SVG icons. Official Carbon Design System geometry (32px grid)
+//! for the scope-of-work glyph set; hand-drawn strokes for nav/social marks.
 //! All inline — no font, no remote fetch, no lazy load.
 
 use dioxus::prelude::*;
@@ -20,7 +21,45 @@ pub fn Icon(name: String) -> Element {
         "linkedin" | "in" => rsx!(IconLinkedin {}),
         "twitter" | "x" => rsx!(IconTwitter {}),
         "chevron" => rsx!(IconChevron {}),
+        // ── Carbon scope-of-work glyphs — official Carbon Design System ──
+        "camera" => rsx!(IconCamera {}),
+        "microphone" | "mic" => rsx!(IconMicrophone {}),
+        "video" => rsx!(IconVideo {}),
+        "event" => rsx!(IconEvent {}),
+        "search" => rsx!(IconSearch {}),
+        "gift" => rsx!(IconGift {}),
+        "star--filled" => rsx!(IconStarFilled {}),
+        "location--filled" => rsx!(IconLocationFilled {}),
+        "user--avatar" => rsx!(IconUserAvatar {}),
+        "idea" => rsx!(IconIdea {}),
+        "notification--filled" => rsx!(IconNotificationFilled {}),
+        "aperture" => rsx!(IconAperture {}),
+        "volume--up" => rsx!(IconVolumeUp {}),
+        "user--multiple" => rsx!(IconUserMultiple {}),
+        "image" => rsx!(IconImage {}),
+        "flash--filled" => rsx!(IconFlashFilled {}),
+        // ── Legacy ambient-glyph aliases (background config surface) ─────
+        "venue" => rsx!(IconLocationFilled {}),
+        "talent" => rsx!(IconUserMultiple {}),
+        "grand-party" => rsx!(IconEvent {}),
+        "creator" => rsx!(IconUserAvatar {}),
+        "clapper" => rsx!(IconVideo {}),
+        "lens" => rsx!(IconImage {}),
+        "spotlight" => rsx!(IconFlashFilled {}),
         _ => rsx!(IconDot {}),
+    }
+}
+
+/// Capitalize the first character of a configured icon/social slug — turns
+/// `twitter` into `Twitter` for a presentable aria-label without pulling in
+/// a casing crate. Shared by `footer_panel` and `social_strip` so both use
+/// the same icon-label mechanism.
+#[must_use]
+pub fn pretty_label(label: &str) -> String {
+    let mut chars = label.chars();
+    match chars.next() {
+        Some(first) => first.to_uppercase().chain(chars).collect(),
+        None => String::new(),
     }
 }
 
@@ -155,4 +194,264 @@ fn IconDot() -> Element {
             circle { cx: "16", cy: "16", r: "2" }
         }
     )
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// AMBIENT GLYPH SET
+// 32×32 grid, 1.5 stroke, `currentColor` throughout so the ambient field can
+// tint each glyph independently. Geometry only — no third-party artwork, so
+// nothing here carries a licence obligation.
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// Carbon `camera` (camera) — official Carbon Design System geometry, 32px grid.
+#[component]
+fn IconCamera() -> Element {
+    rsx!(
+        svg { width: "1em", height: "1em", view_box: "0 0 32 32", fill: "currentColor",
+            path { d: "M29,26H3a1,1,0,0,1-1-1V8A1,1,0,0,1,3,7H9.46l1.71-2.55A1,1,0,0,1,12,4h8a1,1,0,0,1,.83.45L22.54,7H29a1,1,0,0,1,1,1V25A1,1,0,0,1,29,26ZM4,24H28V9H22a1,1,0,0,1-.83-.45L19.46,6H12.54L10.83,8.55A1,1,0,0,1,10,9H4Z", }
+            path { d: "M16,22a6,6,0,1,1,6-6A6,6,0,0,1,16,22Zm0-10a4,4,0,1,0,4,4A4,4,0,0,0,16,12Z", }
+        }
+    )
+}
+
+/// Carbon `microphone` (microphone) — official Carbon Design System geometry, 32px grid.
+#[component]
+fn IconMicrophone() -> Element {
+    rsx!(
+        svg { width: "1em", height: "1em", view_box: "0 0 32 32", fill: "currentColor",
+            path { d: "M23,14v3A7,7,0,0,1,9,17V14H7v3a9,9,0,0,0,8,8.94V28H11v2H21V28H17V25.94A9,9,0,0,0,25,17V14Z", }
+            path { d: "M16,22a5,5,0,0,0,5-5V7A5,5,0,0,0,11,7V17A5,5,0,0,0,16,22ZM13,7a3,3,0,0,1,6,0V17a3,3,0,0,1-6,0Z", }
+        }
+    )
+}
+
+/// Carbon `video` (video) — official Carbon Design System geometry, 32px grid.
+#[component]
+fn IconVideo() -> Element {
+    rsx!(
+        svg { width: "1em", height: "1em", view_box: "0 0 32 32", fill: "currentColor",
+            path { d: "M21,26H4a2,2,0,0,1-2-2V8A2,2,0,0,1,4,6H21a2,2,0,0,1,2,2v4.06l5.42-3.87A1,1,0,0,1,30,9V23a1,1,0,0,1-1.58.81L23,19.94V24A2,2,0,0,1,21,26ZM4,8V24H21V18a1,1,0,0,1,1.58-.81L28,21.06V10.94l-5.42,3.87A1,1,0,0,1,21,14V8Z", }
+        }
+    )
+}
+
+/// Carbon `event` (event) — official Carbon Design System geometry, 32px grid.
+#[component]
+fn IconEvent() -> Element {
+    rsx!(
+        svg { width: "1em", height: "1em", view_box: "0 0 32 32", fill: "currentColor",
+            path { d: "M28,6a2,2,0,0,0-2-2H22V2H20V4H12V2H10V4H6A2,2,0,0,0,4,6V26a2,2,0,0,0,2,2h4V26H6V6h4V8h2V6h8V8h2V6h4v6h2Z", }
+            path { d: "M21 15 23.549 19.938 29 20.729 25 24.573 26 30 21 27.438 16 30 17 24.573 13 20.729 18.6 19.938 21 15z", }
+        }
+    )
+}
+
+/// Carbon `search` (search) — official Carbon Design System geometry, 32px grid.
+#[component]
+fn IconSearch() -> Element {
+    rsx!(
+        svg { width: "1em", height: "1em", view_box: "0 0 32 32", fill: "currentColor",
+            path { d: "M29,27.5859l-7.5521-7.5521a11.0177,11.0177,0,1,0-1.4141,1.4141L27.5859,29ZM4,13a9,9,0,1,1,9,9A9.01,9.01,0,0,1,4,13Z", }
+        }
+    )
+}
+
+/// Carbon `gift` (gift) — official Carbon Design System geometry, 32px grid.
+#[component]
+fn IconGift() -> Element {
+    rsx!(
+        svg { width: "1em", height: "1em", view_box: "0 0 32 32", fill: "currentColor",
+            path { d: "M26,10H23.2383A4.4867,4.4867,0,0,0,16,4.7065,4.4873,4.4873,0,0,0,8.7617,10H6a2.0025,2.0025,0,0,0-2,2v4a2.0025,2.0025,0,0,0,2,2V28a2.0025,2.0025,0,0,0,2,2H24a2.0025,2.0025,0,0,0,2-2V18a2.0025,2.0025,0,0,0,2-2V12A2.0025,2.0025,0,0,0,26,10ZM17,7.5A2.5,2.5,0,1,1,19.5,10H17ZM12.5,5A2.503,2.503,0,0,1,15,7.5V10H12.5a2.5,2.5,0,0,1,0-5ZM6,12h9v4H6Zm2,6h7V28H8ZM24.0012,28H17V18h7ZM17,16V12h9l.0012,4Z", }
+        }
+    )
+}
+
+/// Carbon `star--filled` (star filled) — official Carbon Design System geometry, 32px grid.
+#[component]
+fn IconStarFilled() -> Element {
+    rsx!(
+        svg { width: "1em", height: "1em", view_box: "0 0 32 32", fill: "currentColor",
+            path { d: "M16,2l-4.55,9.22L1.28,12.69l7.36,7.18L6.9,30,16,25.22,25.1,30,23.36,19.87l7.36-7.17L20.55,11.22Z", }
+        }
+    )
+}
+
+/// Carbon `location--filled` (location filled) — official Carbon Design System geometry, 32px grid.
+#[component]
+fn IconLocationFilled() -> Element {
+    rsx!(
+        svg { width: "1em", height: "1em", view_box: "0 0 32 32", fill: "currentColor",
+            path { d: "M16,2A11.0134,11.0134,0,0,0,5,13a10.8885,10.8885,0,0,0,2.2163,6.6s.3.3945.3482.4517L16,30l8.439-9.9526c.0444-.0533.3447-.4478.3447-.4478l.0015-.0024A10.8846,10.8846,0,0,0,27,13,11.0134,11.0134,0,0,0,16,2Zm0,15a4,4,0,1,1,4-4A4.0045,4.0045,0,0,1,16,17Z", }
+            circle { cx: "16",cy: "13",r: "4",fill: "none", }
+        }
+    )
+}
+
+/// Carbon `user--avatar` (user avatar) — official Carbon Design System geometry, 32px grid.
+#[component]
+fn IconUserAvatar() -> Element {
+    rsx!(
+        svg { width: "1em", height: "1em", view_box: "0 0 32 32", fill: "currentColor",
+            path { d: "M16,8a5,5,0,1,0,5,5A5,5,0,0,0,16,8Zm0,8a3,3,0,1,1,3-3A3.0034,3.0034,0,0,1,16,16Z", }
+            path { d: "M16,2A14,14,0,1,0,30,16,14.0158,14.0158,0,0,0,16,2ZM10,26.3765V25a3.0033,3.0033,0,0,1,3-3h6a3.0033,3.0033,0,0,1,3,3v1.3765a11.8989,11.8989,0,0,1-12,0Zm13.9925-1.4507A5.0016,5.0016,0,0,0,19,20H13a5.0016,5.0016,0,0,0-4.9925,4.9258,12,12,0,1,1,15.985,0Z", }
+        }
+    )
+}
+
+/// Carbon `idea` (idea) — official Carbon Design System geometry, 32px grid.
+#[component]
+fn IconIdea() -> Element {
+    rsx!(
+        svg { width: "1em", height: "1em", view_box: "0 0 32 32", fill: "currentColor",
+            path { d: "M11 24H21V26H11z", }
+            path { d: "M13 28H19V30H13z", }
+            path { d: "M16,2A10,10,0,0,0,6,12a9.19,9.19,0,0,0,3.46,7.62c1,.93,1.54,1.46,1.54,2.38h2c0-1.84-1.11-2.87-2.19-3.86A7.2,7.2,0,0,1,8,12a8,8,0,0,1,16,0,7.2,7.2,0,0,1-2.82,6.14c-1.07,1-2.18,2-2.18,3.86h2c0-.92.53-1.45,1.54-2.39A9.18,9.18,0,0,0,26,12,10,10,0,0,0,16,2Z", }
+        }
+    )
+}
+
+/// Carbon `notification--filled` (notification filled) — official Carbon Design System geometry, 32px grid.
+#[component]
+fn IconNotificationFilled() -> Element {
+    rsx!(
+        svg { width: "1em", height: "1em", view_box: "0 0 32 32", fill: "currentColor",
+            path { d: "M28.707,19.293,26,16.5859V13a10.0136,10.0136,0,0,0-9-9.9492V1H15V3.0508A10.0136,10.0136,0,0,0,6,13v3.5859L3.293,19.293A.9993.9993,0,0,0,3,20v3a1,1,0,0,0,1,1h7v1a5,5,0,0,0,10,0V24h7a1,1,0,0,0,1-1V20A.9993.9993,0,0,0,28.707,19.293ZM19,25a3,3,0,0,1-6,0V24h6Z", }
+        }
+    )
+}
+
+/// Carbon `aperture` (aperture) — official Carbon Design System geometry, 32px grid.
+#[component]
+fn IconAperture() -> Element {
+    rsx!(
+        svg { width: "1em", height: "1em", view_box: "0 0 32 32", fill: "currentColor",
+            path { d: "M16,2A14,14,0,1,0,30,16,14,14,0,0,0,16,2ZM27.84,14.14,22,17.52V5.62A12,12,0,0,1,27.84,14.14ZM12,18.68V13.32L16,11l4,2.31v5.36L16,21Zm8-14V11L10.34,5.42A11.9,11.9,0,0,1,20,4.7Zm-11.52,2L14,9.85,4,15.62A12,12,0,0,1,8.48,6.66ZM4.16,17.85,10,14.47V26.38A12,12,0,0,1,4.16,17.85ZM12,27.3V21l9.67,5.58A11.92,11.92,0,0,1,16,28,12.05,12.05,0,0,1,12,27.3Zm11.52-2L18,22.14l10-5.77A12,12,0,0,1,23.52,25.34Z", }
+        }
+    )
+}
+
+/// Carbon `volume--up` (volume up) — official Carbon Design System geometry, 32px grid.
+#[component]
+fn IconVolumeUp() -> Element {
+    rsx!(
+        svg { width: "1em", height: "1em", view_box: "0 0 32 32", fill: "currentColor",
+            path { d: "M27.16,8.08,25.63,9.37a10,10,0,0,1-.29,13.23L26.81,24a12,12,0,0,0,.35-15.88Z", }
+            path { d: "M21.58,12a6,6,0,0,1-.18,7.94l1.47,1.36a8,8,0,0,0,.23-10.59Z", }
+            path { d: "M18,30a1,1,0,0,1-.71-.3L9.67,22H3a1,1,0,0,1-1-1H2V11a1,1,0,0,1,1-1H9.67l7.62-7.7a1,1,0,0,1,1.41,0A1,1,0,0,1,19,3V29A1,1,0,0,1,18,30ZM4,20h6.08a1,1,0,0,1,.71.3L17,26.57V5.43L10.79,11.7a1,1,0,0,1-.71.3H4Z", }
+        }
+    )
+}
+
+/// Carbon `user--multiple` (user multiple) — official Carbon Design System geometry, 32px grid.
+#[component]
+fn IconUserMultiple() -> Element {
+    rsx!(
+        svg { width: "1em", height: "1em", view_box: "0 0 32 32", fill: "currentColor",
+            path { d: "M30,30H28V25a5.0057,5.0057,0,0,0-5-5V18a7.0078,7.0078,0,0,1,7,7Z", }
+            path { d: "M22,30H20V25a5.0059,5.0059,0,0,0-5-5H9a5.0059,5.0059,0,0,0-5,5v5H2V25a7.0082,7.0082,0,0,1,7-7h6a7.0082,7.0082,0,0,1,7,7Z", }
+            path { d: "M20,2V4a5,5,0,0,1,0,10v2A7,7,0,0,0,20,2Z", }
+            path { d: "M12,4A5,5,0,1,1,7,9a5,5,0,0,1,5-5m0-2a7,7,0,1,0,7,7A7,7,0,0,0,12,2Z", }
+        }
+    )
+}
+
+/// Carbon `image` (image) — official Carbon Design System geometry, 32px grid.
+#[component]
+fn IconImage() -> Element {
+    rsx!(
+        svg { width: "1em", height: "1em", view_box: "0 0 32 32", fill: "currentColor",
+            path { d: "M19,14a3,3,0,1,0-3-3A3,3,0,0,0,19,14Zm0-4a1,1,0,1,1-1,1A1,1,0,0,1,19,10Z", }
+            path { d: "M26,4H6A2,2,0,0,0,4,6V26a2,2,0,0,0,2,2H26a2,2,0,0,0,2-2V6A2,2,0,0,0,26,4Zm0,22H6V20l5-5,5.59,5.59a2,2,0,0,0,2.82,0L21,19l5,5Zm0-4.83-3.59-3.59a2,2,0,0,0-2.82,0L18,19.17l-5.59-5.59a2,2,0,0,0-2.82,0L6,17.17V6H26Z", }
+        }
+    )
+}
+
+/// Carbon `flash--filled` (flash filled) — official Carbon Design System geometry, 32px grid.
+#[component]
+fn IconFlashFilled() -> Element {
+    rsx!(
+        svg { width: "1em", height: "1em", view_box: "0 0 32 32", fill: "currentColor",
+            path { d: "M11.61,29.92a1,1,0,0,1-.6-1.07L12.83,17H8a1,1,0,0,1-1-1.23l3-13A1,1,0,0,1,11,2H21a1,1,0,0,1,.78.37,1,1,0,0,1,.2.85L20.25,11H25a1,1,0,0,1,.9.56,1,1,0,0,1-.11,1l-13,17A1,1,0,0,1,12,30,1.09,1.09,0,0,1,11.61,29.92Z", }
+        }
+    )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[component]
+    fn WrapIcon(icon_name: String) -> Element {
+        rsx! {
+            Icon { name: icon_name }
+        }
+    }
+
+    /// Render one `Icon` by name to HTML. Uses `new_with_props` so the icon
+    /// name can vary per call (a plain `fn() -> Element` root cannot).
+    fn render_icon(icon_name: &str) -> String {
+        let mut dom = VirtualDom::new_with_props(
+            WrapIcon,
+            WrapIconProps {
+                icon_name: icon_name.to_string(),
+            },
+        );
+        dom.rebuild_in_place();
+        dioxus_ssr::render(&dom)
+    }
+
+    #[test]
+    fn every_ambient_glyph_resolves_to_real_geometry() {
+        for name in [
+            // Carbon scope set
+            "camera",
+            "microphone",
+            "video",
+            "event",
+            "search",
+            "gift",
+            "star--filled",
+            "location--filled",
+            "user--avatar",
+            "idea",
+            "notification--filled",
+            "aperture",
+            "volume--up",
+            "user--multiple",
+            "image",
+            "flash--filled",
+            // Legacy ambient aliases (background config surface)
+            "lens",
+            "venue",
+            "talent",
+            "grand-party",
+            "creator",
+            "clapper",
+            "spotlight",
+            "mic",
+        ] {
+            let html = render_icon(name);
+            assert!(
+                html.contains("<svg"),
+                "{name} must render an svg, got: {html}"
+            );
+            assert!(
+                !html.contains("<circle cx=\"16\" cy=\"16\" r=\"2\""),
+                "{name} fell through to the IconDot fallback"
+            );
+        }
+    }
+
+    #[test]
+    fn unknown_icon_falls_back_to_dot() {
+        let html = render_icon("definitely-not-an-icon");
+        assert!(html.contains("<circle"), "fallback dot missing");
+    }
+
+    #[test]
+    fn pretty_label_capitalizes_first_char_or_empty() {
+        assert_eq!(pretty_label("twitter"), "Twitter");
+        assert_eq!(pretty_label("linkedin"), "Linkedin");
+        assert_eq!(pretty_label(""), "");
+    }
 }

@@ -52,11 +52,14 @@ pub fn CaseStudy(slug: String) -> Element {
                         cb.forget();
                     }
                 }
+                // Fresh route DOM — hand its reveal targets to the observer
+                // installed at boot (see `scroll::install_reveal`).
+                crate::scroll::rescan_reveals();
             });
             rsx! {
                 div { class: "v-case-page",
                     CaseHeader { back_href: "/achivements".to_string(), back_label: "All case studies".to_string() }
-                    SocialStrip { is_last_panel: false }
+                    SocialStrip { site: Site::load().clone(), is_last_panel: false }
                     section { class: "v-case-hero",
                         div { class: "v-container",
                             span { class: "v-eyebrow", "{frontmatter.client}" }
@@ -204,8 +207,9 @@ mod tests {
     #[test]
     fn renders_the_brand_image_via_shared_case_header() {
         let html = render(WrapKnownSlug);
-        assert!(html.contains("<img"));
-        assert!(html.contains("velvet-square"));
+        assert!(html.contains("<svg"), "brand is an inline lockup now");
+        assert!(html.contains("velvet-mark"));
+        assert!(html.contains("currentColor"), "wordmark must be themeable");
     }
 
     #[test]

@@ -95,3 +95,14 @@ tmp/
 *.tfstate.*
 .terraform/
 .terraform.lock.hcl
+
+# graft's local graph cache — regenerable, not committed (run `graft build`).
+/graft/
+
+# Stale/regenerable local build + test + tool state (see test-suite/coverage-goals.md)
+/test-dist/
+/test-results/
+/.codegraph/
+*.db-journal
+*.db-wal
+*.db-shm

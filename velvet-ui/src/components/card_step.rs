@@ -2,6 +2,7 @@
 //!   - Sparkling running border (`.v-sparkle-border`)
 //!   - Logo badge in the top-left corner (`.v-experience-badge`)
 //!   - Optional step number, tag label, title, and body text
+//!   - Optional immersive background image with parallax effects
 //!
 //! Used by `ProcessPanel` (numbered steps) and `StudioPanel` (tagged tiles).
 //! Single source of truth for the cinematic card design pattern so any
@@ -19,6 +20,7 @@ use dioxus::prelude::*;
 /// - `body`        — Card body paragraph text.
 /// - `class_extra` — Additional CSS classes appended to the card root element.
 /// - `delay_ms`    — CSS `animation-delay` / `transition-delay` in milliseconds.
+/// - `bg_image`    — Optional immersive background image URL.
 #[component]
 pub fn CardStep(
     /// Brand mark URL (single source of truth via `site.hero.logo`).
@@ -39,11 +41,17 @@ pub fn CardStep(
     /// Animation / transition delay in milliseconds.
     #[props(default)]
     delay_ms: usize,
+    /// Optional immersive background image URL.
+    #[props(default)]
+    bg_image: Option<String>,
+    /// Optional prominent card photo URL displayed above the text.
+    #[props(default)]
+    photo: Option<String>,
 ) -> Element {
     let base_class = if class_extra.is_empty() {
-        "v-process__step v-reveal".to_string()
+        "v-process__step v-reveal v-card-immersive".to_string()
     } else {
-        format!("v-process__step v-reveal {class_extra}")
+        format!("v-process__step v-reveal v-card-immersive {class_extra}")
     };
 
     let delay_style = if delay_ms > 0 {
@@ -52,10 +60,26 @@ pub fn CardStep(
         String::new()
     };
 
+    let bg_style = if let Some(bg) = &bg_image {
+        format!("--card-bg-image: url('{bg}');")
+    } else {
+        String::new()
+    };
+
+    let combined_style = format!("{delay_style}{bg_style}");
+
     rsx! {
-        div { class: "{base_class}", style: "{delay_style}",
+        div { class: "{base_class}", style: if combined_style.is_empty() { None } else { Some(combined_style.as_str()) },
+            // Immersive background image layer with parallax effect
+            if bg_image.is_some() {
+                div { class: "v-card-bg", "aria-hidden": "true" }
+            }
             // Running sparkling border — pure CSS conic-gradient animation.
             div { class: "v-sparkle-border" }
+            // Hover sheen sweep — cinematic light rakes across the card.
+            div { class: "v-card-sheen", "aria-hidden": "true" }
+            // Light sweep overlay for immersive effect
+            div { class: "v-card-lightsweep", "aria-hidden": "true" }
             // Brand mark badge — top-left corner branding per design system.
             img { class: "v-experience-badge", src: "{logo}", alt: "Velvt" }
             // Step number (ProcessPanel) — renders inside a circle.
@@ -65,6 +89,18 @@ pub fn CardStep(
             // Eyebrow tag (StudioPanel tiles) — rendered above the title.
             if let Some(t) = &tag {
                 span { class: "v-eyebrow", "{t}" }
+            }
+            // Dedicated card photo frame — cinematic visual placed above title and text
+            if let Some(p) = &photo {
+                div { class: "v-card-photo-frame",
+                    img {
+                        class: "v-card-photo",
+                        src: "{p}",
+                        alt: "{title}",
+                        loading: "lazy",
+                    }
+                    div { class: "v-card-photo__overlay", "aria-hidden": "true" }
+                }
             }
             h4 { "{title}" }
             p { "{body}" }
@@ -88,7 +124,7 @@ mod tests {
     fn WithNum() -> Element {
         rsx! {
             CardStep {
-                logo: "/assets/images/velvet-square.png".to_string(),
+                logo: "/assets/images/velvet-mark.webp".to_string(),
                 num: Some("01".to_string()),
                 title: "Discover".to_string(),
                 body: "Deep research into brand, audience, and landscape.".to_string(),
@@ -101,7 +137,7 @@ mod tests {
     fn WithTag() -> Element {
         rsx! {
             CardStep {
-                logo: "/assets/images/velvet-square.png".to_string(),
+                logo: "/assets/images/velvet-mark.webp".to_string(),
                 tag: Some("Events".to_string()),
                 title: "Grand Soirée".to_string(),
                 body: "An unforgettable brand launch evening.".to_string(),
@@ -112,10 +148,23 @@ mod tests {
     }
 
     #[component]
+    fn WithPhoto() -> Element {
+        rsx! {
+            CardStep {
+                logo: "/assets/images/velvet-mark.webp".to_string(),
+                num: Some("01".to_string()),
+                title: "Discovery & Strategy".to_string(),
+                body: "Deep-dive into brand goals.".to_string(),
+                photo: Some("/assets/images/workflow-01-discovery.webp".to_string()),
+            }
+        }
+    }
+
+    #[component]
     fn Minimal() -> Element {
         rsx! {
             CardStep {
-                logo: "/assets/images/velvet-square.png".to_string(),
+                logo: "/assets/images/velvet-mark.webp".to_string(),
                 title: "Simple Card".to_string(),
                 body: "Body text.".to_string(),
             }
@@ -129,7 +178,7 @@ mod tests {
         let html = render(WithNum);
         assert!(html.contains("v-sparkle-border"), "sparkle border missing");
         assert!(html.contains("v-experience-badge"), "logo badge missing");
-        assert!(html.contains("velvet-square.png"), "logo src missing");
+        assert!(html.contains("velvet-mark.webp"), "logo src missing");
     }
 
     #[test]
@@ -192,6 +241,44 @@ mod tests {
         let html = render(WithNum);
         assert!(html.contains("Discover"), "title missing");
         assert!(html.contains("Deep research"), "body text missing");
+    }
+
+    #[test]
+    fn renders_photo_when_provided() {
+        let html = render(WithPhoto);
+        assert!(html.contains("v-card-photo-frame"), "photo frame missing");
+        assert!(html.contains("v-card-photo"), "photo image missing");
+        assert!(
+            html.contains("workflow-01-discovery.webp"),
+            "photo src missing"
+        );
+        assert!(html.contains("Discovery"), "photo alt missing");
+        // Minimal card without photo must NOT have photo frame.
+        let min_html = render(Minimal);
+        assert!(
+            !min_html.contains("v-card-photo-frame"),
+            "unexpected photo frame in minimal card"
+        );
+    }
+
+    #[component]
+    fn WithBg() -> Element {
+        rsx! {
+            CardStep {
+                logo: "/logo.webp".to_string(),
+                title: "Immersive".to_string(),
+                body: "Background test".to_string(),
+                bg_image: Some("/assets/images/card-bg.webp".to_string()),
+            }
+        }
+    }
+
+    #[test]
+    fn renders_bg_image_when_provided() {
+        let html = render(WithBg);
+        assert!(html.contains("v-card-bg"));
+        assert!(html.contains("--card-bg-image"));
+        assert!(html.contains("/assets/images/card-bg.webp"));
     }
 
     #[test]
