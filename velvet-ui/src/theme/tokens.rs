@@ -15,6 +15,11 @@ pub mod palette {
     pub const WARM_GRAY: &str = "#2A2226";
     pub const BORDER_LIGHT: &str = "rgba(10, 4, 5, 0.12)";
     pub const BORDER_DARK: &str = "rgba(248, 239, 224, 0.12)";
+    pub const DIWALI_MARIGOLD: &str = "#FF9933";
+    pub const DIWALI_GOLD: &str = "#FFD700";
+    pub const DIWALI_SAFFRON: &str = "#FF6F00";
+    pub const DIWALI_NIGHT: &str = "#0A0410";
+    pub const DIWALI_EMBER: &str = "#C2185B";
 }
 
 /// Type scale — display headings + IBM Plex Sans body.
