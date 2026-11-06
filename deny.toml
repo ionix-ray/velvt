@@ -11,7 +11,7 @@ all-features = false
 [advisories]
 db-path    = "~/.cargo/advisory-db"
 db-urls    = ["https://github.com/rustsec/advisory-db"]
-ignore     = ["RUSTSEC-2026-0386"]
+ignore     = []
 
 [licenses]
 confidence-threshold = 0.8
