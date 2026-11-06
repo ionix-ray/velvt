@@ -8,14 +8,7 @@ When modifying or generating frontend components (HTML, CSS, Rust/Dioxus), stric
 2. **Sparkling / Dynamic Outlines**: Cards, Tiles, and Process panels must feature dynamic, animated running borders (e.g. `v-border-sparkle`). This gives the page an active, energetic vibe instead of remaining static.
 3. **Space-Like / Deep Aesthetics**: Adhere heavily to the `--bg-dark`, `--crimson`, and `--off-white` theme variables. Ensure high contrast while making it look premium.
 4. **Fluid Motion & Micro-Animations**: Rely on CSS transitions (`var(--ease)`) for hovers, reveals, and scale transformations. Ensure `prefers-reduced-motion` is always respected, but for users allowing motion, give a 3D gravity or parallax feel.
-5. **No Clutter & Heatmap Visualizations**: When dealing with metrics or stats (like "By the Numbers"), use compact, GitHub-heatmap-style layouts rather than huge singular card blocks. It provides a technical, data-driven, yet beautiful footprint on the screen.
-
-## Test-Driven Frontend (Playwright)
-
-1. **100% Playwright Coverage**: Any change in visual design, card layouts, animations, or DOM structure MUST have an accompanying Playwright test checking bounds, computed styles, visibility, and layout constraints.
-2. **Visual Checks before Progress**: Always run the E2E test suite locally using `VAELVET_URL=http://localhost:8087 npx playwright test` after a UI change and ensure ALL tests pass before deciding a task is complete. No regressions are acceptable.
-6. **Native Full-Color Assets**: When a full-color transparent asset (like a primary logo) is provided, render it using a standard `<img>` tag without any `mask-image`, CSS color overlays, or distorting 3D/hover animations unless explicitly instructed. Let the native brand colors show.
-7. **Wider Layout Spacing**: To avoid a compacted, cramped view, container `max-width` (e.g. `.v-container`) must be generous (e.g., `90rem` or `1440px`) to utilize screen space effectively and create a zoom-out effect rather than squishing content into the center.
+5. **High-Contrast Clean Glass Stat Grid (Zero Heatmap Animation Clutter)**: The background VELVT animated heatmap grid behind stats has been permanently eliminated. All metrics, stats, and achievements (e.g., 'By the Numbers') must render using clean, transparent 4-column glass stat cards (`.v-stat-grid--four` and `.v-about-stat`). No noisy background grid animations, letterforms, or flashing cell matrices behind text.
 
 ## Card Transparency (Permanent Rule — Do NOT Regress)
 
@@ -25,6 +18,21 @@ ALL card backgrounds MUST be fully transparent so the page background bleeds thr
 - Inner pseudo-element: `background: var(--glass-card-fill)` (defined as ≤6% alpha via CSS variable)
 - NEVER use: `background: var(--bg-card)`, `background: var(--bg-primary)`, or any hardcoded `rgba(10,4,5,0.6)` type fills
 - Test: Playwright checks `computedStyle.backgroundColor` alpha ≤ 0.2 on every card root
+
+## Authentic Cultural Production Photography (Permanent Rule)
+
+All imagery for Workflow (`workflow-01` through `05`) and Experience Studio (`studio-01` through `07`) must feature authentic, culturally grounded Odia and Indian production sets and artistry:
+- **`workflow-03-production.webp`**: Must depict an authentic Odissi classical dance performance filmed on an open stage with the Sun Temple of Konark in the background, captured from behind a professional cinema production camera set.
+- **`studio-07-creators.webp`**: Must depict a real Indian creator/model filming authentic content from a smartphone on location in nature, capturing natural light and cinematic composition.
+- All visual assets must be production-grade WebP images (< 250 KB), responsive, preloaded or styled with clean object-fit and position.
+
+## Full-Tile Panoramic Framing (Permanent Rule — `.v-tile--full`)
+
+For full-width highlight cards such as Creator Seeding (`.v-tile--full`):
+- Maximum card height must remain strictly bounded (< 500px on desktop) to prevent dominating the viewport.
+- Photo frame height must follow `clamp(170px, 18vw, 235px)` with `border-radius: var(--radius-sm)` and `object-position: center 36%` (optimized for facial/phone subject framing).
+- Layout sequence: the image frame MUST be positioned above the title and description text.
+- Both `.v-tile--full` and `.v-tile--showcase` modifier classes must be present.
 
 ## Unique Peek-In Animations Per Card Type (Permanent Rule)
 
@@ -40,12 +48,28 @@ All carry `.v-reveal` class. `prefers-reduced-motion` MUST collapse all animatio
 ## Test-Driven Frontend (Playwright) — Updated Workflow
 
 1. **100% Playwright Coverage**: Any change in visual design, card layouts, animations, or DOM structure MUST have an accompanying Playwright test.
-2. **Visual Checks before Progress**: Run `VAELVET_URL=http://localhost:8080 npx playwright test --project=chromium` from `test-suite/playwright/` after rebuilding the container.
-3. **Use Browser Tool**: Take screenshots with the browser subagent to visually verify every section in BOTH dark mode and light mode, and at mobile (375px) and desktop (1280px) viewports.
-4. **No Regressions**: All 96+ Rust unit tests and all Playwright tests must pass before marking work done.
+2. **Multi-Project Passing Gate**: Run `VAELVET_URL=http://localhost:8080 npx playwright test` across all projects (`chromium`, `webkit`, and `reduced-motion`) and ensure 100% pass before deciding a task is complete. No regressions are acceptable (327+ tests passing).
+3. **WebKit Scroll-Snap & Reveal Compatibility**: Reveal assertions in Playwright MUST use coordinate-based window scrolling:
+   `container.evaluate((el) => { window.scrollTo(0, window.scrollY + el.getBoundingClientRect().top - window.innerHeight / 3); })`
+   rather than `scrollIntoViewIfNeeded()`, to prevent WebKit scroll-snap jumping past the target.
+4. **Strict > 90% Rust Logic Coverage**: Code coverage must be verified using `cargo llvm-cov`. Unit logic coverage across the workspace must remain strictly above 90% lines (current: >91%), 92% functions, and 93% regions.
+5. **Dual CSS Synchronization**: `velvet-ui/assets/theme.css` and `velvet-ui/public/assets/theme.css` must remain 100% byte-for-byte identical.
+6. **Use Browser Tool**: Take screenshots with the browser subagent to visually verify every section in BOTH dark mode and light mode, and at mobile (375px) and desktop (1280px) viewports.
 
 ## Project Workflow (Permanent Rule)
 
 1. **Branching & Pull Requests**: All future modifications, new features, bug fixes, or structural changes MUST occur on a separate feature branch. 
 2. **No Direct Commits**: Do not commit directly to `main` or the current stable deployment branch (`refactor/production-grade`).
 3. **Pull Request Protocol**: Changes must be submitted via a pull request (or a completely separate task request) so they can be reviewed and tested in isolation before being merged into the stable base.
+
+## Multimodal Fan-Out & Skill Architecture (Permanent Rule)
+
+All autonomous engineering must follow the Multimodal Fan-Out Architecture detailed in `docs/MULTIMODAL_FANOUT_SYSTEM.md`:
+1. **Fan-Out Delegation**: The primary agent decomposes tasks and fans out to specialized subagents (`frontend-lead`, `backend-lead`, `visual-asset-artist`, `qa-lead`, `doc-keeper`) with strict file-scope whitelisting to prevent merge conflicts.
+2. **Phase-Gated Skill Activation**: UI skills (`cinematic-ui`, `high-end-visual-design`, `ui-ux-pro-max`, `impeccable`, `web-design-guidelines`) are loaded during the design and polish phases, keeping the initial TDD red/green loop fast.
+3. **Multi-Model Tiering**:
+   - **Deep Reasoning Tier (`pro` / `sonnet-4-6`)**: Architecture, Rust logic, Playwright E2E suites, and gate enforcement.
+   - **Fast Lane (`flash` / `haiku-4-5`)**: Targeted unit tests, regex tuning, and lint remediation.
+   - **Routine Ops Lane (`flash_lite` / `haiku-4-5`)**: Documentation syncing (`STATE.md`, `TASKS.md`), changelogs, and formatting.
+   - **Multimodal Visual Generation (`image-generator`)**: Culturally grounded visual asset synthesis (`workflow-03-production.webp`, `studio-07-creators.webp`).
+   - **Multimodal Visual QA**: Inspecting responsive screenshots in dark and light modes across mobile (375px) and desktop (1280px) viewports before delivery.

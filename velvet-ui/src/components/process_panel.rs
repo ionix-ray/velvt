@@ -4,8 +4,11 @@ use crate::Site;
 use crate::components::card_step::CardStep;
 use dioxus::prelude::*;
 
+const CARD_BG_PROCESS: Asset = asset!("/assets/images/card-bg-process.webp");
+
 #[component]
 pub fn ProcessPanel(site: Site) -> Element {
+    let bg = CARD_BG_PROCESS.to_string();
     rsx! {
         section { class: "v-panel", id: "ideology",
             div { class: "v-cinematic-bg" }
@@ -26,6 +29,8 @@ pub fn ProcessPanel(site: Site) -> Element {
                                 title: step.title.to_string(),
                                 body: step.body.to_string(),
                                 delay_ms: (i + 1) * 120,
+                                bg_image: Some(bg.clone()),
+                                photo: step.image.as_ref().map(|s| s.to_string()),
                             }
                         }
                     }

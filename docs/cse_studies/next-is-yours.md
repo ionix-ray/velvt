@@ -1,10 +1,10 @@
 ---
 title = "You could be the Next"
 client = "You"
-metric = " "
+metric = "NEXT"
 date = "2026-03-10"
-tags = [" "]
-summary = "Your sstory could be the next bolkbuster"
+tags = ["Featured"]
+summary = "Your story could be the next blockbuster"
 ---
 # You Could Be Next
 This is where the blockbuster story goes.

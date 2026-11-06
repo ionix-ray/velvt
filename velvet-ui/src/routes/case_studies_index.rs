@@ -61,12 +61,16 @@ fn case_studies_grid(filter_tag: Option<&str>) -> Element {
                 cb.forget();
             }
         }
+
+        // This route mounted fresh DOM after the boot-time observer install —
+        // feed the new reveal targets (`.v-reveal` tiles) into it.
+        crate::scroll::rescan_reveals();
     });
 
     rsx! {
         div { class: "v-case-page",
             CaseHeader {}
-            SocialStrip { is_last_panel: false }
+            SocialStrip { site: Site::load().clone(), is_last_panel: false }
             section { class: "v-case-hero",
                 div { class: "v-container",
                     span { class: "v-eyebrow", "Showcase" }
@@ -202,8 +206,9 @@ mod tests {
     #[test]
     fn renders_the_brand_image_via_shared_case_header() {
         let html = render(WrapIndex);
-        assert!(html.contains("<img"));
-        assert!(html.contains("velvet-square"));
+        assert!(html.contains("<svg"), "brand is an inline lockup now");
+        assert!(html.contains("velvet-mark"));
+        assert!(html.contains("currentColor"), "wordmark must be themeable");
     }
 
     #[test]
@@ -239,5 +244,19 @@ mod tests {
             "tags must already be unique: {tags:?}"
         );
         assert!(tags.contains(&"B2B".to_string()));
+    }
+
+    #[test]
+    fn wrap_tag_filter_renders_tagged_heading() {
+        let html = render(WrapTagFilter);
+        assert!(html.contains("Tagged: Beauty"));
+        assert!(html.contains("v-case-tag-filter__item active"));
+    }
+
+    #[test]
+    fn all_case_studies_index_shows_all_label() {
+        let html = render(WrapIndex);
+        assert!(html.contains("All case studies"));
+        assert!(html.contains("v-cases-grid"));
     }
 }

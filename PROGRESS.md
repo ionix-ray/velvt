@@ -387,3 +387,97 @@ review/merge decision.
 - **Running Glowing Borders**: Replaced generic backgrounds with `.v-sparkle-border` implementation.
 - **Added Logo Badges**: Injected the site logo securely into the top-left corner of each card using an absolute positioned `.v-experience-badge` class.
 - **TDD Enforcement**: Re-wrote Playwright integration tests to enforce strict verification of these new classes, ensuring regressions are caught before they reach production.
+
+### Immersive Brand Modernization — feature/immersive-brand-experience
+- **New brand mark**: extracted crimson "V" botanical glyph from master drawio SVG (alpha-trimmed, square-padded, lossless WebP + PNG fallback). Wired through `brand.rs` (topbar/loader/footer/stacked-nav), `site.md` hero logo + og:image, favicon, index.html meta/preload/JSON-LD. Removed 65MB of unused legacy assets (old logos, 52MB mp4).
+- **Immersive layer** (GPU-cheap, transform/opacity only): fixed ambient aurora (`body::before`, 26s drift), film grain (`body::after`, SVG feTurbulence, overlay blend, kills banding), per-panel top glow, brand `::selection` color, global `:focus-visible` rings.
+- **Brand-aware motion**: logo sheen sweep (`.v-logo-sheen`, 5.5s rake across topbar/loader/footer/nav marks), card hover sheen (`.v-card-sheen`, soft-light), primary-button sheen, hero ambient pulse. All gated behind `prefers-reduced-motion` (Tier-1 removed, grain survives as static orientation cue).
+- **Hero video fix**: `v-sparkle-border` class was on the glass container itself — its border-only mask hid the video since the video branch. Moved to a child div (card pattern); video now renders. Added `poster` = brand mark.
+- **Validation**: 97 Rust tests, lint clean, 297 Playwright runs (chromium/webkit/reduced-motion × 99) green, WASM 442KB gzip (limit 1.5MB), theme.css 19.5KB gzip (limit 40KB). New e2e tests: aurora layer, grain overlay, logo sheen, reduced-motion gating, card sheen, video poster.
+
+### Procedural whole-site dynamic background (no video loop)
+- Retired the runtime MP4/WebM ambient loop: same cinema, zero decode cost.
+  Kept `scripts/build-hero-media.sh` as a reproducible FFmpeg capability
+  (scene normalize → brand grade → xfade stitch → Velvt watermark → MP4/WebM/poster).
+- New `DynamicBackground` component mounted once in `App` (every route):
+  twin drifting spotlight meshes + slow stage beam, transform/opacity-only,
+  config-driven via `[background] enabled/intensity` in `content/site.md`.
+- Hero tile fully transparent; animated Draw.io-derived SVG wordmark stays.
+  Fixed SVG text fill to baked crimson-light (currentColor can't cross the
+  <img> document boundary; passes large-text contrast on both themes).
+- Raised light-mode radial presence so dynamism reads on Porcelain.
+- Validation: cargo 98+15+18+9 green, clippy/fmt clean, 297 Playwright runs
+  green, release WASM build green; screenshots verified light/dark.
+
+## 2026-10-25
+
+### Architecture & efficiency audit (fan-out, 4 parallel agents)
+Full-codebase audit across server, frontend, hex-ui card recon, security posture.
+Key findings carried into `docs/ROADMAP.md` + `docs/features/*.feature`:
+1. **Server**: no graceful shutdown, no timeouts/limits, blocking fs in async
+   handlers + TOCTOU check→read window, dead `config_file` field (never loaded),
+   dead error variants, hardcoded defaults (not config-driven).
+2. **No RPC/broker/channels exist anywhere** — architecture is static-site
+   delivery; broker/RPC deliberately scoped OUT in ROADMAP (deletion test fails
+   for speculative infra). k6 load testing ruled out by user.
+3. **Frontend**: reveal observer adds class CSS never consumes → VELVT heatmap
+   stuck `opacity:0` forever (real bug); social URLs duplicated across 4 places
+   with drifting sets; `next_hint.rs` dead; ~10 dead CSS blocks; nav labels
+   triplicated and inconsistent; devtools script duplicated in index.html;
+   reduced-motion gaps on infinite animations (border rotate, pan, pulse).
+4. **Hygiene**: 18 MB `test-dist/` + `.codegraph/intelligence.db` +
+   `test-results/.last-run.json` tracked in git; `cloudbuild.yaml --target
+   runtime` names a nonexistent stage; CI `cargo audit` non-gating (`|| true`);
+   coverage never runs in CI.
+5. **hex-ui recon**: single-branch repo, card system uncommitted in working
+   tree; 6 agency card variants (signal-board, marquee-nights,
+   spotlight-portrait, wrapped, press-proof, contact-sheet), pure inline CSS +
+   Dioxus 0.7 — directly portable; ported targets chosen: sparkline
+   signal-board draw-in + saturate-spring hover.
+
+### Documentation produced this session
+- `docs/features/server-resilience.feature` (S4, P0)
+- `docs/features/build-hygiene.feature` (S7, P0)
+- `docs/features/ui-cinematic-experience.feature` (S5, P1)
+- `docs/features/security-compliance.feature` (S6, P0)
+- `docs/ROADMAP.md` — priority (P0-P3) + stage (S4-S8) + status + OOS register
+- `docs/SECURITY-COMPLIANCE.md` — OWASP 10 / LLM 10 / CIS L1 matrix (agent)
+- `TASKS.md` — sprints S4-S8 appended, AC tied to feature files
+- `docs/PERSONA-MAP.md` — model routing + token/context engineering extended
+
+### In flight (background fan-out)
+- Agent A: server hardening S4-01..05 (TDD, disjoint scope: server/, justfile, Containerfile)
+- Agent B: hygiene + CI S7-01..05 (scope: .gitignore, .github, cloudbuild, test-suite)
+- Agent C: UI S5-01..07 (scope: velvet-ui/, content/site.md, playwright specs)
+- Agent D: compliance matrix S6-01..03
+
+### Decisions
+- k6 / load testing: OUT (user, 2026-10-25). k6 binary present but no test
+  files will ship.
+- RPC/broker: OUT — no async workload exists; revisit only if dynamic backend
+  lands (ROADMAP "Explicitly out of scope").
+
+## 2026-10-27 (current session)
+
+### Completed
+1. **Fan-out completion & stabilization**
+   - Resumed fan-out from interrupted state: verified staged deletions of tracked junk (test-dist/, .codegraph/, test-results/, duplicate screenshot.spec.ts) per S7-01/S7-02
+   - CI workflows updated (S7-03): removed `|| true` from cargo audit in pr-gate/deploy, collapsed triple test to single `cargo test --workspace --no-fail-fast`, removed stale `refactor/production-grade` trigger, added coverage gate job with `--fail-under-lines 90`
+   - publish-container.yml (S7-05): added step-security/harden-runner, persist-credentials false
+   - cloudbuild.yaml (S7-05): removed `--target runtime` reference
+   - justfile (S7-06): confirmed `clean-wasm` + theme.css sync in build flow; `coverage` gate added
+   - .gitignore (S7-01): added `/test-dist`, `/test-results`, `/.codegraph`, graft/, db journals
+   - Server config fixed: `Config` index_path/index_html logic aligned to tests (empty default with derivation; correct precedence across CLI/env/file); all server tests pass
+   - Gates: `just lint` clean, `just test` 43 tests pass (velvet-ui/velvet-server), `just build` succeeds (WASM 474KB gz, theme.css 71KB), `just coverage` 87.01% lines (floor 90% — needs additional coverage on low-coverage UI modules)
+   - Knowledge graph rebuilt with `graft build` (621 nodes, 352 edges)
+
+### In progress
+- Coverage gap to reach ≥90% (velvet-ui low-coverage: routes/home.rs, routes/case_study.rs, components/*, spa.rs)
+- E2E tests running (Playwright) — 323 test results seen, some failures visible in earlier logs
+
+### Next
+- Push coverage ≥90% (add targeted SSR/unit tests for uncovered components/routes)
+- Address remaining S5/S6/S7 TODO items as needed
+- Final reconciliation of TASKS/PROGRESS/ROADMAP
+
+- S7 verified: gitignore correct, CI workflows gated, coverage job present, tracked junk removed; docs updated (TASKS/STATE).

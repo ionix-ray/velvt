@@ -4,6 +4,7 @@
 
 use dioxus::prelude::*;
 use dioxus_router::components::Router;
+use vaelvet_ui::components::dynamic_background::DynamicBackground;
 use vaelvet_ui::routes::Route;
 use vaelvet_ui::scroll;
 use vaelvet_ui::spa;
@@ -20,12 +21,15 @@ fn App() -> Element {
     // Install reveal observer + SPA link interceptor after first render.
     use_effect(move || {
         let _ = scroll::install_reveal();
+        scroll::rescan_reveals(); // re-scan for reveal targets mounted after observer install
         let _ = spa::install_spa_link_interceptor();
     });
 
     rsx! {
         document::Link { rel: "preload", r#as: "image", fetchpriority: "high",
                   href: brand_mark() }
+        // Whole-site dynamic background — one mount, every route.
+        DynamicBackground { site: vaelvet_ui::Site::load().clone() }
         Router::<Route> {}
     }
 }

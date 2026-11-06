@@ -1,8 +1,36 @@
-//! Loading screen — retro progress bar with cycling creative text.
+//! Loading screen — cinematic icon swarm that assembles the V logo.
 
-use crate::theme::brand::loader_symbol;
+use crate::components::icons::Icon;
+use crate::theme::wordmark::Emblem;
 use dioxus::prelude::*;
 use gloo_timers::future::TimeoutFuture;
+
+/// First visit in a session: full icon-swarm logo build, then curtain lift.
+pub const INTRO_MS: u32 = 2_600;
+/// Return visit in the same session: fast fade, swarm skipped entirely.
+pub const REVISIT_MS: u32 = 700;
+
+const SESSION_KEY: &str = "velvt-intro-seen";
+
+/// Returns `true` when this session already played the intro, marking the
+/// session as seen on first call. Browser-only (`sessionStorage`) — callers
+/// must run inside `use_effect` so SSR/native builds never touch it.
+pub fn intro_seen_and_mark() -> bool {
+    let Some(win) = web_sys::window() else {
+        return true;
+    };
+    let Ok(Some(storage)) = win.session_storage() else {
+        return false; // storage unavailable — play the intro
+    };
+    match storage.get_item(SESSION_KEY) {
+        Ok(Some(_)) => true,
+        Ok(None) => {
+            let _ = storage.set_item(SESSION_KEY, "1");
+            false
+        }
+        Err(_) => false,
+    }
+}
 
 const PHRASES: &[&str] = &[
     "Curating presence…",
@@ -12,8 +40,44 @@ const PHRASES: &[&str] = &[
     "Adjusting the lens…",
 ];
 
+/// One icon in the logo-build swarm: scope-of-work glyph in a brand tone,
+/// flying in from a viewport edge (`sx`/`sy`) to its spot on the V
+/// formation (`fx`/`fy`, px relative to the emblem centre).
+struct SwarmIcon {
+    name: &'static str,
+    tone: &'static str,
+    fx: &'static str,
+    fy: &'static str,
+    sx: &'static str,
+    sy: &'static str,
+    delay: &'static str,
+}
+
+/// 13 official Carbon glyphs arranged as the letter V: two legs meeting at a
+/// vertex that sits on the emblem axis. Left leg follows y = x + 84, right leg
+/// y = 84 − x, vertex at (0, 84). Tones cycle the brand glyph palette.
+#[rustfmt::skip]
+const SWARM: &[SwarmIcon] = &[
+    // Left leg — photography → podcast → video → events → marketing → gifting
+    SwarmIcon { name: "camera", tone: "crimson", fx: "-168px", fy: "-84px", sx: "-75vw", sy: "-20vh", delay: "0ms" },
+    SwarmIcon { name: "microphone", tone: "violet", fx: "-140px", fy: "-56px", sx: "-40vw", sy: "-65vh", delay: "50ms" },
+    SwarmIcon { name: "video", tone: "sky", fx: "-112px", fy: "-28px", sx: "-10vw", sy: "-80vh", delay: "100ms" },
+    SwarmIcon { name: "event", tone: "citron", fx: "-84px", fy: "0px", sx: "-80vw", sy: "25vh", delay: "150ms" },
+    SwarmIcon { name: "search", tone: "violet", fx: "-56px", fy: "28px", sx: "-30vw", sy: "70vh", delay: "200ms" },
+    SwarmIcon { name: "gift", tone: "crimson", fx: "-28px", fy: "56px", sx: "10vw", sy: "85vh", delay: "250ms" },
+    // Vertex — the celebrity star where the V meets
+    SwarmIcon { name: "star--filled", tone: "crimson", fx: "0px", fy: "84px", sx: "0vw", sy: "90vh", delay: "320ms" },
+    // Right leg — venue → creators → branding → PR → optics → advertising
+    SwarmIcon { name: "location--filled", tone: "sky", fx: "168px", fy: "-84px", sx: "75vw", sy: "-25vh", delay: "100ms" },
+    SwarmIcon { name: "user--avatar", tone: "crimson", fx: "140px", fy: "-56px", sx: "40vw", sy: "-65vh", delay: "150ms" },
+    SwarmIcon { name: "idea", tone: "citron", fx: "112px", fy: "-28px", sx: "10vw", sy: "-85vh", delay: "200ms" },
+    SwarmIcon { name: "notification--filled", tone: "violet", fx: "84px", fy: "0px", sx: "80vw", sy: "20vh", delay: "250ms" },
+    SwarmIcon { name: "aperture", tone: "sky", fx: "56px", fy: "28px", sx: "35vw", sy: "70vh", delay: "300ms" },
+    SwarmIcon { name: "volume--up", tone: "citron", fx: "28px", fy: "56px", sx: "-5vw", sy: "85vh", delay: "350ms" },
+];
+
 #[component]
-pub fn Loader(hidden: bool) -> Element {
+pub fn Loader(hidden: bool, #[props(default = false)] revisit: bool) -> Element {
     let mut phrase_index = use_signal(|| 0);
 
     use_effect(move || {
@@ -27,27 +91,31 @@ pub fn Loader(hidden: bool) -> Element {
         });
     });
 
-    let class = loader_class(hidden);
+    let class = loader_class(hidden, revisit);
     let phrase = phrase_at(*phrase_index.read());
 
     rsx! {
         div { class: "{class}",
-            // Brand mark + iris rings stacked in the same container so the
-            // rings animate ON TOP of the icon image.
+            // Brand stage: fixed-size container the icon swarm flies into
+            // and collapses onto the mark at the centre.
             div { class: "v-loader__brand",
-                img { class: "v-loader__logo",
-                      src: loader_symbol(),
-                      alt: "VELVT" }
-                // Camera-iris aperture: three blade rings step down around the
-                // mark like a lens stopping down, then a flash marks focus.
-                // Placed after the <img> in DOM order so it paints above it
-                // via the same stacking context (position:absolute + higher z).
-                div { class: "v-loader__iris", "aria-hidden": "true",
-                    div { class: "v-loader__iris-ring v-loader__iris-ring--1" }
-                    div { class: "v-loader__iris-ring v-loader__iris-ring--2" }
-                    div { class: "v-loader__iris-ring v-loader__iris-ring--3" }
-                    div { class: "v-loader__iris-flash" }
+                // Scope icons fly in from every edge, assemble into the V
+                // formation, then collapse into the emblem (behind it, z:0).
+                div { class: "v-loader__swarm", "aria-hidden": "true",
+                    for icon in SWARM {
+                        span {
+                            class: "v-loader__icon v-loader__icon--{icon.tone}",
+                            "data-name": "{icon.name}",
+                            style: "--fx: {icon.fx}; --fy: {icon.fy}; --sx: {icon.sx}; --sy: {icon.sy}; --d: {icon.delay};",
+                            Icon { name: icon.name.to_string() }
+                        }
+                    }
                 }
+                Emblem {
+                    class: "v-loader__logo".to_string(),
+                    title: Some("Velvt".to_string()),
+                }
+                div { class: "v-logo-sheen", "aria-hidden": "true" }
             }
             div { class: "v-loader__bar",
                 div { class: "v-loader__fill" }
@@ -57,12 +125,15 @@ pub fn Loader(hidden: bool) -> Element {
     }
 }
 
-fn loader_class(hidden: bool) -> &'static str {
-    if hidden {
-        "v-loader hidden"
-    } else {
-        "v-loader"
+fn loader_class(hidden: bool, revisit: bool) -> String {
+    let mut class = String::from("v-loader");
+    if revisit {
+        class.push_str(" v-loader--revisit");
     }
+    if hidden {
+        class.push_str(" hidden");
+    }
+    class
 }
 
 fn phrase_at(index: usize) -> &'static str {
@@ -75,8 +146,77 @@ mod tests {
 
     #[test]
     fn loader_class_toggles_hidden_modifier() {
-        assert_eq!(loader_class(false), "v-loader");
-        assert_eq!(loader_class(true), "v-loader hidden");
+        assert_eq!(loader_class(false, false), "v-loader");
+        assert_eq!(loader_class(true, false), "v-loader hidden");
+    }
+
+    #[test]
+    fn loader_class_marks_revisit_visits() {
+        assert_eq!(loader_class(false, true), "v-loader v-loader--revisit");
+        assert_eq!(
+            loader_class(true, true),
+            "v-loader v-loader--revisit hidden"
+        );
+    }
+
+    #[test]
+    fn visible_loader_renders_icon_swarm_building_the_logo() {
+        let html = render(WrapVisible);
+        assert!(html.contains("v-loader__swarm"), "swarm container missing");
+        // One tone modifier per swarm icon: 12 leg icons + 1 vertex icon.
+        assert_eq!(
+            html.matches("v-loader__icon--").count(),
+            13,
+            "expected 13 swarm icons, got: {html}"
+        );
+        for tone in ["crimson", "violet", "sky", "citron"] {
+            assert!(
+                html.contains(&format!("v-loader__icon--{tone}")),
+                "tone {tone} missing from swarm"
+            );
+        }
+        // V-formation final positions + entry offsets + stagger delays.
+        assert!(html.contains("--fx"), "V-formation fx vars missing");
+        assert!(html.contains("--sx"), "entry offsets missing");
+        assert!(html.contains("--d:"), "stagger delays missing");
+        // Vertex of the V sits on the emblem axis.
+        assert!(html.contains("--fx: 0"), "vertex icon missing");
+    }
+
+    #[test]
+    fn swarm_icons_carry_scope_glyph_names() {
+        let html = render(WrapVisible);
+        for name in [
+            "camera",
+            "microphone",
+            "video",
+            "event",
+            "search",
+            "gift",
+            "star--filled",
+            "location--filled",
+            "user--avatar",
+            "idea",
+            "notification--filled",
+            "aperture",
+            "volume--up",
+        ] {
+            assert!(
+                html.contains(&format!("data-name=\"{name}\"")),
+                "swarm icon {name} missing"
+            );
+        }
+    }
+
+    #[test]
+    fn swarm_is_aria_hidden_and_never_interactive() {
+        let html = render(WrapVisible);
+        let swarm_pos = html.find("v-loader__swarm").unwrap_or(html.len());
+        let slice = &html[swarm_pos..swarm_pos.saturating_add(400).min(html.len())];
+        assert!(
+            slice.contains("aria-hidden=\"true\""),
+            "swarm must be aria-hidden"
+        );
     }
 
     #[test]
@@ -118,27 +258,11 @@ mod tests {
     }
 
     #[test]
-    fn visible_loader_renders_camera_iris_curtain() {
+    fn intro_has_no_dark_iris_rings() {
         let html = render(WrapVisible);
-        assert!(html.contains("v-loader__iris"));
-        assert!(html.contains("v-loader__iris-ring--1"));
-        assert!(html.contains("v-loader__iris-ring--2"));
-        assert!(html.contains("v-loader__iris-ring--3"));
-        assert!(html.contains("v-loader__iris-flash"));
-    }
-
-    /// The iris rings must be rendered INSIDE .v-loader__brand so they
-    /// stack visually on top of the logo image (same stacking context).
-    #[test]
-    fn iris_rings_are_nested_inside_brand_container() {
-        let html = render(WrapVisible);
-        let brand_pos = html.find("v-loader__brand");
-        let iris_pos = html.find("v-loader__iris");
-        assert!(brand_pos.is_some(), "brand container missing");
-        assert!(iris_pos.is_some(), "iris container missing");
         assert!(
-            iris_pos.unwrap_or(0) > brand_pos.unwrap_or(usize::MAX),
-            "iris rings must be inside the brand container to overlay the logo"
+            !html.contains("v-loader__iris"),
+            "iris rings removed by design — dark circles must not return: {html}"
         );
     }
 
@@ -147,9 +271,22 @@ mod tests {
     fn loader_uses_only_logo_symbol_not_full_wordmark() {
         let html = render(WrapVisible);
         assert!(
-            html.contains("only-logo"),
-            "loader should reference only-logo.png, got: {html}"
+            html.contains("velvet-mark"),
+            "loader should reference velvet-mark.webp, got: {html}"
         );
+    }
+
+    #[component]
+    fn WrapRevisit() -> Element {
+        rsx! {
+            Loader { hidden: false, revisit: true }
+        }
+    }
+
+    #[test]
+    fn revisit_loader_carries_revisit_modifier() {
+        let html = render(WrapRevisit);
+        assert!(html.contains("v-loader--revisit"));
     }
 
     #[test]
