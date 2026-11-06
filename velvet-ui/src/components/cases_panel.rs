@@ -5,6 +5,8 @@
 use crate::Site;
 use dioxus::prelude::*;
 
+const CARD_BG_CASES: Asset = asset!("/assets/images/card-bg-cases.webp");
+
 /// First letter of the client name, uppercased, for the monogram badge.
 /// `logo_image` is a content-driven path that can't go through the
 /// asset!() pipeline, so it can't be guaranteed to resolve — a monogram
@@ -37,6 +39,7 @@ pub fn CasesPanel(site: Site) -> Element {
             });
         }
     }
+    let bg_cases = CARD_BG_CASES.to_string();
 
     rsx! {
         section { class: "v-panel", id: "achivements",
@@ -53,7 +56,7 @@ pub fn CasesPanel(site: Site) -> Element {
                         for (i, case) in all_cases.iter().enumerate() {
                             div {
                                 class: "v-card-modern v-reveal v-card-modern-immersive",
-                                style: "transition-delay: {(i + 1) * 80}ms; --card-bg-image: url('/assets/images/card-bg-cases.webp');",
+                                style: "transition-delay: {(i + 1) * 80}ms; --card-bg-image: url('{bg_cases}');",
                                 div { class: "v-sparkle-border" }
                                 div { class: "v-card-bg", "aria-hidden": "true" }
                                 div { class: "v-card-sheen", "aria-hidden": "true" }

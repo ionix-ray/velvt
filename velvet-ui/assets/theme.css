@@ -157,10 +157,10 @@
      In light mode: warm white tint. In dark mode: dark tint.
      These are intentionally very low alpha so the card is see-through. */
   --glass-card-rgb: 240, 232, 220;  /* warm off-white (light mode) */
-  --glass-card-alpha: 0.06;         /* ≤10% opacity = clearly transparent */
+  --glass-card-alpha: 0.12;         /* legible surface, still clearly transparent */
   --glass-card-fill: rgba(var(--glass-card-rgb), var(--glass-card-alpha));
   --glass-border-rgb: 204, 43, 43;  /* brand crimson */
-  --glass-border-subtle: rgba(var(--glass-border-rgb), 0.15);
+  --glass-border-subtle: rgba(var(--glass-border-rgb), 0.22);
 
   /* wordmark — the MASTER LOGO's own spec: light-dark(#aa0729, #ededed).
      Never re-derived: the drawio source bakes these two values, so the
@@ -217,7 +217,7 @@
   --glass-card-alpha: 0.06;       /* 6% — purely see-through */
   --glass-card-fill: rgba(var(--glass-card-rgb), var(--glass-card-alpha));
   --glass-border-rgb: 212, 62, 62;
-  --glass-border-subtle: rgba(var(--glass-border-rgb), 0.18);
+  --glass-border-subtle: rgba(var(--glass-border-rgb), 0.16);
 
   /* cinematic dynamic gradients */
   --cinematic-radial-1: rgba(139, 0, 0, 0.15);
@@ -1401,6 +1401,14 @@ ul { list-style: none; }
   color: var(--text-primary);
   /* Thin border drawn by box-shadow — no border property needed */
   outline: 1px solid var(--glass-border-subtle);
+  transition: transform var(--d-fast) var(--ease), box-shadow var(--d-fast) var(--ease), outline-color var(--d-fast) var(--ease);
+}
+.v-process__step:hover,
+.v-process__step:focus-within {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18),
+              0 1px 0 inset var(--glass-border-subtle);
+  outline-color: color-mix(in srgb, var(--accent) 45%, var(--glass-border-subtle));
 }
 /* Minimal glass fill — just enough to separate from background without blocking it */
 .v-process__step::before {
@@ -1487,13 +1495,16 @@ ul { list-style: none; }
   filter: brightness(0.96) saturate(1.05);
 }
 
-.v-process__step:hover .v-card-photo {
+.v-process__step:hover .v-card-photo,
+.v-process__step:focus-within .v-card-photo {
   transform: scale(1.06);
   filter: brightness(1.06) saturate(1.15);
 }
 
-.v-process__step:hover .v-card-photo-frame {
-  border-color: var(--accent);
+.v-process__step:hover .v-card-photo-frame,
+.v-process__step:focus-within .v-card-photo-frame {
+  border-color: color-mix(in srgb, var(--accent) 60%, var(--glass-border-subtle));
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28);
 }
 
 .v-card-photo__overlay {
@@ -1520,7 +1531,8 @@ ul { list-style: none; }
   );
 }
 
-.v-process__step:hover .v-card-photo__overlay {
+.v-process__step:hover .v-card-photo__overlay,
+.v-process__step:focus-within .v-card-photo__overlay {
   opacity: 0.85;
 }
 
@@ -1909,6 +1921,12 @@ ul { list-style: none; }
   .v-topbar { padding-left: calc(112px + 6px + var(--s2)); }
   .v-about-grid { gap: var(--s4); }
   .v-tile { min-height: 0; }
+  /* Bottom nav at 5 fitting items instead of 7 truncated ones.
+     Hidden destinations stay reachable: panels stack in normal flow
+     and the hamburger menu lists every link. */
+  .v-mobile-nav__item:nth-child(7),
+  .v-mobile-nav__item:nth-child(3) { display: none; }
+  .v-mobile-nav__item { font-size: 0.6rem; }
 }
 
 /* Ultra-narrow devices (iPhone SE, Galaxy A series ≤ 375px) */
@@ -2182,7 +2200,8 @@ ul { list-style: none; }
 .v-team-card:nth-child(1) { animation-delay: 0ms; }
 .v-team-card:nth-child(2) { animation-delay: 120ms; }
 .v-team-card:nth-child(3) { animation-delay: 240ms; }
-.v-team-card:nth-child(4) { animation-delay: 360ms; }
+/* Cap the stagger — fast snap-scrolling must never show long empty rows. */
+.v-team-card:nth-child(n+4) { animation-delay: 240ms; }
 
 /* The running sparkle border effect — shared by all cinematic cards */
 .v-sparkle-border {
@@ -2214,6 +2233,8 @@ ul { list-style: none; }
     transparent 100%
   );
   animation: rotate-border 4s linear infinite;
+  /* Energy on intent: paused by default, runs on reveal/hover/focus (reduced-motion handled globally). */
+  animation-play-state: paused;
 }
 /* Speed variation per card type — each section has its own rotation rhythm */
 .v-process__step .v-sparkle-border::before {
@@ -2221,6 +2242,19 @@ ul { list-style: none; }
 }
 .v-about-stat .v-sparkle-border::before {
   animation-duration: 5s;
+}
+/* Trigger sparkle on intent (immersive but efficient). */
+.v-process__step:hover .v-sparkle-border::before,
+.v-process__step:focus-within .v-sparkle-border::before,
+.v-process__step.is-revealed .v-sparkle-border::before,
+.v-card-modern:hover .v-sparkle-border::before,
+.v-card-modern:focus-within .v-sparkle-border::before,
+.v-card-modern-immersive.is-revealed .v-sparkle-border::before,
+.v-about-stat:hover .v-sparkle-border::before,
+.v-about-stat:focus-within .v-sparkle-border::before,
+.v-tile:hover .v-sparkle-border::before,
+.v-tile:focus-within .v-sparkle-border::before {
+  animation-play-state: running;
 }
 
 .v-team-card::before {
@@ -2456,8 +2490,9 @@ ul { list-style: none; }
   position: relative;
   display: flex;
   flex-direction: column;
-  transition: transform var(--d-fast) var(--ease), box-shadow var(--d-fast) var(--ease);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
+  transition: transform var(--d-fast) var(--ease), box-shadow var(--d-fast) var(--ease), border-color var(--d-fast) var(--ease);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12),
+              0 1px 0 inset var(--glass-border-subtle);
   border: 1px solid var(--glass-border-subtle);
   z-index: 1;
 }
@@ -2471,10 +2506,12 @@ ul { list-style: none; }
   z-index: -1;
   pointer-events: none;
 }
-.v-card-modern:hover {
+.v-card-modern:hover,
+.v-card-modern:focus-within {
   transform: translateY(-4px);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
-  border-color: var(--accent);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4),
+              0 1px 0 inset var(--glass-border-subtle);
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--glass-border-subtle));
 }
 .v-card-modern__image {
   height: 130px;
@@ -2525,6 +2562,47 @@ ul { list-style: none; }
   color: var(--accent);
   font-weight: 700;
   margin-bottom: var(--s1);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+  text-wrap: balance;
+}
+
+/* "Emerging metric" — a single light-rake across the proof number as the
+   card resolves into view. One-shot; solid accent before and after. */
+@supports (background-clip: text) or (-webkit-background-clip: text) {
+  .v-card-modern.is-revealed .v-card-modern__metric {
+    background-image: linear-gradient(
+      105deg,
+      var(--accent) 0%,
+      var(--accent) 38%,
+      color-mix(in srgb, var(--crimson-light) 72%, white 28%) 50%,
+      var(--accent) 62%,
+      var(--accent) 100%
+    );
+    background-size: 260% 100%;
+    background-position: 120% 0;
+    -webkit-background-clip: text;
+            background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: v-metric-shimmer 1.6s var(--ease-out) 1 both;
+    animation-delay: 0.35s;
+  }
+  .v-card-modern.is-revealed .v-card-modern__metric a,
+  .v-card-modern.is-revealed .v-card-modern__metric { -webkit-text-fill-color: transparent; }
+}
+@keyframes v-metric-shimmer {
+  from { background-position: 120% 0; }
+  to   { background-position: -140% 0; }
+}
+/* Reduced motion / non-supporting engines: keep the solid accent number. */
+@media (prefers-reduced-motion: reduce) {
+  .v-card-modern.is-revealed .v-card-modern__metric {
+    animation: none;
+    background-image: none;
+    -webkit-text-fill-color: currentColor;
+    color: var(--accent);
+  }
 }
 .v-card-modern__desc {
   font-size: 0.85rem;
@@ -2570,7 +2648,9 @@ ul { list-style: none; }
 }
 .v-footer-panel {
   width: 100%;
-  height: 100%;
+  /* 100% does not resolve against the section's min-height:100vh — own the
+     floor directly so space-between anchors the giant brand at the bottom. */
+  min-height: 100vh;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -2588,6 +2668,11 @@ ul { list-style: none; }
   gap: var(--s5);
   flex-wrap: wrap;
 }
+/* Distribute footer content across the 100vh panel: main block at top,
+   legal + giant clustered at the floor (single breathing space above them,
+   like a classic premium sign-off). */
+.v-footer-panel { justify-content: flex-start; }
+.v-footer-panel__main { margin-bottom: auto; }
 .v-footer-panel__brand {
   display: flex;
   flex-direction: column;
@@ -2715,10 +2800,12 @@ ul { list-style: none; }
   font-weight: 700;
   text-transform: uppercase;
   color: var(--text-muted);
-  opacity: 0.1;
+  opacity: 0.12;
   text-align: center;
   line-height: 0.72;
-  margin-top: var(--s3);
+  /* Clustered with the legal row at the panel floor — `__main` carries the
+     single `margin-bottom:auto`, so no competing auto margins mid-panel. */
+  padding-top: var(--s3);
   margin-bottom: 0;
   width: 100%;
   pointer-events: none;
@@ -3168,15 +3255,15 @@ body::after {
   top: 0;
   bottom: 0;
   left: 0;
-  width: 45%;
+  width: 36%;
   background: linear-gradient(
     105deg,
     transparent 0%,
-    rgba(255, 255, 255, 0.45) 50%,
+    rgba(255, 255, 255, 0.22) 50%,
     transparent 100%
   );
   transform: translateX(-160%) skewX(-12deg);
-  animation: v-logo-sheen 5.5s var(--ease) infinite;
+  animation: v-logo-sheen 9s var(--ease) infinite;
 }
 @keyframes v-logo-sheen {
   0%, 55%   { transform: translateX(-160%) skewX(-12deg); }
@@ -3212,11 +3299,19 @@ body::after {
   transform: translateX(-180%) skewX(-10deg);
 }
 .v-process__step:hover .v-card-sheen,
-.v-tile:hover .v-card-sheen {
+.v-process__step:focus-within .v-card-sheen,
+.v-tile:hover .v-card-sheen,
+.v-tile:focus-within .v-card-sheen,
+.v-card-modern:hover .v-card-sheen,
+.v-card-modern:focus-within .v-card-sheen {
   opacity: 1;
 }
 .v-process__step:hover .v-card-sheen::before,
-.v-tile:hover .v-card-sheen::before {
+.v-process__step:focus-within .v-card-sheen::before,
+.v-tile:hover .v-card-sheen::before,
+.v-tile:focus-within .v-card-sheen::before,
+.v-card-modern:hover .v-card-sheen::before,
+.v-card-modern:focus-within .v-card-sheen::before {
   animation: v-card-sheen-sweep 1.1s var(--ease-out);
 }
 @keyframes v-card-sheen-sweep {
@@ -3385,6 +3480,10 @@ button:focus-visible {
   -webkit-backdrop-filter: none;
 }
 .v-hero-3d-logo--clear::after { display: none; }
+/* The wide hero lockup is not a square tile — the conic sparkle reads as a
+   broken red frame on it. The wordmark floats free under the ambient field
+   instead; square cinematic cards keep the sparkle. */
+.v-hero-3d-logo--clear .v-sparkle-border { display: none; }
 
 /* --- Animated SVG wordmark ----------------------------------------------------
    Self-contained transparent SVG (emblem + vector text in baked
@@ -3457,6 +3556,13 @@ button:focus-visible {
 .v-bg-glyph--violet { color: var(--glyph-violet); }
 .v-bg-glyph--sky    { color: var(--glyph-sky); }
 .v-bg-glyph--citron { color: var(--glyph-citron); }
+/* Brand cohesion: crimson leads, atmospheric companions recede —
+   they read as ambient light play rather than multicoloured confetti. */
+.v-bg-glyph--violet,
+.v-bg-glyph--sky,
+.v-bg-glyph--citron {
+  opacity: calc(var(--v-bg-glyph-alpha, 0.3) * 0.5);
+}
 
 /* One keyframe pair, amplitude driven per glyph by --gspin. */
 @keyframes v-glyph-drift {
@@ -3522,7 +3628,8 @@ button:focus-visible {
   pointer-events: none;
 }
 
-.v-card-immersive:hover .v-card-bg {
+.v-card-immersive:hover .v-card-bg,
+.v-card-immersive:focus-within .v-card-bg {
   transform: scale(1.08);
   opacity: 0.25;
 }
@@ -3552,7 +3659,8 @@ button:focus-visible {
   pointer-events: none;
 }
 
-.v-card-modern-immersive:hover .v-card-bg {
+.v-card-modern-immersive:hover .v-card-bg,
+.v-card-modern-immersive:focus-within .v-card-bg {
   transform: scale(1.1);
   opacity: 0.32;
 }
@@ -3569,7 +3677,9 @@ button:focus-visible {
 }
 
 .v-card-immersive:hover .v-card-lightsweep,
-.v-card-modern-immersive:hover .v-card-lightsweep {
+.v-card-immersive:focus-within .v-card-lightsweep,
+.v-card-modern-immersive:hover .v-card-lightsweep,
+.v-card-modern-immersive:focus-within .v-card-lightsweep {
   transform: translateX(100%);
 }
 

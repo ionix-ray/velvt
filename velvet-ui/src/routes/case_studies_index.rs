@@ -245,4 +245,18 @@ mod tests {
         );
         assert!(tags.contains(&"B2B".to_string()));
     }
+
+    #[test]
+    fn wrap_tag_filter_renders_tagged_heading() {
+        let html = render(WrapTagFilter);
+        assert!(html.contains("Tagged: Beauty"));
+        assert!(html.contains("v-case-tag-filter__item active"));
+    }
+
+    #[test]
+    fn all_case_studies_index_shows_all_label() {
+        let html = render(WrapIndex);
+        assert!(html.contains("All case studies"));
+        assert!(html.contains("v-cases-grid"));
+    }
 }

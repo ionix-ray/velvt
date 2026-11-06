@@ -263,4 +263,12 @@ mod tests {
         assert_eq!(read_time_minutes(&body_exact), 2);
         Ok(())
     }
+
+    #[test]
+    fn known_slug_renders_sidebar_read_time_and_back_link() {
+        let html = render(WrapKnownSlug);
+        assert!(html.contains("Read time"));
+        assert!(html.contains("min"));
+        assert!(html.contains("v-case-page__back"));
+    }
 }

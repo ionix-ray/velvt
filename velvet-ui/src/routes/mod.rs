@@ -26,3 +26,29 @@ pub enum Route {
     #[route("/achivements/:slug")]
     CaseStudy { slug: String },
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn route_enum_variants_are_constructible() {
+        let _home = Route::Home {};
+        let _index = Route::CaseStudiesIndex {};
+        let _tag = Route::CaseStudiesByTag {
+            tag: "B2B".to_string(),
+        };
+        let _study = Route::CaseStudy {
+            slug: "test-slug".to_string(),
+        };
+    }
+
+    #[test]
+    fn route_enum_derives_work() {
+        let r1 = Route::Home {};
+        let r2 = Route::Home {};
+        assert_eq!(r1, r2);
+        let _c = r1.clone();
+        let _d = format!("{r2:?}");
+    }
+}

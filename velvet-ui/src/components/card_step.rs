@@ -97,7 +97,8 @@ pub fn CardStep(
                         class: "v-card-photo",
                         src: "{p}",
                         alt: "{title}",
-                        loading: "lazy",
+                        loading: "eager",
+                        decoding: "async",
                     }
                     div { class: "v-card-photo__overlay", "aria-hidden": "true" }
                 }
@@ -253,6 +254,13 @@ mod tests {
             "photo src missing"
         );
         assert!(html.contains("Discovery"), "photo alt missing");
+        // No lazy loading - images load immediately (product requirement).
+        assert!(
+            html.contains("loading=\"eager\"")
+                || html.contains("loading='eager'")
+                || html.contains("eager"),
+            "photo should load eagerly"
+        );
         // Minimal card without photo must NOT have photo frame.
         let min_html = render(Minimal);
         assert!(

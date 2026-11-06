@@ -4,8 +4,11 @@ use crate::Site;
 use crate::components::card_step::CardStep;
 use dioxus::prelude::*;
 
+const CARD_BG_STUDIO: Asset = asset!("/assets/images/card-bg-studio.webp");
+
 #[component]
 pub fn StudioPanel(site: Site) -> Element {
+    let bg = CARD_BG_STUDIO.to_string();
     rsx! {
         section { class: "v-panel v-showcase-panel", id: "experience",
             div { class: "v-section v-showcase__section",
@@ -26,7 +29,7 @@ pub fn StudioPanel(site: Site) -> Element {
                                 body: item.body.to_string(),
                                 class_extra: showcase_class_extra(i, site.studio.items.len()),
                                 delay_ms: (i + 1) * 60,
-                                bg_image: Some("/assets/images/card-bg-studio.webp".to_string()),
+                                bg_image: Some(bg.clone()),
                                 photo: item.image.as_ref().map(|s| s.to_string()),
                             }
                         }
