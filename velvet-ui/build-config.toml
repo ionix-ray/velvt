@@ -1,0 +1,42 @@
+# Velvet UI Build Configuration
+# Centralizes build targets, performance budgets, asset pipelines, and quality gates.
+
+[project]
+name = "vaelvet-ui"
+framework = "Dioxus"
+framework_version = "0.7.6"
+target = "wasm32-unknown-unknown"
+
+[budgets]
+wasm_gzip_max_kb = 1536          # 1.5 MB gzipped hard ceiling
+theme_css_gzip_max_kb = 40       # 40 KB gzipped hard ceiling
+coverage_line_floor_percent = 90.0 # >= 90% cargo-llvm-cov floor
+
+[server]
+dev_port_start = 8080
+dev_port_end = 8100
+default_port = 8080
+
+[assets]
+source_dir = "assets"
+public_sync_dir = "public/assets"
+theme_css = "assets/theme.css"
+modular_css_dir = "assets/css"
+fonts_dir = "assets/fonts"
+images_dir = "assets/images"
+
+[fonts]
+self_hosted = true
+display_strategy = "optional"
+families = [
+    "Metamorphous",
+    "Cormorant Garamond",
+    "Outfit",
+    "Georgia",
+    "IBM Plex Sans",
+]
+
+[rules]
+no_unwrap_panic = true
+no_lazy_loading = true
+hero_preload_eager = true

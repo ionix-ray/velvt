@@ -3,33 +3,31 @@
 
 use crate::Site;
 use crate::components::{
-    about_aggregated_panel::AboutAggregatedPanel, cases_panel::CasesPanel, cta_panel::CtaPanel,
-    footer_panel::FooterPanel, hero_panel::HeroPanel, loader::Loader, mobile_nav::MobileNav,
-    process_panel::ProcessPanel, scroll_progress::ScrollProgress, section_dots::SectionDots,
-    social_strip::SocialStrip, stacked_nav::StackedNav, studio_panel::StudioPanel, topbar::TopBar,
+    about_aggregated_panel::AboutAggregatedPanel,
+    cases_panel::CasesPanel,
+    cta_panel::CtaPanel,
+    footer_panel::FooterPanel,
+    hero_panel::HeroPanel,
+    loader::{INTRO_MS, Loader, REVISIT_MS, intro_seen_and_mark},
+    mobile_nav::MobileNav,
+    process_panel::ProcessPanel,
+    scroll_progress::ScrollProgress,
+    section_dots::SectionDots,
+    social_strip::SocialStrip,
+    stacked_nav::StackedNav,
+    studio_panel::StudioPanel,
+    topbar::TopBar,
 };
 use dioxus::prelude::*;
 use wasm_bindgen::JsCast;
-
-/// Panel labels — displayed in the spindle navigator.
-/// The 7th panel is the footer; SocialStrip hides on it.
-const PANEL_LABELS: &[&str] = &[
-    "HOME",
-    "ABOUT",
-    "IDEOLOGY",
-    "EXPERIENCE",
-    "ACHIVEMENTS",
-    "CONTACT",
-    "FOOTER",
-];
 
 /// URL-hash anchors, one per panel, in render order. Mirrors each panel
 /// section's own `id` attribute so `#showcase` etc. is shareable/bookmarkable.
 const PANEL_ANCHORS: &[&str] = &[
     "home",
     "about",
-    "ideology",
     "experience",
+    "ideology",
     "achivements",
     "contact",
     "footer",
@@ -102,7 +100,10 @@ fn scroll_to_panel(idx: usize) {
 pub fn Home() -> Element {
     let site = Site::load().clone();
 
+    // Cinematic icon-swarm intro: full build on first visit per session,
+    // fast fade on return visits (sessionStorage gate in loader.rs).
     let loader_hidden = use_signal(|| false);
+    let mut revisit = use_signal(|| false);
     let mut menu_open = use_signal(|| false);
     let theme = use_signal(|| "light".to_string());
     let mut current_panel = use_signal(|| 0usize);
@@ -120,6 +121,14 @@ pub fn Home() -> Element {
         });
     }
 
+    // The observer is installed once by `App`; remounting this route (SPA
+    // navigation back to `/`) builds fresh reveal targets, so re-scan.
+    {
+        use_effect(move || {
+            crate::scroll::rescan_reveals();
+        });
+    }
+
     // Apply theme attribute to <html>
     {
         use_effect(move || {
@@ -133,12 +142,16 @@ pub fn Home() -> Element {
         });
     }
 
-    // Hide loader after 2.2 s
+    // Hide loader after the cinematic intro (first visit per session) or a
+    // fast fade (return visit). The session gate marks the flag as seen.
     let mut timeout_handle = use_signal(|| Option::<gloo_timers::callback::Timeout>::None);
     {
         use_effect(move || {
             let mut loader = loader_hidden;
-            let handle = gloo_timers::callback::Timeout::new(2200, move || {
+            let revisiting = intro_seen_and_mark();
+            revisit.set(revisiting);
+            let delay = if revisiting { REVISIT_MS } else { INTRO_MS };
+            let handle = gloo_timers::callback::Timeout::new(delay, move || {
                 loader.set(true);
             });
             timeout_handle.set(Some(handle));
@@ -151,6 +164,8 @@ pub fn Home() -> Element {
         menu_open.set(false);
         scroll_to_panel(idx);
     };
+
+    let panel_count = site.nav.len() + 1; // nav entries + footer panel
 
     // Window vertical scroll listener to update current_panel
     {
@@ -186,14 +201,13 @@ pub fn Home() -> Element {
                             .map(|e| e.scroll_height() as f64)
                             .unwrap_or(0.0);
 
-                        let mut idx =
-                            scroll_sync_index(scroll_top, client_height, PANEL_LABELS.len());
+                        let mut idx = scroll_sync_index(scroll_top, client_height, panel_count);
 
                         // If we are at the very bottom, force the last panel (footer)
                         if scroll_height > 0.0
                             && scroll_top + client_height >= scroll_height - 150.0
                         {
-                            idx = PANEL_LABELS.len().saturating_sub(1);
+                            idx = panel_count.saturating_sub(1);
                         }
                         if idx != *current_panel.peek() {
                             current_panel.set(idx);
@@ -221,13 +235,11 @@ pub fn Home() -> Element {
         });
     }
 
-    let panel_count = PANEL_LABELS.len();
-    let labels: Vec<String> = PANEL_LABELS.iter().map(|s| s.to_string()).collect();
     let progress = progress_for(*current_panel.read(), panel_count);
     let is_footer_panel = *current_panel.read() >= panel_count - 1;
 
     rsx! {
-        Loader { hidden: *loader_hidden.read() }
+        Loader { hidden: *loader_hidden.read(), revisit: *revisit.read() }
 
         ScrollProgress { progress }
 
@@ -241,21 +253,18 @@ pub fn Home() -> Element {
         }
 
         SectionDots {
-            count: panel_count,
+            site: site.clone(),
             current: *current_panel.read(),
-            labels,
             on_navigate,
         }
 
         // Social icons — visible on all panels except the footer
-        SocialStrip { is_last_panel: is_footer_panel }
-
-        // Next and Previous hints removed as per user request
+        SocialStrip { site: site.clone(), is_last_panel: is_footer_panel }
 
         // ── Mobile bottom nav (≤768px) ───────────────────────────────────
         MobileNav {
+            site: site.clone(),
             current_panel: *current_panel.read(),
-            panel_count,
             on_navigate: EventHandler::new(move |idx: usize| {
                 on_navigate(idx);
             }),
@@ -265,8 +274,8 @@ pub fn Home() -> Element {
         div { class: "v-panels",
             HeroPanel { site: site.clone() }
             AboutAggregatedPanel { site: site.clone() }
-            ProcessPanel { site: site.clone() }
             StudioPanel { site: site.clone() }
+            ProcessPanel { site: site.clone() }
             CasesPanel { site: site.clone() }
             CtaPanel { site: site.clone() }
             // 7th panel — footer rolls in after the last content panel
@@ -300,7 +309,8 @@ mod tests {
     #[test]
     fn anchor_for_matches_panel_render_order() {
         assert_eq!(anchor_for(0), "home");
-        assert_eq!(anchor_for(3), "experience");
+        assert_eq!(anchor_for(2), "experience");
+        assert_eq!(anchor_for(3), "ideology");
         assert_eq!(anchor_for(6), "footer");
         assert_eq!(anchor_for(99), "home");
     }

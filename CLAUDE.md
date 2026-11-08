@@ -122,11 +122,16 @@ passing them as `CardStep` props.
 **To change site content**: edit `content/site.md`, `just build`. Done. No code changes needed for copy/links/case studies.
 
 ## Pre-merge checklist
-1. `just ci-local --skip-wasm` green (fast Rust checks)
-2. `just lint` green
-3. `just test` green (all 142 tests)
-4. `just audit` zero critical CVEs
-5. `just build` succeeds; WASM bundle <=1.5 MB
-6. WASM bundle <=1.5 MB gzipped: `ls -lh dist/assets/*.wasm`
-7. `STATE.md`/`TASKS.md`/`PROGRESS.md` updated
-8. Conventional Commit message
+1. `./scripts/ci-local.sh --skip-wasm` green (fast Rust checks + coverage floor)
+2. `cargo fmt --all -- --check` & `cargo clippy --workspace --all-targets -- -D warnings` clean (zero warnings)
+3. `cargo test --workspace --no-fail-fast` green (all 195 unit, SSR, and server tests pass)
+4. `cargo llvm-cov` line coverage >= 90% across logic units (currently >91% lines, >92% functions, >93% regions)
+5. `test-suite/playwright`: all 327 tests pass across `chromium`, `webkit`, and `reduced-motion`
+6. `velvet-ui/assets/theme.css` and `velvet-ui/public/assets/theme.css` remain 100% byte-for-byte identical
+7. Background VELVT heatmap animation remains removed; stats render in clean `.v-stat-grid--four` glass cards
+8. Cultural Odia/Indian production assets verified (`workflow-03-production.webp`, `studio-07-creators.webp`)
+9. `.v-tile--full` Creator Seeding adheres to panoramic framing (< 500px card, clamp 170-235px photo, center 36% position)
+10. `just audit` zero critical CVEs
+11. `just build` succeeds; WASM bundle <=1.5 MB gzipped
+12. `STATE.md`/`TASKS.md`/`PROGRESS.md` updated
+13. Conventional Commit message on feature branch (never direct commit to main)

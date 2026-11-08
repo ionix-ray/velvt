@@ -1,0 +1,123 @@
+/* ----- Responsive ------------------------------------------------------- */
+@media (max-width: 1024px) {
+  .v-hero__content { grid-template-columns: 1fr; gap: var(--s4); text-align: center; }
+  .v-hero__sub { margin-inline: auto; }
+  .v-hero__stat-grid { margin: 0 auto; }
+  .v-hologram { padding: var(--s4); }
+  .v-hologram__particle { display: none; }
+  .v-hologram__ring--2 { display: none; }
+  @keyframes v-card-float {
+    0%, 100% { transform: translateY(0); }
+    25% { transform: translateY(-3px); }
+    75% { transform: translateY(-2px); }
+  }
+  .v-dashboard { grid-template-columns: 1fr; }
+  .v-cases { grid-template-columns: 1fr 1fr; }
+  .v-process { grid-template-columns: repeat(3, 1fr); }
+  .v-process::before { display: none; }
+  .v-social { grid-template-columns: repeat(2, 1fr); grid-template-rows: auto; }
+  .v-footer__cols { flex-direction: column; gap: var(--s4); }
+  .v-showcase__grid { grid-template-columns: 1fr 1fr; }
+  .v-timeline::before { left: 16px; }
+  .v-timeline__item { grid-template-columns: 1fr; padding-left: 40px; }
+  .v-timeline__item:nth-child(even) { direction: ltr; }
+  .v-timeline__dot { left: 16px; }
+}
+
+@media (max-width: 768px) {
+  .v-topbar__brand { width: 132px; }
+  .v-topbar { padding-left: calc(132px + 8px + var(--s3)); }
+  .v-panels {
+    flex-direction: column;
+    overflow-x: hidden;
+    overflow-y: visible;
+    scroll-snap-type: none;
+    height: auto;
+    width: 100%;
+  }
+  .v-panel {
+    padding-left: var(--s4);
+    padding-right: var(--s4);
+    box-sizing: border-box;
+    min-width: 100%;
+    height: auto;
+    overflow-y: visible;
+    scroll-snap-align: none;
+  }
+  .v-section { min-height: auto; padding: var(--s5) 0; }
+  .v-dots { display: none; }
+  .v-stack-nav { display: none; }
+  .v-process { grid-template-columns: 1fr 1fr; }
+  .v-cases { grid-template-columns: 1fr; }
+  .v-showcase__grid { grid-template-columns: 1fr; }
+  .v-tile--wide, .v-tile--full {
+    grid-column: span 1;
+  }
+  .v-footer__cols { flex-direction: column; gap: var(--s4); }
+  .v-footer__bottom { text-align: center; }
+  .v-social { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 480px) {
+  .v-process { grid-template-columns: 1fr; }
+  .v-stats-grid { grid-template-columns: 1fr; }
+  .v-topbar__brand { width: 112px; }
+  .v-topbar { padding-left: calc(112px + 6px + var(--s2)); }
+  .v-about-grid { gap: var(--s4); }
+  .v-tile { min-height: 0; }
+  /* Bottom nav at 5 fitting items instead of 7 truncated ones.
+     Hidden destinations stay reachable: panels stack in normal flow
+     and the hamburger menu lists every link. */
+  .v-mobile-nav__item:nth-child(7),
+  .v-mobile-nav__item:nth-child(3) { display: none; }
+  .v-mobile-nav__item { font-size: 0.6rem; }
+}
+
+/* Ultra-narrow devices (iPhone SE, Galaxy A series ≤ 375px) */
+@media (max-width: 375px) {
+  /* Reduce panel gutters so content fills the screen */
+  .v-panel {
+    padding-left: var(--s3);
+    padding-right: var(--s3);
+  }
+  /* Hero headline wraps cleanly */
+  .v-display-1 { font-size: clamp(2rem, 8vw, 2.8rem); }
+  .v-display-2 { font-size: clamp(1.6rem, 6vw, 2rem); }
+  /* Contact form full-bleed */
+  .v-contact-form { padding: var(--s3); }
+  /* Footer columns stack tighter */
+  .v-footer-panel { gap: var(--s2); }
+  /* Showcase cards */
+  .v-showcase__grid { grid-template-columns: 1fr; gap: var(--s3); }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   NEW COMPONENT STYLES
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+
+/* --- Mobile: footer panel stacks ---------------------------------------- */
+@media (max-width: 768px) {
+  .v-footer-panel {
+    grid-template-rows: auto auto auto;
+    padding: var(--s5) var(--s4) 0;
+    overflow-y: auto;
+  }
+  .v-footer-panel__cols { gap: var(--s4); }
+  .v-footer-panel__bottom { flex-direction: column; align-items: flex-start; }
+}
+
+
+/* --- Responsive: small screens keep one calm layer -----------------------------
+   ≤768px: fast layer + beam off (slow mesh carries the mood), SVG scales. */
+@media (max-width: 768px) {
+  .v-dynamic-bg__layer--fast,
+  .v-dynamic-bg__beam { display: none; }
+  .v-hero__logo-svg { width: clamp(230px, 66vw, 340px); }
+  .v-card-split__img-wrap { height: 8rem; }
+}
+@media (max-width: 480px) {
+  .v-hero__logo-svg { width: clamp(200px, 76vw, 290px); }
+  .v-card-split__img-wrap { height: 7rem; }
+}
+

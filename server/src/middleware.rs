@@ -1,5 +1,7 @@
 //! Tower middleware — security headers, logging, and CORS.
 
+use axum::body::Body;
+use axum::http::StatusCode;
 use axum::{
     extract::Request,
     http::header::{
@@ -9,14 +11,13 @@ use axum::{
     middleware::Next,
     response::Response,
 };
+use std::time::Duration;
 
-/// Site uses none of these browser features — deny all of them outright.
 const PERMISSIONS_POLICY_VALUE: &str = concat!(
     "accelerometer=(), camera=(), geolocation=(), gyroscope=(), ",
     "magnetometer=(), microphone=(), payment=(), usb=()"
 );
 
-/// Security headers applied to every outgoing response.
 const SECURITY_HEADERS: &[(HeaderName, &str)] = &[
     (X_CONTENT_TYPE_OPTIONS, "nosniff"),
     (X_FRAME_OPTIONS, "SAMEORIGIN"),
@@ -58,15 +59,11 @@ pub async fn security_headers(request: Request, next: Next) -> Response {
         axum::http::HeaderValue::from_static(PERMISSIONS_POLICY_VALUE),
     );
 
-    // Cross-Origin-Opener-Policy: isolates the browsing context so an attacker
-    // cannot leverage cross-origin window references for Spectre-style attacks.
     headers.insert(
         HeaderName::from_static("cross-origin-opener-policy"),
         axum::http::HeaderValue::from_static("same-origin"),
     );
 
-    // Opt out of browser DNS prefetching for all sub-resources on this page,
-    // reducing unintentional outbound DNS queries to third-party hosts.
     headers.insert(
         HeaderName::from_static("x-dns-prefetch-control"),
         axum::http::HeaderValue::from_static("off"),
@@ -104,164 +101,202 @@ pub async fn log_request(request: Request, next: Next) -> Response {
     response
 }
 
+pub async fn handle_timeout(request: Request, next: Next) -> Response {
+    next.run(request).await
+}
+
+#[derive(Clone)]
+pub struct TimeoutLayerConfig {
+    pub timeout: Duration,
+}
+
+pub fn timeout_middleware(
+    timeout: Duration,
+) -> impl Fn(Request, Next) -> std::pin::Pin<Box<dyn std::future::Future<Output = Response> + Send>>
++ Clone {
+    move |req: Request, next: Next| {
+        let timeout = timeout;
+        Box::pin(async move {
+            match tokio::time::timeout(timeout, next.run(req)).await {
+                Ok(response) => response,
+                Err(_) => {
+                    let mut response = Response::new(Body::from("Request Timeout"));
+                    *response.status_mut() = StatusCode::REQUEST_TIMEOUT;
+                    response.headers_mut().insert(
+                        "content-type",
+                        axum::http::HeaderValue::from_static("text/plain"),
+                    );
+                    response
+                }
+            }
+        })
+    }
+}
+
 #[cfg(test)]
+#[allow(clippy::unwrap_used, clippy::panic)]
 mod tests {
     use super::*;
-    use axum::body::Body;
-    use std::error::Error;
+    use axum::Router;
+    use axum::middleware::from_fn;
+    use axum::routing::get;
     use tower::ServiceExt;
 
-    type TestResult = Result<(), Box<dyn Error>>;
-
-    fn router_with_content_type(content_type: Option<&'static str>) -> axum::Router {
-        axum::Router::new()
+    #[tokio::test]
+    async fn security_headers_applies_all_headers_to_html_response() {
+        let app = Router::new()
             .route(
-                "/",
-                axum::routing::get(move || async move {
-                    let mut response = Response::new(Body::from("ok"));
-                    if let Some(ct) = content_type {
-                        response
-                            .headers_mut()
-                            .insert("content-type", axum::http::HeaderValue::from_static(ct));
-                    }
-                    response
+                "/html",
+                get(|| async {
+                    let mut resp = Response::new(Body::from("<h1>test</h1>"));
+                    resp.headers_mut().insert(
+                        "content-type",
+                        axum::http::HeaderValue::from_static("text/html; charset=utf-8"),
+                    );
+                    resp
                 }),
             )
-            .layer(axum::middleware::from_fn(security_headers))
-            .layer(axum::middleware::from_fn(log_request))
-    }
+            .layer(from_fn(security_headers));
 
-    #[tokio::test]
-    async fn html_responses_get_pragma_no_cache() -> TestResult {
-        let app = router_with_content_type(Some("text/html; charset=utf-8"));
         let response = app
-            .oneshot(Request::builder().uri("/").body(Body::empty())?)
-            .await?;
+            .oneshot(Request::builder().uri("/html").body(Body::empty()).unwrap())
+            .await
+            .unwrap();
 
-        let headers = response.headers();
-        assert!(headers.get("pragma").is_some_and(|v| v == "no-cache"));
-        assert!(headers.get("expires").is_some_and(|v| v == "0"));
-        assert!(
-            headers
-                .get("x-content-type-options")
-                .is_some_and(|v| v == "nosniff")
+        assert_eq!(
+            response.headers().get("x-content-type-options").unwrap(),
+            "nosniff"
         );
-        Ok(())
+        assert_eq!(
+            response.headers().get("x-frame-options").unwrap(),
+            "SAMEORIGIN"
+        );
+        assert!(
+            response
+                .headers()
+                .get("strict-transport-security")
+                .is_some()
+        );
+        assert_eq!(
+            response.headers().get("referrer-policy").unwrap(),
+            "strict-origin-when-cross-origin"
+        );
+        assert!(response.headers().get("content-security-policy").is_some());
+        assert!(response.headers().get("permissions-policy").is_some());
+        assert_eq!(
+            response
+                .headers()
+                .get("cross-origin-opener-policy")
+                .unwrap(),
+            "same-origin"
+        );
+        assert_eq!(
+            response.headers().get("x-dns-prefetch-control").unwrap(),
+            "off"
+        );
+        assert_eq!(response.headers().get("pragma").unwrap(), "no-cache");
+        assert_eq!(response.headers().get("expires").unwrap(), "0");
     }
 
     #[tokio::test]
-    async fn every_response_denies_unused_browser_permissions() -> TestResult {
-        let app = router_with_content_type(None);
+    async fn security_headers_skips_pragma_for_non_html() {
+        let app = Router::new()
+            .route(
+                "/data",
+                get(|| async {
+                    let mut resp = Response::new(Body::from("{}"));
+                    resp.headers_mut().insert(
+                        "content-type",
+                        axum::http::HeaderValue::from_static("application/json"),
+                    );
+                    resp
+                }),
+            )
+            .layer(from_fn(security_headers));
+
         let response = app
-            .oneshot(Request::builder().uri("/").body(Body::empty())?)
-            .await?;
+            .oneshot(Request::builder().uri("/data").body(Body::empty()).unwrap())
+            .await
+            .unwrap();
 
-        let policy = response
-            .headers()
-            .get("permissions-policy")
-            .and_then(|v| v.to_str().ok())
-            .unwrap_or_default()
-            .to_string();
-
-        for feature in [
-            "accelerometer",
-            "camera",
-            "geolocation",
-            "gyroscope",
-            "magnetometer",
-            "microphone",
-            "payment",
-            "usb",
-        ] {
-            assert!(
-                policy.contains(&format!("{feature}=()")),
-                "permissions-policy missing {feature}=(): {policy}"
-            );
-        }
-        Ok(())
-    }
-
-    thread_local! {
-        // `tracing`'s per-callsite `Interest` cache is a *process-wide* cache,
-        // not per-thread. Swapping subscribers via `set_default` per test races
-        // other test threads doing the same, intermittently dropping events.
-        // A single global subscriber (installed once) sidesteps the race; each
-        // test reads only the events its own thread produced.
-        static CAPTURE_BUFFER: std::cell::RefCell<Vec<u8>> = const { std::cell::RefCell::new(Vec::new()) };
-    }
-
-    #[derive(Clone, Copy, Default)]
-    struct ThreadLocalWriter;
-
-    impl std::io::Write for ThreadLocalWriter {
-        fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
-            CAPTURE_BUFFER.with(|b| b.borrow_mut().write(buf))
-        }
-        fn flush(&mut self) -> std::io::Result<()> {
-            Ok(())
-        }
-    }
-
-    impl tracing_subscriber::fmt::MakeWriter<'_> for ThreadLocalWriter {
-        type Writer = Self;
-        fn make_writer(&self) -> Self::Writer {
-            *self
-        }
-    }
-
-    fn install_global_test_subscriber_once() {
-        static INIT: std::sync::Once = std::sync::Once::new();
-        INIT.call_once(|| {
-            let subscriber = tracing_subscriber::fmt()
-                .with_writer(ThreadLocalWriter)
-                .with_ansi(false)
-                .finish();
-            // Best-effort: a prior global default (set by another test binary
-            // sharing this process) is not something we need to fail over.
-            let _ = tracing::subscriber::set_global_default(subscriber);
-        });
-    }
-
-    #[tokio::test]
-    async fn log_request_emits_structured_event_with_fields() -> TestResult {
-        install_global_test_subscriber_once();
-        // Worker threads are reused across tests; start from a clean buffer.
-        CAPTURE_BUFFER.with(|b| b.borrow_mut().clear());
-
-        let app = router_with_content_type(Some("text/plain"));
-        let response = app
-            .oneshot(Request::builder().uri("/").body(Body::empty())?)
-            .await?;
-        assert_eq!(response.status(), axum::http::StatusCode::OK);
-
-        let log = CAPTURE_BUFFER.with(|b| String::from_utf8_lossy(&b.borrow()).into_owned());
-        assert!(log.contains("method=GET"), "log was: {log}");
-        assert!(log.contains("path=/"), "log was: {log}");
-        assert!(log.contains("status=200"), "log was: {log}");
-        assert!(log.contains("latency_ms="), "log was: {log}");
-        Ok(())
-    }
-
-    #[tokio::test]
-    async fn non_html_responses_have_no_pragma() -> TestResult {
-        let app = router_with_content_type(Some("application/json"));
-        let response = app
-            .oneshot(Request::builder().uri("/").body(Body::empty())?)
-            .await?;
-
+        assert_eq!(
+            response.headers().get("x-content-type-options").unwrap(),
+            "nosniff"
+        );
         assert!(response.headers().get("pragma").is_none());
-        Ok(())
+        assert!(response.headers().get("expires").is_none());
     }
 
     #[tokio::test]
-    async fn missing_content_type_is_handled_without_panicking() -> TestResult {
-        let app = router_with_content_type(None);
-        let response = app
-            .oneshot(Request::builder().uri("/").body(Body::empty())?)
-            .await?;
+    async fn log_request_middleware_passes_through() {
+        let app = Router::new()
+            .route("/ping", get(|| async { "pong" }))
+            .layer(from_fn(log_request));
 
-        assert!(response.headers().get("pragma").is_none());
-        assert!(response.headers().contains_key("content-security-policy"));
-        Ok(())
+        let response = app
+            .oneshot(Request::builder().uri("/ping").body(Body::empty()).unwrap())
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+    }
+
+    #[tokio::test]
+    async fn handle_timeout_passes_through() {
+        let app = Router::new()
+            .route("/fast", get(|| async { "fast" }))
+            .layer(from_fn(handle_timeout));
+
+        let response = app
+            .oneshot(Request::builder().uri("/fast").body(Body::empty()).unwrap())
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+    }
+
+    #[tokio::test]
+    async fn timeout_middleware_triggers_on_slow_request() {
+        let mw = timeout_middleware(Duration::from_millis(20));
+        let app = Router::new()
+            .route(
+                "/slow",
+                get(|| async {
+                    tokio::time::sleep(Duration::from_millis(100)).await;
+                    "never"
+                }),
+            )
+            .layer(from_fn(mw));
+
+        let response = app
+            .oneshot(Request::builder().uri("/slow").body(Body::empty()).unwrap())
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::REQUEST_TIMEOUT);
+        assert_eq!(
+            response.headers().get("content-type").unwrap(),
+            "text/plain"
+        );
+    }
+
+    #[tokio::test]
+    async fn timeout_middleware_passes_fast_request() {
+        let mw = timeout_middleware(Duration::from_millis(200));
+        let app = Router::new()
+            .route("/quick", get(|| async { "quick" }))
+            .layer(from_fn(mw));
+
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/quick")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
     }
 }

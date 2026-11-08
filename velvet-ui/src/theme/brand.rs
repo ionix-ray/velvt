@@ -1,24 +1,25 @@
 //! Brand mark asset — single source of truth.
-//! Topbar badge, footer, and the index.html preload hint all resolve the
-//! same square mark through this one function instead of repeating the
-//! `asset!()` literal three times.
+//! Topbar badge, loader, footer, and the index.html preload hint all
+//! resolve the same mark through these functions instead of repeating the
+//! `asset!()` literal everywhere.
 //!
-//! `loader_symbol()` is a separate, stripped logo mark used exclusively
-//! during the loading screen so the iris ring animation overlays cleanly
-//! on a transparent-background icon rather than the full wordmark card.
+//! The mark is the crimson "V" botanical glyph (extracted from the master
+//! drawio logo, trimmed to the alpha bbox, padded square, exported as
+//! lossless WebP with a PNG fallback). `loader_symbol()` points at the
+//! same glyph the loading screen and lockup share.
 
 use dioxus::prelude::*;
 
-/// The square brand mark (crimson card, "Velvt" wordmark + leaf glyph).
-/// Used in the topbar, footer, and everywhere a full logo is needed.
+/// The square brand mark (crimson "V" + botanical branch glyph).
+/// Used in the topbar, footer, stacked nav, and as the card badge source.
 pub fn brand_mark() -> Asset {
-    asset!("/assets/images/velvet-square.png")
+    asset!("/assets/images/velvet-mark.webp")
 }
 
-/// The standalone icon mark (transparent background, leaf glyph only).
-/// Used exclusively on the loading screen so the iris rings overlay cleanly.
+/// The standalone icon mark (transparent background, "V" glyph).
+/// Used exclusively on the loading screen (square stage, swarm collapse).
 pub fn loader_symbol() -> Asset {
-    asset!("/assets/images/only-logo.png")
+    asset!("/assets/images/velvet-mark.webp")
 }
 
 #[cfg(test)]
@@ -28,12 +29,12 @@ mod tests {
     #[test]
     fn brand_mark_resolves_to_the_square_asset() {
         let resolved = format!("{}", brand_mark());
-        assert!(resolved.contains("velvet-square"), "got: {resolved}");
+        assert!(resolved.contains("velvet-mark"), "got: {resolved}");
     }
 
     #[test]
-    fn loader_symbol_resolves_to_only_logo_asset() {
+    fn loader_symbol_resolves_to_the_mark_asset() {
         let resolved = format!("{}", loader_symbol());
-        assert!(resolved.contains("only-logo"), "got: {resolved}");
+        assert!(resolved.contains("velvet-mark"), "got: {resolved}");
     }
 }

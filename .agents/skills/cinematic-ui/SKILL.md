@@ -11,7 +11,20 @@ This skill enforces our cinematic design aesthetic for the frontend (`velvet-ui`
 1. **Cinematic Glassmorphism:** All cards, panels, and stats must use `backdrop-filter: blur(10px)` and **fully transparent** backgrounds (i.e. `background: transparent` on the card root). Utilize `.v-card-modern`.
 2. **Sparkle Borders:** Any highlighted card (stats, process step, team member, case card) MUST include the animated border effect. Add the `<div class="v-sparkle-border"></div>` element inside the container, and ensure the container has `position: relative`.
 3. **Dynamic Backgrounds:** Sections should feel alive. Use `.v-cinematic-bg` for subtle particles/mesh gradients behind content instead of flat backgrounds.
-4. **Heatmap & Data Viz:** For statistical representation, favor creative animated elements (like `.v-heatmap-grid`) over static blocks.
+4. **Clean Glass Stat Grid (Zero Heatmap Animation Clutter):** The legacy background VELVT animated heatmap grid behind stats has been permanently eliminated. All metrics, stats, and achievements (e.g., 'By the Numbers') must render cleanly using transparent 4-column glass stat cards (`.v-stat-grid--four` and `.v-about-stat`). Do not add background grid animations, letterforms, or flashing cell matrices behind text.
+
+## Authentic Cultural Production Photography (Permanent Rule)
+All imagery for Workflow (`workflow-01` through `05`) and Experience Studio (`studio-01` through `07`) must feature authentic, culturally grounded Odia and Indian production sets and artistry:
+- **`workflow-03-production.webp`**: Must depict an authentic Odissi classical dance performance filmed on an open stage with the Sun Temple of Konark in the background, captured from behind a professional cinema production camera set.
+- **`studio-07-creators.webp`**: Must depict a real Indian creator/model filming authentic content from a smartphone on location in nature, capturing natural light and cinematic composition.
+- All visual assets must be production-grade WebP images (< 250 KB), responsive, and styled with clean object-fit and position.
+
+## Full-Tile Panoramic Framing (Permanent Rule — `.v-tile--full`)
+For full-width highlight cards such as Creator Seeding (`.v-tile--full`):
+- Maximum card height must remain strictly bounded (< 500px on desktop) to prevent dominating the viewport.
+- Photo frame height must follow `clamp(170px, 18vw, 235px)` with `border-radius: var(--radius-sm)` and `object-position: center 36%` (optimized for facial/phone subject framing).
+- Layout sequence: the image frame MUST be positioned above the title and description text.
+- Both `.v-tile--full` and `.v-tile--showcase` modifier classes must be present.
 
 ## Transparency Rules (Non-Negotiable)
 **Every card MUST be see-through.** The page background bleeds through all cards in every theme.
@@ -72,8 +85,12 @@ Each card TYPE uses a different entrance animation:
 Before starting any design implementation:
 1. **Check Existing Tests First:** All UI components have assertions in `test-suite/playwright/specs/home.spec.ts`.
 2. **Never Break Layout Checks:** Tests explicitly measure `.boundingBox()`. Ensure responsive layouts for `mobile-375` and `tablet-768` pass.
-3. **100% Coverage:** Any new visual effect MUST have a corresponding Playwright test.
-4. **Containerized Testing:** `VAELVET_URL=http://localhost:8080 npx playwright test --project=chromium` from `test-suite/playwright/`.
+3. **Multi-Project Passing Gate:** Run `VAELVET_URL=http://localhost:8080 npx playwright test` across all projects (`chromium`, `webkit`, and `reduced-motion`) and ensure 100% pass before deciding a task is complete. No regressions are acceptable (327+ tests passing).
+4. **WebKit Scroll-Snap & Reveal Compatibility:** Reveal assertions in Playwright MUST use coordinate-based window scrolling:
+   `container.evaluate((el) => { window.scrollTo(0, window.scrollY + el.getBoundingClientRect().top - window.innerHeight / 3); })`
+   rather than `scrollIntoViewIfNeeded()`, to prevent WebKit scroll-snap jumping past the target.
+5. **Strict > 90% Rust Logic Coverage:** Code coverage must be verified using `cargo llvm-cov`. Unit logic coverage across the workspace must remain strictly above 90% lines (current: >91%), 92% functions, and 93% regions.
+6. **Dual CSS Synchronization:** `velvet-ui/assets/theme.css` and `velvet-ui/public/assets/theme.css` must remain 100% byte-for-byte identical.
 
 ### Key Transparency Tests (must always pass)
 - `"cards: v-process__step has transparent background (no opaque fill)"` -- alpha <= 0.2
@@ -81,5 +98,6 @@ Before starting any design implementation:
 - `"cards: v-process__step h4 text is readable in light mode (dark enough)"` -- luminance < 200
 - `"animations: reduced-motion disables peek-in card animations"` -- duration <= 0.01s
 - `"cards: all v-process__step and v-team-card have v-sparkle-border attached"`
+- `"about: displays stats cleanly without background VELVT heatmap animation"`
 
 **Do not present the work to the user until all tests pass.**

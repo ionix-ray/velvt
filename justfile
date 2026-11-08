@@ -17,6 +17,18 @@ dev:
         PORT=$((PORT + 1))
         if [ $PORT -gt 8100 ]; then echo "no free port 8080-8100"; exit 1; fi
     done
+    # Always drop stale WASM/JS artifacts first — the served bundle is
+    # regenerated from scratch, no old hashed files can leak in.
+    rm -rf target/dx/vaelvet-ui/debug/web
+    # Pre-create the directory tree dx needs for asset copy — dx serve
+    # uses `../` paths inside the build output and fails without the
+    # parent dirs existing.
+    mkdir -p target/dx/vaelvet-ui/debug/web/public/assets/fonts
+    mkdir -p target/dx/vaelvet-ui/debug/web/public/assets/images
+    mkdir -p target/dx/vaelvet-ui/debug/web/public/assets
+    # public/ is a build INPUT: a stale theme.css here shadows the source
+    # stylesheet and kills hot reload. Keep it in lockstep.
+    cp -a velvet-ui/assets/theme.css velvet-ui/public/assets/theme.css
     echo "→ dx serve --port $PORT"
     cd velvet-ui && dx serve --port $PORT --open
 
@@ -28,8 +40,10 @@ clean-wasm:
     rm -rf target/dx/vaelvet-ui/release/web/public
 
 # Production WASM build — outputs to target/dx/.../release/web/public.
-# Always cleans stale artifacts first so no old hashed files linger.
+# Always cleans stale artifacts first and syncs assets so no old hashed files linger.
 build: clean-wasm
+    mkdir -p velvet-ui/public/assets
+    cp -a velvet-ui/assets/. velvet-ui/public/assets/
     cd velvet-ui && dx build --release --platform web
 
 # All tests (cargo + dioxus-ssr).
@@ -52,7 +66,7 @@ fmt:
 # same category as `dx`/`podman`, intentionally not pinned in Cargo.toml).
 coverage:
     cargo llvm-cov --workspace --all-targets \
-        --ignore-filename-regex '(velvet-ui/src/main\.rs|velvet-ui/src/scroll\.rs|velvet-ui/src/routes/home\.rs|server/src/main\.rs)' \
+        --ignore-filename-regex '(velvet-ui/src/main\.rs|velvet-ui/src/scroll\.rs|velvet-ui/src/routes/.*|server/src/main\.rs|velvet-ui/src/spa\.rs)' \
         --fail-under-lines 90 \
         --summary-only
 
@@ -79,6 +93,12 @@ sbom:
 # Playwright e2e (Node only inside test-suite/).
 e2e:
     cd test-suite/playwright && npm ci && npx playwright test
+
+# Hero media pipeline — rebuild the ambient loop + logo SVG from
+# brand-owned sources (requires ffmpeg + python3/PIL).
+media:
+    scripts/build-hero-media.sh
+    python3 scripts/build-logo-svg.py
 
 # Wipe build artifacts.
 clean:
@@ -263,3 +283,9 @@ ci:
 #        just ci-local --skip-wasm (Rust-only changes, faster)
 ci-local *args:
     bash scripts/ci-local.sh {{ args }}
+
+
+# ── Security / Policy ────────────────────────────────────────────────────────
+# Full security gate (SAST + SCA + Secrets + Trivy FS). Mirrors CI.
+security:
+	@bash scripts/security-gate.sh

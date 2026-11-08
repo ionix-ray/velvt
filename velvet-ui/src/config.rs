@@ -44,6 +44,138 @@ pub struct Site {
     pub client_banner: ClientBanner,
     #[serde(default)]
     pub team: Vec<TeamMember>,
+    #[serde(default)]
+    pub background: Background,
+}
+
+fn default_true() -> bool {
+    true
+}
+
+fn default_intensity() -> u8 {
+    80
+}
+
+/// Whole-site procedural dynamic background (no video decode cost).
+/// Layered brand spotlight gradients drift on the compositor thread;
+/// `intensity` scales layer opacity 0..=100.
+#[derive(Deserialize, Debug, Clone, Default, PartialEq)]
+pub struct Background {
+    #[serde(default = "default_true")]
+    pub enabled: bool,
+    #[serde(default = "default_intensity")]
+    pub intensity: u8,
+    /// Slow crimson spotlight meshes + stage beam (the gradient wash).
+    #[serde(default = "default_true")]
+    pub mesh: bool,
+    /// Drifting service-icon glyphs — the "creative" half of the blend.
+    #[serde(default = "default_true")]
+    pub show_glyphs: bool,
+    /// Glyph layer opacity as a percent of `intensity` (0..=100).
+    #[serde(default = "default_glyph_opacity")]
+    pub glyph_opacity: u8,
+    /// Per-glyph drift cycle length in seconds. Larger = calmer.
+    #[serde(default = "default_glyph_duration")]
+    pub glyph_duration: u32,
+    /// The floating service glyphs themselves. Empty list = mesh only.
+    #[serde(default)]
+    pub glyphs: Vec<BackgroundGlyph>,
+}
+
+/// One floating service glyph in the ambient field.
+#[derive(Deserialize, Debug, Clone, Default, PartialEq)]
+pub struct BackgroundGlyph {
+    /// Icon name resolved by `Icon { name }` — see `components::icons`.
+    pub icon: Box<str>,
+    /// Palette slot: "crimson" | "violet" | "sky" | "citron" (bluish lime).
+    #[serde(default)]
+    pub tone: Box<str>,
+    /// Horizontal placement as a percentage of viewport width (0..=100).
+    #[serde(default)]
+    pub x: u8,
+    /// Vertical placement as a percentage of viewport height (0..=100).
+    #[serde(default)]
+    pub y: u8,
+    /// Rendered size in px before per-glyph scaling.
+    #[serde(default = "default_glyph_size")]
+    pub size: u32,
+    /// Multiplier on the base drift cycle; keeps neighbours out of lockstep.
+    #[serde(default = "default_one_f32")]
+    pub rate: f32,
+    /// Negative start offset (seconds) so the field is not synchronised.
+    #[serde(default)]
+    pub delay: f32,
+    /// Extra rotation amplitude in degrees.
+    #[serde(default = "default_rot")]
+    pub spin: f32,
+}
+
+fn default_glyph_opacity() -> u8 {
+    30
+}
+fn default_glyph_duration() -> u32 {
+    26
+}
+fn default_glyph_size() -> u32 {
+    132
+}
+fn default_one_f32() -> f32 {
+    1.0
+}
+fn default_rot() -> f32 {
+    6.0
+}
+
+/// Opacity scalar 0.0..=1.0 for a 0..=100 intensity percent. Clamped so a
+/// typo in `site.md` can never push a layer opaque or negative.
+pub fn background_alpha(intensity: u8) -> f32 {
+    (intensity.min(100) as f32 / 100.0).clamp(0.0, 1.0)
+}
+
+/// Glyph opacity: `intensity` sets the ceiling, `glyph_opacity` the share of
+/// it. Clamped to 0.0..=1.0; the glyph layer is atmosphere, never content.
+pub fn glyph_alpha(intensity: u8, glyph_opacity: u8) -> f32 {
+    (background_alpha(intensity) * background_alpha(glyph_opacity)).clamp(0.0, 1.0)
+}
+
+/// Percentage clamp for glyph placement — keeps glyphs on screen even if
+/// `site.md` carries a bad number.
+pub fn glyph_percent(value: u8) -> f32 {
+    (value.min(100) as f32).clamp(0.0, 100.0)
+}
+
+/// Drift cycle in seconds, floored at 4s so a fat-fingered `rate` can never
+/// produce a strobing field.
+pub fn glyph_duration(base: u32, rate: f32) -> f32 {
+    let rate = if rate.is_finite() && rate > 0.0 {
+        rate.clamp(0.25, 4.0)
+    } else {
+        1.0
+    };
+    (base.max(4) as f32 * rate).clamp(4.0, 240.0)
+}
+
+/// Rendered size in px, clamped so a glyph can never dominate the viewport.
+pub fn glyph_size(size: u32) -> f32 {
+    (size.clamp(40, 420)) as f32
+}
+
+/// Spin amplitude in degrees, clamped to keep the field calm.
+pub fn glyph_spin(spin: f32) -> f32 {
+    if spin.is_finite() {
+        spin.clamp(-45.0, 45.0)
+    } else {
+        default_rot()
+    }
+}
+
+/// Animation delay in seconds; non-finite input collapses to 0.
+pub fn glyph_delay(delay: f32) -> f32 {
+    if delay.is_finite() {
+        delay.clamp(-240.0, 0.0)
+    } else {
+        0.0
+    }
 }
 
 #[derive(Deserialize, Debug, Clone, Default, PartialEq)]
@@ -109,6 +241,12 @@ pub struct NavItem {
 pub struct Hero {
     #[serde(default)]
     pub logo: Box<str>,
+    #[serde(default)]
+    pub video: Option<Box<str>>,
+    /// Transparent animated SVG wordmark (vendored from the master Draw.io
+    /// logo). Rendered as the hero visual so the page background shows through.
+    #[serde(default)]
+    pub logo_svg: Option<Box<str>>,
     pub badge: Box<str>,
     pub headline1: Box<str>,
     pub headline2: Box<str>,
@@ -188,6 +326,18 @@ pub struct ProcessStep {
     pub num: Box<str>,
     pub title: Box<str>,
     pub body: Box<str>,
+    #[serde(default)]
+    pub image: Option<Box<str>>,
+    #[serde(default)]
+    pub split_image: Option<Box<str>>,
+    #[serde(default)]
+    pub split_tag: Option<Box<str>>,
+    #[serde(default)]
+    pub split_stat: Option<Box<str>>,
+    #[serde(default)]
+    pub split_cta: Option<Box<str>>,
+    #[serde(default)]
+    pub split_details: Option<Box<str>>,
 }
 
 #[derive(Deserialize, Debug, Clone, Default, PartialEq)]
@@ -251,6 +401,18 @@ pub struct StudioItem {
     pub tag: Box<str>,
     pub title: Box<str>,
     pub body: Box<str>,
+    #[serde(default)]
+    pub image: Option<Box<str>>,
+    #[serde(default)]
+    pub split_image: Option<Box<str>>,
+    #[serde(default)]
+    pub split_tag: Option<Box<str>>,
+    #[serde(default)]
+    pub split_stat: Option<Box<str>>,
+    #[serde(default)]
+    pub split_cta: Option<Box<str>>,
+    #[serde(default)]
+    pub split_details: Option<Box<str>>,
 }
 
 #[derive(Deserialize, Debug, Clone, Default, PartialEq)]
@@ -453,6 +615,79 @@ mod tests {
     }
 
     #[test]
+    fn site_md_process_and_studio_have_entries_with_cultural_assets() {
+        let site = Site::load();
+        assert_eq!(site.process.steps.len(), 5);
+        for step in &site.process.steps {
+            assert!(!step.title.is_empty());
+            assert!(step.image.is_some());
+            assert!(
+                step.split_image.is_some(),
+                "step split_image missing: {}",
+                step.title
+            );
+            assert!(
+                step.split_stat.is_some(),
+                "step split_stat missing: {}",
+                step.title
+            );
+            assert!(
+                step.split_cta.is_some(),
+                "step split_cta missing: {}",
+                step.title
+            );
+        }
+        assert_eq!(site.studio.items.len(), 7);
+        for item in &site.studio.items {
+            assert!(!item.title.is_empty());
+            assert!(item.image.is_some());
+            assert!(
+                item.split_image.is_some(),
+                "studio split_image missing: {}",
+                item.title
+            );
+            assert!(
+                item.split_tag.is_some(),
+                "studio split_tag missing: {}",
+                item.title
+            );
+            assert!(
+                item.split_stat.is_some(),
+                "studio split_stat missing: {}",
+                item.title
+            );
+            assert!(
+                item.split_cta.is_some(),
+                "studio split_cta missing: {}",
+                item.title
+            );
+        }
+    }
+
+    #[test]
+    fn process_split_fields_match_image_values() {
+        let site = Site::load();
+        for step in &site.process.steps {
+            assert_eq!(step.split_image.as_deref(), step.image.as_deref());
+            assert!(
+                step.split_stat
+                    .as_ref()
+                    .is_some_and(|s| s.starts_with("Step"))
+            );
+            assert!(step.split_cta.as_ref().is_some_and(|s| !s.is_empty()));
+        }
+    }
+
+    #[test]
+    fn studio_split_fields_match_tag_and_image_values() {
+        let site = Site::load();
+        for item in &site.studio.items {
+            assert_eq!(item.split_image.as_deref(), item.image.as_deref());
+            assert_eq!(item.split_tag.as_deref(), Some(&*item.tag));
+        }
+    }
+
+    #[test]
     fn parse_or_default_falls_back_on_malformed_toml() {
         let site = parse_or_default("this is not valid toml {{{");
         assert_eq!(site, Site::default());
@@ -496,5 +731,37 @@ mod tests {
                 }
             }
         }
+    }
+
+    #[test]
+    fn background_alpha_and_glyph_clamps() {
+        assert_eq!(background_alpha(80), 0.8);
+        assert_eq!(background_alpha(150), 1.0);
+        assert!((glyph_alpha(80, 30) - 0.24).abs() < 1e-4);
+        assert_eq!(glyph_percent(50), 50.0);
+        assert_eq!(glyph_percent(150), 100.0);
+        assert_eq!(glyph_duration(26, 1.0), 26.0);
+        assert_eq!(glyph_duration(26, -1.0), 26.0);
+        assert_eq!(glyph_duration(26, f32::NAN), 26.0);
+        assert_eq!(glyph_size(10), 40.0);
+        assert_eq!(glyph_size(500), 420.0);
+        assert_eq!(glyph_spin(10.0), 10.0);
+        assert_eq!(glyph_spin(100.0), 45.0);
+        assert_eq!(glyph_spin(f32::NAN), default_rot());
+        assert_eq!(glyph_delay(-10.0), -10.0);
+        assert_eq!(glyph_delay(-300.0), -240.0);
+        assert_eq!(glyph_delay(10.0), 0.0);
+        assert_eq!(glyph_delay(f32::NAN), 0.0);
+    }
+
+    #[test]
+    fn defaults_return_expected_values() {
+        assert!(default_true());
+        assert_eq!(default_intensity(), 80);
+        assert_eq!(default_glyph_opacity(), 30);
+        assert_eq!(default_glyph_duration(), 26);
+        assert_eq!(default_glyph_size(), 132);
+        assert_eq!(default_one_f32(), 1.0);
+        assert_eq!(default_rot(), 6.0);
     }
 }

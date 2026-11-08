@@ -21,7 +21,7 @@ async fn main() {
     }
 
     let args = parse_args();
-    let config = Config::default().with_cli(args);
+    let config = Config::load(args);
 
     let app = velvet_server::app(config.clone());
     if let Err(e) = velvet_server::serve(app, &config.addr).await {
@@ -41,6 +41,29 @@ fn parse_args_from(mut it: impl Iterator<Item = String>) -> CliArgs {
         match arg.as_str() {
             "--addr" => args.addr = it.next(),
             "--static-root" => args.static_root = it.next(),
+            "--config" => args.config_file = it.next().map(std::path::PathBuf::from),
+            "--index-path" => args.index_path = it.next(),
+            "--request-timeout-secs" => {
+                if let Some(v) = it.next() {
+                    if let Ok(parsed) = v.parse() {
+                        args.request_timeout_secs = Some(parsed);
+                    }
+                }
+            }
+            "--max-concurrent-requests" => {
+                if let Some(v) = it.next() {
+                    if let Ok(parsed) = v.parse() {
+                        args.max_concurrent_requests = Some(parsed);
+                    }
+                }
+            }
+            "--max-body-bytes" => {
+                if let Some(v) = it.next() {
+                    if let Ok(parsed) = v.parse() {
+                        args.max_body_bytes = Some(parsed);
+                    }
+                }
+            }
             _ => {}
         }
     }
