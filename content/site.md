@@ -165,7 +165,7 @@ spin = -5.0
 [[background.glyphs]]
 icon = "lens"
 tone = "crimson"
-x = 30
+x = 68
 y = 46
 size = 170
 rate = 1.6
@@ -296,6 +296,85 @@ label = "Celebrity Partnerships"
 change = "Deployed"
 ```
 
+## Studio
+
+```toml
+[studio]
+eyebrow = "Experience"
+title = "Experience Design. Flawlessly Delivered."
+sub   = "Where creativity meets logistics. We orchestrate high-stakes events with precision engineering, immersive storytelling, and real-time adaptability."
+
+[[studio.items]]
+tag   = "Corporate"
+title = "Summit Production"
+body  = "Full-spectrum corporate event production for 500+ attendees with multi-stage setup."
+image = "/assets/images/studio-01-summit.webp"
+split_image = "/assets/images/studio-01-summit.webp"
+split_tag = "Corporate"
+split_stat = "500+ Attendees"
+split_cta = "Explore"
+
+[[studio.items]]
+tag   = "Celebrity"
+title = "Brand Ambassador Launch"
+body  = "Orchestrated a high-profile celebrity partnership announcement with global media coverage."
+image = "/assets/images/studio-02-ambassador.webp"
+split_image = "/assets/images/studio-02-ambassador.webp"
+split_tag = "Celebrity"
+split_stat = "Global Reach"
+split_cta = "Explore"
+
+[[studio.items]]
+tag   = "Cultural"
+title = "Festival Activation"
+body  = "Heritage-inspired festival with modern production values drawing 10,000+ attendees."
+image = "/assets/images/studio-03-festival.webp"
+split_image = "/assets/images/studio-03-festival.webp"
+split_tag = "Cultural"
+split_stat = "10K+ Attendees"
+split_cta = "Explore"
+
+[[studio.items]]
+tag   = "Product"
+title = "Interactive Launch"
+body  = "AR-powered product launch event blending digital immersion with live attendee engagement."
+image = "/assets/images/studio-04-interactive.webp"
+split_image = "/assets/images/studio-04-interactive.webp"
+split_tag = "Product"
+split_stat = "AR Enabled"
+split_cta = "Explore"
+
+[[studio.items]]
+tag   = "Venue"
+title = "Velvt Venue"
+body  = "Colocation space built for podcasts, co-working, intimate meetings and small film shoots."
+image = "/assets/images/studio-05-venue.webp"
+split_image = "/assets/images/studio-05-venue.webp"
+split_tag = "Venue"
+split_stat = "Multi-Purpose"
+split_cta = "Explore"
+
+[[studio.items]]
+tag   = "Celebrity"
+title = "Celebrity & Influencer Management"
+body  = "End-to-end celebrity and influencer partnerships — talent discovery, deal-making and on-brand activations that turn famous faces into measurable lift for your brand."
+image = "/assets/images/studio-06-celebrity.webp"
+split_image = "/assets/images/studio-06-celebrity.webp"
+split_tag = "Celebrity"
+split_stat = "End-to-End"
+split_cta = "Explore"
+
+[[studio.items]]
+tag   = "Creators"
+title = "Creator Seeding"
+body  = "Authentic product seeding to a vetted creator network. We match the right makers with your story so the conversation starts where your audience already lives."
+image = "/assets/images/studio-07-creators.webp"
+split_image = "/assets/images/studio-07-creators.webp"
+split_tag = "Creators"
+split_stat = "Vetted Network"
+split_cta = "Explore"
+```
+
 ## Process
 
 ```toml
@@ -309,30 +388,50 @@ num   = "01"
 title = "Discovery & Strategy"
 body  = "Deep-dive into your brand, audience, and goals to architect the perfect campaign."
 image = "/assets/images/workflow-01-discovery.webp"
+split_image = "/assets/images/workflow-01-discovery.webp"
+split_tag = "Strategy"
+split_stat = "Step 01"
+split_cta = "Explore"
 
 [[process.steps]]
 num   = "02"
 title = "Talent & Partner Curation"
 body  = "Strategic selection of celebrities, influencers, vendors, and venues aligned with your vision."
 image = "/assets/images/workflow-02-talent.webp"
+split_image = "/assets/images/workflow-02-talent.webp"
+split_tag = "Curation"
+split_stat = "Step 02"
+split_cta = "Explore"
 
 [[process.steps]]
 num   = "03"
 title = "Creative Production"
 body  = "World-class visuals, immersive staging, and compelling narratives that captivate audiences."
 image = "/assets/images/workflow-03-production.webp"
+split_image = "/assets/images/workflow-03-production.webp"
+split_tag = "Production"
+split_stat = "Step 03"
+split_cta = "Explore"
 
 [[process.steps]]
 num   = "04"
 title = "Execution & Management"
 body  = "Flawless on-ground delivery with real-time adaptability and compliance at every turn."
 image = "/assets/images/workflow-04-execution.webp"
+split_image = "/assets/images/workflow-04-execution.webp"
+split_tag = "Execution"
+split_stat = "Step 04"
+split_cta = "Explore"
 
 [[process.steps]]
 num   = "05"
 title = "Performance Analysis"
 body  = "Data-backed measurement, ROI reporting, and insights to optimize your next activation."
 image = "/assets/images/workflow-05-analysis.webp"
+split_image = "/assets/images/workflow-05-analysis.webp"
+split_tag = "Analysis"
+split_stat = "Step 05"
+split_cta = "Explore"
 ```
 
 ## Cases
@@ -373,57 +472,6 @@ logo_image = "/assets/images/logo.jpg"
 button_link = "#"
 footer_label = "Velvt Studio"
 slug = "greenfuture-immersive-storytelling"
-```
-
-## Studio
-
-```toml
-[studio]
-eyebrow = "Experience"
-title = "Experience Design. Flawlessly Delivered."
-sub   = "Where creativity meets logistics. We orchestrate high-stakes events with precision engineering, immersive storytelling, and real-time adaptability."
-
-[[studio.items]]
-tag   = "Corporate"
-title = "Summit Production"
-body  = "Full-spectrum corporate event production for 500+ attendees with multi-stage setup."
-image = "/assets/images/studio-01-summit.webp"
-
-[[studio.items]]
-tag   = "Celebrity"
-title = "Brand Ambassador Launch"
-body  = "Orchestrated a high-profile celebrity partnership announcement with global media coverage."
-image = "/assets/images/studio-02-ambassador.webp"
-
-[[studio.items]]
-tag   = "Cultural"
-title = "Festival Activation"
-body  = "Heritage-inspired festival with modern production values drawing 10,000+ attendees."
-image = "/assets/images/studio-03-festival.webp"
-
-[[studio.items]]
-tag   = "Product"
-title = "Interactive Launch"
-body  = "AR-powered product launch event blending digital immersion with live attendee engagement."
-image = "/assets/images/studio-04-interactive.webp"
-
-[[studio.items]]
-tag   = "Venue"
-title = "Velvt Venue"
-body  = "Colocation space built for podcasts, co-working, intimate meetings and small film shoots."
-image = "/assets/images/studio-05-venue.webp"
-
-[[studio.items]]
-tag   = "Celebrity"
-title = "Celebrity & Influencer Management"
-body  = "End-to-end celebrity and influencer partnerships — talent discovery, deal-making and on-brand activations that turn famous faces into measurable lift for your brand."
-image = "/assets/images/studio-06-celebrity.webp"
-
-[[studio.items]]
-tag   = "Creators"
-title = "Creator Seeding"
-body  = "Authentic product seeding to a vetted creator network. We match the right makers with your story so the conversation starts where your audience already lives."
-image = "/assets/images/studio-07-creators.webp"
 ```
 
 ## CTA

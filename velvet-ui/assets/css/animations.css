@@ -1,0 +1,538 @@
+/* ----- Reveal Animation ------------------------------------------------- */
+/* ONE mechanism: `scroll.rs` adds `.is-revealed` when a target crosses the
+   viewport threshold (IntersectionObserver). Pre-reveal the target is hidden;
+   post-reveal the entrance keyframes play (`fill: both`) and the element lands
+   on its declared final value — so reduced motion (`animation: none`) and a
+   stalled observer still end on a VISIBLE element, never an invisible one.
+
+   Base: slide up + fade (default for most cards) */
+.v-reveal,
+.v-reveal-left,
+.v-reveal-right {
+  opacity: 0;
+}
+.v-reveal.is-revealed {
+  opacity: 1;
+  animation: peek-up 0.65s var(--ease-out) both;
+}
+.v-reveal-left.is-revealed {
+  opacity: 1;
+  animation: peek-left 0.65s var(--ease-out) both;
+}
+.v-reveal-right.is-revealed {
+  opacity: 1;
+  animation: peek-right 0.65s var(--ease-out) both;
+}
+
+/* ── Unique peek-in keyframes per card type ────────────────────────────────
+   peek-up    → process steps (slide in from below)
+   peek-left  → even showcase tiles (slide from left)
+   peek-right → odd showcase tiles (slide from right)
+   peek-scale → case study cards (grow from center)
+   peek-tilt  → team member cards (enter with slight tilt then settle)
+   peek-down  → about stats (drop from above)
+   All use fill:both so cards stay hidden until animation runs. */
+
+@keyframes peek-up {
+  from { opacity: 0; transform: translateY(40px) scale(0.97); }
+  60%  { opacity: 1; }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes peek-left {
+  from { opacity: 0; transform: translateX(-48px) scale(0.96); }
+  60%  { opacity: 1; }
+  to   { opacity: 1; transform: translateX(0) scale(1); }
+}
+@keyframes peek-right {
+  from { opacity: 0; transform: translateX(48px) scale(0.96); }
+  60%  { opacity: 1; }
+  to   { opacity: 1; transform: translateX(0) scale(1); }
+}
+@keyframes peek-scale {
+  from { opacity: 0; transform: scale(0.88); }
+  50%  { opacity: 1; }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes peek-tilt {
+  from { opacity: 0; transform: rotate(-4deg) translateY(32px) scale(0.95); }
+  50%  { opacity: 1; }
+  80%  { transform: rotate(1deg) translateY(-4px) scale(1.01); }
+  to   { opacity: 1; transform: rotate(0deg) translateY(0) scale(1); }
+}
+@keyframes peek-down {
+  from { opacity: 0; transform: translateY(-36px) scale(0.97); }
+  60%  { opacity: 1; }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Reduced-motion: land the final (visible) state, no motion. */
+@media (prefers-reduced-motion: reduce) {
+  .v-reveal,
+  .v-reveal-left,
+  .v-reveal-right {
+    opacity: 1 !important;
+    animation: none !important;
+  }
+}
+
+
+/* The running sparkle border effect — shared by all cinematic cards */
+.v-sparkle-border {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  z-index: -2;
+  overflow: hidden;
+  pointer-events: none;
+  /* Use mask to hide the center of the gradient, keeping only a 1.5px border */
+  padding: 1.5px;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+}
+.v-sparkle-border::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: conic-gradient(from 0deg,
+    transparent 0%,
+    transparent 55%,
+    var(--accent, #cc2b2b) 70%,
+    var(--crimson-light, #e63e3e) 80%,
+    transparent 95%,
+    transparent 100%
+  );
+  animation: rotate-border 4s linear infinite;
+  /* Energy on intent: paused by default, runs on reveal/hover/focus (reduced-motion handled globally). */
+  animation-play-state: paused;
+}
+/* Speed variation per card type — each section has its own rotation rhythm */
+.v-process__step .v-sparkle-border::before {
+  animation-duration: 3.5s;
+}
+.v-about-stat .v-sparkle-border::before {
+  animation-duration: 5s;
+}
+
+/* "Emerging metric" — a single light-rake across the proof number as the
+   card resolves into view. One-shot; solid accent before and after. */
+@supports (background-clip: text) or (-webkit-background-clip: text) {
+  .v-card-modern.is-revealed .v-card-modern__metric {
+    background-image: linear-gradient(
+      105deg,
+      var(--accent) 0%,
+      var(--accent) 38%,
+      color-mix(in srgb, var(--crimson-light) 72%, white 28%) 50%,
+      var(--accent) 62%,
+      var(--accent) 100%
+    );
+    background-size: 260% 100%;
+    background-position: 120% 0;
+    -webkit-background-clip: text;
+            background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: v-metric-shimmer 1.6s var(--ease-out) 1 both;
+    animation-delay: 0.35s;
+  }
+  .v-card-modern.is-revealed .v-card-modern__metric a,
+  .v-card-modern.is-revealed .v-card-modern__metric { -webkit-text-fill-color: transparent; }
+}
+@keyframes v-metric-shimmer {
+  from { background-position: 120% 0; }
+  to   { background-position: -140% 0; }
+}
+/* Reduced motion / non-supporting engines: keep the solid accent number. */
+@media (prefers-reduced-motion: reduce) {
+  .v-card-modern.is-revealed .v-card-modern__metric {
+    animation: none;
+    background-image: none;
+    -webkit-text-fill-color: currentColor;
+    color: var(--accent);
+  }
+}
+.v-card-modern__desc {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  margin-bottom: var(--s3);
+  max-width: 28ch;
+}
+.v-card-modern .v-tags { justify-content: center; margin-bottom: var(--s2); }
+.v-btn-glow {
+  display: inline-block;
+  background: var(--accent);
+  color: var(--off-white);
+  padding: 6px 18px;
+  border-radius: 999px;
+  font-family: var(--font-sans);
+  font-weight: 700;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  box-shadow: 0 0 16px color-mix(in srgb, var(--accent) 40%, transparent);
+  transition: transform var(--d-fast) var(--ease), box-shadow var(--d-fast) var(--ease), background var(--d-fast) var(--ease);
+}
+.v-btn-glow:hover {
+  background: var(--accent-hover);
+  box-shadow: 0 0 26px color-mix(in srgb, var(--accent) 65%, transparent);
+  transform: scale(1.04);
+}
+.v-card-modern__footer {
+  background: var(--bg-secondary);
+  color: var(--text-muted);
+  text-align: center;
+  padding: 6px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  border-top: 1px solid var(--border-color);
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   IMMERSIVE BRAND LAYER — ambient aurora, film grain, logo sheen
+   GPU discipline: every animation is transform/opacity-only (composited),
+   no layout thrash, no canvas/WebGL, no video loops beyond the hero.
+   All motion is gated behind prefers-reduced-motion.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* --- Ambient aurora (body::before) ----------------------------------------
+   Fixed crimson mesh glows drifting slowly behind all content.
+   transform-only animation → runs on the compositor thread. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: -20%;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(38% 30% at 22% 26%, var(--cinematic-radial-1) 0%, transparent 70%),
+    radial-gradient(32% 26% at 78% 74%, var(--cinematic-radial-3) 0%, transparent 70%);
+  animation: v-aurora-drift 26s ease-in-out infinite alternate;
+  will-change: transform;
+}
+@keyframes v-aurora-drift {
+  from { transform: translate3d(-2%, -1%, 0) scale(1); }
+  to   { transform: translate3d(2%, 2%, 0) scale(1.06); }
+}
+
+/* --- Film grain (body::after) ----------------------------------------------
+   Inline SVG feTurbulence noise — kills gradient banding, adds analog
+   "temperature" so renders feel shot, not generated. Static: zero cost. */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 99998;
+  pointer-events: none;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E");
+}
+
+/* --- Brand-aware logo sheen -------------------------------------------------
+   A soft light rake sweeps the mark every few seconds — the "premium
+   boutique" signature. Host shrink-wraps the <img> so the sweep is
+   clipped exactly to the glyph box. */
+.v-logo-wrap {
+  position: relative;
+  display: inline-block;
+  line-height: 0;
+}
+/* Topbar badge has a fixed square box — the wrap must fill it so the
+   sheen covers exactly the badge area (else the img would collapse). */
+.v-topbar__brand .v-logo-wrap {
+  width: 100%;
+  height: 100%;
+}
+.v-logo-wrap > img { display: block; }
+.v-logo-sheen {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  border-radius: inherit;
+}
+.v-logo-sheen::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 36%;
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.22) 50%,
+    transparent 100%
+  );
+  transform: translateX(-160%) skewX(-12deg);
+  animation: v-logo-sheen 9s var(--ease) infinite;
+}
+@keyframes v-logo-sheen {
+  0%, 55%   { transform: translateX(-160%) skewX(-12deg); }
+  85%, 100% { transform: translateX(340%) skewX(-12deg); }
+}
+
+/* --- Card hover sheen --------------------------------------------------------
+   Light rakes across cinematic cards on hover — tactile, not decorative. */
+.v-card-sheen {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border-radius: inherit;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0;
+  mix-blend-mode: soft-light;
+  transition: opacity var(--d-med) var(--ease);
+}
+.v-card-sheen::before {
+  content: "";
+  position: absolute;
+  top: -20%;
+  bottom: -20%;
+  left: 0;
+  width: 55%;
+  background: linear-gradient(
+    100deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.85) 50%,
+    transparent 100%
+  );
+  transform: translateX(-180%) skewX(-10deg);
+}
+.v-process__step:hover .v-card-sheen,
+.v-process__step:focus-within .v-card-sheen,
+.v-tile:hover .v-card-sheen,
+.v-tile:focus-within .v-card-sheen,
+.v-card-modern:hover .v-card-sheen,
+.v-card-modern:focus-within .v-card-sheen {
+  opacity: 1;
+}
+.v-process__step:hover .v-card-sheen::before,
+.v-process__step:focus-within .v-card-sheen::before,
+.v-tile:hover .v-card-sheen::before,
+.v-tile:focus-within .v-card-sheen::before,
+.v-card-modern:hover .v-card-sheen::before,
+.v-card-modern:focus-within .v-card-sheen::before {
+  animation: v-card-sheen-sweep 1.1s var(--ease-out);
+}
+@keyframes v-card-sheen-sweep {
+  from { transform: translateX(-180%) skewX(-10deg); }
+  to   { transform: translateX(320%) skewX(-10deg); }
+}
+
+/* --- Primary button sheen --------------------------------------------------- */
+.v-btn--primary {
+  position: relative;
+  overflow: hidden;
+}
+.v-btn--primary::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 40%;
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.32) 50%,
+    transparent 100%
+  );
+  transform: translateX(-160%) skewX(-12deg);
+  pointer-events: none;
+}
+.v-btn--primary:hover::after {
+  animation: v-btn-sheen 0.9s var(--ease-out);
+}
+@keyframes v-btn-sheen {
+  from { transform: translateX(-160%) skewX(-12deg); }
+  to   { transform: translateX(360%) skewX(-12deg); }
+}
+
+/* --- Hero ambient pulse ------------------------------------------------------
+   Crimson breathing glow behind the hero visual — brand colour, slow cycle. */
+.v-hero-3d-wrapper::before {
+  content: "";
+  position: absolute;
+  inset: 8%;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle at 50% 50%,
+    var(--cinematic-radial-3) 0%,
+    transparent 65%
+  );
+  animation: v-hero-glow 6s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes v-hero-glow {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50%      { opacity: 1;   transform: scale(1.08); }
+}
+
+/* --- Panel top glow -----------------------------------------------------------
+   One static radial per panel — zero runtime cost, adds depth hierarchy. */
+.v-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    60% 42% at 50% 0%,
+    var(--cinematic-radial-1) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+  z-index: 0;
+}
+.v-section { z-index: 1; }
+
+
+/* --- Reduced motion: kill every immersive animation ---------------------------
+   Tier 1 (aurora drift, sheens, pulses) → removed.
+   Grain is static so it survives (orientation cue, no vestibular risk). */
+@media (prefers-reduced-motion: reduce) {
+  body::before { animation: none; }
+  .v-logo-sheen::before,
+  .v-card-sheen,
+  .v-btn--primary::after,
+  .v-hero-3d-wrapper::before { animation: none !important; }
+  .v-card-sheen,
+  .v-btn--primary::after { display: none; }
+  /* Cinematic card sparkle border (rotate-border) — killed under reduced motion. */
+  .v-sparkle-border::before { animation: none !important; }
+  /* Cinematic-pan gradient mesh — killed under reduced motion. */
+  .v-cinematic-bg { animation: none !important; }
+  /* Hero badge pulse-dot — lands on a visible dot, no pulsing. */
+  .v-hero__badge-dot { animation: none !important; opacity: 1; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   TRANSPARENT HERO + PROCEDURAL DYNAMIC BACKGROUND
+   No video element: twin drifting spotlight meshes + one slow stage beam,
+   all transform/opacity-only on oversized fixed layers. Resolution-
+   independent (retina-sharp at any DPI) with near-zero CPU/GPU cost.
+   Intensity is config-driven via --v-bg-alpha ([background] in site.md).
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+
+/* --- Reduced motion: still frame only ----------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  .v-dynamic-bg__layer,
+  .v-dynamic-bg__beam { animation: none; }
+  .v-dynamic-bg__glyphs { display: none; }
+  .v-hero-3d-wrapper .v-logo-wrap { animation: none; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+
+   AMBIENT GLYPH FIELD — the "creative" half of the background blend
+   Floating service icons: camera, lens, venue, talent, grand party, creator,
+   clapper, spotlight, aperture. Each drifts on its own cycle so the field
+   never pulses in lockstep.
+   GPU discipline: transform/opacity only, promoted with will-change, driven by
+   per-glyph custom properties emitted from Rust (see config.rs clamps).
+   Legibility: capped opacity + a brand scrim between field and content.
+   ═══════════════════════════════════════════════════════════════════════════ */
+.v-dynamic-bg__glyphs {
+  position: absolute;
+  inset: 0;
+}
+.v-bg-glyph {
+  position: absolute;
+  left: var(--gx, 10%);
+  top: var(--gy, 40%);
+  width: var(--gw, 132px);
+  height: var(--gw, 132px);
+  margin: calc(var(--gw, 132px) / -2) 0 0 calc(var(--gw, 132px) / -2);
+  color: var(--glyph-crimson);
+  opacity: var(--v-bg-glyph-alpha, 0.3);
+  will-change: transform, opacity;
+  animation: v-glyph-drift var(--gdur, 30s) ease-in-out infinite;
+  animation-delay: var(--gdelay, 0s);
+}
+.v-bg-glyph__icon {
+  width: 100%;
+  height: 100%;
+  display: block;
+  filter: drop-shadow(0 0 18px currentColor);
+}
+.v-bg-glyph--violet { color: var(--glyph-violet); }
+.v-bg-glyph--sky    { color: var(--glyph-sky); }
+.v-bg-glyph--citron { color: var(--glyph-citron); }
+/* Brand cohesion: crimson leads, atmospheric companions recede —
+   they read as ambient light play rather than multicoloured confetti. */
+.v-bg-glyph--violet,
+.v-bg-glyph--sky,
+.v-bg-glyph--citron {
+  opacity: calc(var(--v-bg-glyph-alpha, 0.3) * 0.5);
+}
+
+/* One keyframe pair, amplitude driven per glyph by --gspin. */
+@keyframes v-glyph-drift {
+  0%   { transform: translate3d(0, 0, 0) rotate(0deg); }
+  25%  { transform: translate3d(10px, -18px, 0) rotate(calc(var(--gspin, 6deg) * 0.6)); }
+  50%  { transform: translate3d(-8px, -30px, 0) rotate(var(--gspin, 6deg)); }
+  75%  { transform: translate3d(-16px, -12px, 0) rotate(calc(var(--gspin, 6deg) * -0.4)); }
+  100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+}
+
+/* Legibility scrim — sits above glyphs, below page content. Pulls contrast
+   back exactly where the text column lives (left-of-centre on desktop) and
+   keeps the right column open so the field still breathes. */
+.v-dynamic-bg__scrim {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(52% 46% at 34% 50%, var(--bg-primary) 0%, transparent 72%),
+    linear-gradient(180deg, var(--bg-primary) 0%, transparent 26%, transparent 74%, var(--bg-primary) 100%);
+  opacity: 0.55;
+}
+[data-theme="dark"] .v-dynamic-bg__scrim { opacity: 0.42; }
+
+/* Responsive: the field thins out rather than disappearing, so phones still
+   read the brand as "creative agency" without paying for 9 live animations. */
+@media (max-width: 1024px) {
+  .v-bg-glyph { width: calc(var(--gw, 132px) * 0.72); height: calc(var(--gw, 132px) * 0.72); }
+  .v-bg-glyph:nth-child(n + 7) { display: none; }
+}
+@media (max-width: 768px) {
+  .v-bg-glyph { width: calc(var(--gw, 132px) * 0.55); height: calc(var(--gw, 132px) * 0.55); }
+  .v-bg-glyph:nth-child(n + 5) { display: none; }
+  .v-dynamic-bg__scrim { opacity: 0.68; }
+}
+@media (max-width: 480px) {
+  .v-bg-glyph:nth-child(n + 4) { display: none; }
+  .v-dynamic-bg__scrim { opacity: 0.78; }
+}
+
+/* Coarse pointer / battery saver: keep the mesh, drop the field. */
+@media (update: slow) {
+  .v-bg-glyph { animation: none; }
+}
+
+/* --- Card Design System Keyframes ---------------------------------------- */
+@keyframes v-card-float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  33% {
+    transform: translateY(-8px);
+  }
+  66% {
+    transform: translateY(-4px);
+  }
+}
+@keyframes v-card-shine {
+  0%, 100% { opacity: 1; transform: translateX(-100%) scale(1); }
+  50% { opacity: 0.3; transform: translateX(100%) scale(1.1); }
+}
+@keyframes v-glow-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.04); }
+}
+

@@ -1,0 +1,129 @@
+
+Report Summary
+
+┌─────────────────────────────────────┬────────────┬─────────────────┬─────────┬───────────────────┐
+│               Target                │    Type    │ Vulnerabilities │ Secrets │ Misconfigurations │
+├─────────────────────────────────────┼────────────┼─────────────────┼─────────┼───────────────────┤
+│ Cargo.lock                          │   cargo    │        0        │    -    │         -         │
+├─────────────────────────────────────┼────────────┼─────────────────┼─────────┼───────────────────┤
+│ Containerfile                       │ dockerfile │        -        │    -    │         0         │
+├─────────────────────────────────────┼────────────┼─────────────────┼─────────┼───────────────────┤
+│ ops/gcp                             │ terraform  │        -        │    -    │         0         │
+├─────────────────────────────────────┼────────────┼─────────────────┼─────────┼───────────────────┤
+│ ops/gcp/gce.tf                      │ terraform  │        -        │    -    │         2         │
+├─────────────────────────────────────┼────────────┼─────────────────┼─────────┼───────────────────┤
+│ ops/tofu                            │ terraform  │        -        │    -    │         0         │
+├─────────────────────────────────────┼────────────┼─────────────────┼─────────┼───────────────────┤
+│ ops/tofu/modules/app                │ terraform  │        -        │    -    │         0         │
+├─────────────────────────────────────┼────────────┼─────────────────┼─────────┼───────────────────┤
+│ ops/tofu/modules/cluster/main.tf    │ terraform  │        -        │    -    │         2         │
+├─────────────────────────────────────┼────────────┼─────────────────┼─────────┼───────────────────┤
+│ ops/tofu/modules/networking/main.tf │ terraform  │        -        │    -    │         0         │
+└─────────────────────────────────────┴────────────┴─────────────────┴─────────┴───────────────────┘
+Legend:
+- '-': Not scanned
+- '0': Clean (no security findings detected)
+
+
+ops/gcp/gce.tf (terraform)
+==========================
+Tests: 2 (SUCCESSES: 0, FAILURES: 2)
+Failures: 2 (HIGH: 1, CRITICAL: 1)
+
+GCP-0031 (HIGH): Instance has a public IP allocated.
+════════════════════════════════════════
+Instances should not be publicly exposed to the internet
+
+
+See https://avd.aquasec.com/misconfig/gcp-0031
+────────────────────────────────────────
+ ops/gcp/gce.tf:19-21
+   via ops/gcp/gce.tf:17-22 (network_interface)
+    via ops/gcp/gce.tf:6-34 (google_compute_instance.velvet_web)
+────────────────────────────────────────
+   6   resource "google_compute_instance" "velvet_web" {
+   .   
+  19 ┌     access_config {
+  20 │       nat_ip = google_compute_address.velvet_ip.address
+  21 └     }
+  ..   
+  34   }
+────────────────────────────────────────
+
+
+GCP-0044 (CRITICAL): Instance uses the default service account.
+════════════════════════════════════════
+The default service account has full project access. Instances should instead be assigned the minimal access they need.
+
+
+See https://avd.aquasec.com/misconfig/gcp-0044
+────────────────────────────────────────
+ ops/gcp/gce.tf:31-33
+   via ops/gcp/gce.tf:6-34 (google_compute_instance.velvet_web)
+────────────────────────────────────────
+   6   resource "google_compute_instance" "velvet_web" {
+   .   
+  31 ┌   service_account {
+  32 │     scopes = ["cloud-platform"]
+  33 └   }
+  34   }
+────────────────────────────────────────
+
+
+
+ops/tofu/modules/cluster/main.tf (terraform)
+============================================
+Tests: 2 (SUCCESSES: 0, FAILURES: 2)
+Failures: 2 (HIGH: 2, CRITICAL: 0)
+
+GCP-0057 (HIGH): Cluster exposes node metadata of pools by default.
+════════════════════════════════════════
+In provider versions prior to 4:
+The attribute <code>workload_metadata_config.node_metadata</code> configures how node metadata is exposed to workloads. It should be set to <code>SECURE</code> to limit metadata exposure, or <code>GKE_METADATA_SERVER</code> if Workload Identity is enabled.
+
+Starting with provider version 4:
+The attribute <code>node_metadata</code> has been removed. Instead, <code>workload_metadata_configuration.mode</code> controls node metadata exposure. When Workload Identity is enabled, it should be set to <code>GKE_METADATA</code> to prevent unnecessary exposure of the metadata API to workloads.
+
+
+See https://avd.aquasec.com/misconfig/gcp-0057
+────────────────────────────────────────
+ ops/tofu/modules/cluster/main.tf:50-70
+   via ops/tofu/modules/cluster/main.tf:45-81 (google_container_node_pool.primary)
+    via ops/tofu/main.tf:41-50 (module.cluster)
+────────────────────────────────────────
+  45   resource "google_container_node_pool" "primary" {
+  ..   
+  50 ┌   node_config {
+  51 │     machine_type = "e2-small"
+  52 │     spot         = true
+  53 │     disk_size_gb = 20
+  54 │     disk_type    = "pd-standard"
+  55 │     image_type   = "COS_CONTAINERD"
+  56 └ 
+  ..   
+────────────────────────────────────────
+
+
+GCP-0061 (HIGH): Cluster does not have master authorized networks enabled.
+════════════════════════════════════════
+Enabling authorized networks means you can restrict master access to a fixed set of CIDR ranges
+
+
+See https://avd.aquasec.com/misconfig/gcp-0061
+────────────────────────────────────────
+ ops/tofu/modules/cluster/main.tf:1-43
+   via ops/tofu/main.tf:41-50 (module.cluster)
+────────────────────────────────────────
+   1 ┌ resource "google_container_cluster" "velvet" {
+   2 │   name     = var.cluster_name
+   3 │   location = var.zone
+   4 │ 
+   5 │   remove_default_node_pool = true
+   6 │   initial_node_count       = 1
+   7 │   deletion_protection      = false
+   8 │ 
+   9 └   network    = var.network_id
+  ..   
+────────────────────────────────────────
+
+

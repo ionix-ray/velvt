@@ -20,6 +20,12 @@ dev:
     # Always drop stale WASM/JS artifacts first — the served bundle is
     # regenerated from scratch, no old hashed files can leak in.
     rm -rf target/dx/vaelvet-ui/debug/web
+    # Pre-create the directory tree dx needs for asset copy — dx serve
+    # uses `../` paths inside the build output and fails without the
+    # parent dirs existing.
+    mkdir -p target/dx/vaelvet-ui/debug/web/public/assets/fonts
+    mkdir -p target/dx/vaelvet-ui/debug/web/public/assets/images
+    mkdir -p target/dx/vaelvet-ui/debug/web/public/assets
     # public/ is a build INPUT: a stale theme.css here shadows the source
     # stylesheet and kills hot reload. Keep it in lockstep.
     cp -a velvet-ui/assets/theme.css velvet-ui/public/assets/theme.css
@@ -34,8 +40,10 @@ clean-wasm:
     rm -rf target/dx/vaelvet-ui/release/web/public
 
 # Production WASM build — outputs to target/dx/.../release/web/public.
-# Always cleans stale artifacts first so no old hashed files linger.
+# Always cleans stale artifacts first and syncs assets so no old hashed files linger.
 build: clean-wasm
+    mkdir -p velvet-ui/public/assets
+    cp -a velvet-ui/assets/. velvet-ui/public/assets/
     cd velvet-ui && dx build --release --platform web
 
 # All tests (cargo + dioxus-ssr).

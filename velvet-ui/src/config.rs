@@ -328,6 +328,16 @@ pub struct ProcessStep {
     pub body: Box<str>,
     #[serde(default)]
     pub image: Option<Box<str>>,
+    #[serde(default)]
+    pub split_image: Option<Box<str>>,
+    #[serde(default)]
+    pub split_tag: Option<Box<str>>,
+    #[serde(default)]
+    pub split_stat: Option<Box<str>>,
+    #[serde(default)]
+    pub split_cta: Option<Box<str>>,
+    #[serde(default)]
+    pub split_details: Option<Box<str>>,
 }
 
 #[derive(Deserialize, Debug, Clone, Default, PartialEq)]
@@ -393,6 +403,16 @@ pub struct StudioItem {
     pub body: Box<str>,
     #[serde(default)]
     pub image: Option<Box<str>>,
+    #[serde(default)]
+    pub split_image: Option<Box<str>>,
+    #[serde(default)]
+    pub split_tag: Option<Box<str>>,
+    #[serde(default)]
+    pub split_stat: Option<Box<str>>,
+    #[serde(default)]
+    pub split_cta: Option<Box<str>>,
+    #[serde(default)]
+    pub split_details: Option<Box<str>>,
 }
 
 #[derive(Deserialize, Debug, Clone, Default, PartialEq)]
@@ -601,11 +621,69 @@ mod tests {
         for step in &site.process.steps {
             assert!(!step.title.is_empty());
             assert!(step.image.is_some());
+            assert!(
+                step.split_image.is_some(),
+                "step split_image missing: {}",
+                step.title
+            );
+            assert!(
+                step.split_stat.is_some(),
+                "step split_stat missing: {}",
+                step.title
+            );
+            assert!(
+                step.split_cta.is_some(),
+                "step split_cta missing: {}",
+                step.title
+            );
         }
         assert_eq!(site.studio.items.len(), 7);
         for item in &site.studio.items {
             assert!(!item.title.is_empty());
             assert!(item.image.is_some());
+            assert!(
+                item.split_image.is_some(),
+                "studio split_image missing: {}",
+                item.title
+            );
+            assert!(
+                item.split_tag.is_some(),
+                "studio split_tag missing: {}",
+                item.title
+            );
+            assert!(
+                item.split_stat.is_some(),
+                "studio split_stat missing: {}",
+                item.title
+            );
+            assert!(
+                item.split_cta.is_some(),
+                "studio split_cta missing: {}",
+                item.title
+            );
+        }
+    }
+
+    #[test]
+    fn process_split_fields_match_image_values() {
+        let site = Site::load();
+        for step in &site.process.steps {
+            assert_eq!(step.split_image.as_deref(), step.image.as_deref());
+            assert!(
+                step.split_stat
+                    .as_ref()
+                    .is_some_and(|s| s.starts_with("Step"))
+            );
+            assert!(step.split_cta.as_ref().is_some_and(|s| !s.is_empty()));
+        }
+    }
+
+    #[test]
+    fn studio_split_fields_match_tag_and_image_values() {
+        let site = Site::load();
+        for item in &site.studio.items {
+            assert_eq!(item.split_image.as_deref(), item.image.as_deref());
+            assert_eq!(item.split_tag.as_deref(), Some(&*item.tag));
         }
     }
 

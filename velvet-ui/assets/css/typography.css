@@ -1,0 +1,149 @@
+/* Kalnia Glaze (Self-hosted) */
+@font-face {
+  font-family: 'Kalnia Glaze';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: optional;
+  src: url('/assets/fonts/kalnia-glaze-v5-latin.woff2') format('woff2');
+}
+
+/* Self-hosted IBM Plex Sans + Outfit (latin, woff2) — no external requests */
+@font-face {
+  font-family: 'IBM Plex Sans';
+  font-style: normal;
+  font-weight: 400;
+  font-display: optional;
+  src: url('/assets/fonts/ibm-plex-sans-400.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'IBM Plex Sans';
+  font-style: italic;
+  font-weight: 400;
+  font-display: optional;
+  src: url('/assets/fonts/ibm-plex-sans-400i.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'IBM Plex Sans';
+  font-style: normal;
+  font-weight: 500;
+  font-display: optional;
+  src: url('/assets/fonts/ibm-plex-sans-500.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'IBM Plex Sans';
+  font-style: normal;
+  font-weight: 600;
+  font-display: optional;
+  src: url('/assets/fonts/ibm-plex-sans-600.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'IBM Plex Sans';
+  font-style: normal;
+  font-weight: 700;
+  font-display: optional;
+  src: url('/assets/fonts/ibm-plex-sans-700.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Outfit';
+  font-style: normal;
+  font-weight: 400;
+  font-display: optional;
+  src: url('/assets/fonts/outfit-400.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Outfit';
+  font-style: normal;
+  font-weight: 500;
+  font-display: optional;
+  src: url('/assets/fonts/outfit-500.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Outfit';
+  font-style: normal;
+  font-weight: 600;
+  font-display: optional;
+  src: url('/assets/fonts/outfit-600.woff2') format('woff2');
+}
+
+@font-face {
+  font-family: 'Outfit';
+  font-style: normal;
+  font-weight: 700;
+  font-display: optional;
+  src: url('/assets/fonts/outfit-700.woff2') format('woff2');
+}
+
+/* Cormorant Garamond — the closest open-source match to the Velvt
+   wordmark logo: tall, high-contrast transitional serif with elegant
+   italic. Self-hosted woff2, no CDN. SIL Open Font License 1.1. */
+@font-face {
+  font-family: 'Cormorant Garamond';
+  font-style: normal;
+  font-weight: 400;
+  font-display: optional;
+  src: url('/assets/fonts/cormorant-garamond-regular.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Cormorant Garamond';
+  font-style: italic;
+  font-weight: 400;
+  font-display: optional;
+  src: url('/assets/fonts/cormorant-garamond-italic.woff2') format('woff2');
+}
+
+/* Metamorphous — display/brand accent font (self-hosted TTF, woff2 fallback).
+   Only weight 400 exists upstream; bold/emphasis uses letter-spacing + size
+   rather than fake weight, so the glyph stays true to the design. */
+@font-face {
+  font-family: 'Metamorphous';
+  font-style: normal;
+  font-weight: 400;
+  font-display: optional;
+  src: url('/assets/fonts/metamorphous-400.ttf') format('truetype');
+}
+
+
+/* ----- Typography ------------------------------------------------------- */
+.v-display-1 {
+  font-family: var(--font-display);
+  font-size: clamp(2.8rem, 6vw + 1rem, 6rem);
+  line-height: 1.0;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.v-display-2 {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 4vw + .5rem, 3.8rem);
+  line-height: 1.08;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+.v-h3 {
+  font-family: var(--font-display);
+  font-size: clamp(1.3rem, 1.5vw + .6rem, 1.8rem);
+  line-height: 1.15;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+.v-eyebrow {
+  font: 600 0.7rem/1 var(--font-sans);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--accent);
+  display: block;
+  margin-bottom: var(--s3);
+}
+.v-body {
+  font-size: 1rem;
+  line-height: 1.65;
+  color: var(--text-secondary);
+}
+.v-muted { color: var(--text-muted); }
+.v-accent { color: var(--accent); }
+

@@ -1,5 +1,7 @@
 # STATE.md — Vaelvet · live checkpoint
 
+**budget: tokens=80000 agents=4**
+
 **Current sprint**: SPRINT HARDENING & UI ALIGNMENT — Cultural Production Imagery, Glass Stat Grid, WebKit Reveal & >90% Coverage Gate
 **Current status**: PRODUCTION READY.
 **Last action**: 
@@ -11,6 +13,9 @@
 - Achieved **91.16% line coverage** (exceeds 90% floor), 92.75% function coverage, 93.15% region coverage via `cargo llvm-cov`.
 - Verified all 327 Playwright e2e tests passing (100% across Chromium, WebKit, and Reduced Motion).
 - Updated local CI script (`./scripts/ci-local.sh`), GitHub Actions PR gate (`.github/workflows/pr-gate.yml`), and all specifications (`.agents/AGENTS.md`, `.agents/skills/cinematic-ui/SKILL.md`, `CLAUDE.md`, `test-suite/coverage-goals.md`).
+- Fixed critical lazy-loading violation: `loading: "lazy"` → `loading: "eager"` in `about_aggregated_panel.rs` (team member photos now load eagerly as required by product spec).
+- Optimized fonts: changed `@font-face font-display` from `swap` to `optional` across 13 @font-face rules in `theme.css`, eliminating font-display swap behavior that causes FOUC/ FOUT on first paint.
+- Integrated self-hosted Metamorphous Google font (weight 400, TTF → woff2), replacing IBM Plex Sans fallback for body copy; CSS variable `--font-sans` updated to `"Metamorphous", "IBM Plex Sans", system-ui, -apple-system, sans-serif`. All brand typography remains: `--font-display` = Cormorant Garamond + Outfit + Georgia serif, `--font-mono` = IBM Plex Sans.
 
 **Pre-merge gates** (all green on current HEAD):
 - `cargo fmt --all -- --check` clean
@@ -22,6 +27,8 @@
 - `cargo deny check licenses bans advisories` ok
 - `dx build --release --platform web` succeeds: **476 KB gz WASM** (budget 1.5 MB), **21.8 KB gz theme.css** (budget 40 KB)
 - Dual CSS sync verified: `velvet-ui/assets/theme.css` == `velvet-ui/public/assets/theme.css`
+
+**fanout: n=4 | isolation=worktree | tasks=design:research | design:card-redesign | code:refactor | test:update**
 
 **Files touched this session**:
 - `velvet-ui/src/components/about_aggregated_panel.rs` — removed background VELVT heatmap grid, rendered clean glass stat grid, added unit tests

@@ -104,7 +104,7 @@ fn TeamCard(member: TeamMember) -> Element {
                     img {
                         src: "{member.photo}",
                         alt: "{member.name} — Velvt Team",
-                        loading: "lazy",
+                        loading: "eager",
                         width: "200",
                         height: "200",
                     }

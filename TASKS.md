@@ -59,7 +59,7 @@ Feature file: `docs/features/server-resilience.feature` · Priorities/stages: `d
 Feature file: `docs/features/ui-cinematic-experience.feature`
 | ID | Task | AC sketch | Effort | Status |
 |----|------|-----------|--------|--------|
-| S5-01 | Fix dead reveal observer + invisible VELVT heatmap | Heatmap cells reach opacity > 0 on scroll-in (Playwright) | M | IN-PROGRESS |
+| S5-01 | Fix dead reveal observer + invisible VELVT heatmap | Heatmap cells reach opacity > 0 on scroll-in (Playwright) | M | DONE |
 | S5-02 | Social links single-sourced from `content/site.md` | Strip + footer render identical config-driven href set; SSR test | M | IN-PROGRESS |
 | S5-03 | Dead code purge (`next_hint.rs`, dead CSS blocks, dup devtools script) | Grep shows zero references; theme.css shrinks, stays ≤40 KB gz | M | IN-PROGRESS |
 | S5-04 | hex-ui card port: sparkline signal-board + saturate-spring hover, `variant` on `CardStep` | Backward-compatible default; Playwright asserts sparkline + hover state | L | IN-PROGRESS |
@@ -67,6 +67,9 @@ Feature file: `docs/features/ui-cinematic-experience.feature`
 | S5-06 | Nav labels derive from `site.nav` (kill 3-way drift) | home/mobile/site.md labels identical; index map preserved | S | IN-PROGRESS |
 | S5-07 | SSR tests for 7 untested components | social_strip, footer, hero, process, section_dots, scroll_progress covered | M | IN-PROGRESS |
 | S5-08 | `just build` syncs theme.css → `public/assets/` | Container never ships stale CSS | S | TODO (after S4 justfile merge) |
+| S5-09 | Font optimization: `@font-face font-display: swap` → `optional` (12 rules) | Eliminates FOUC/FOUT swap delay; theme.css ≤40 KB gz budget maintained | S | DONE |
+| S5-10 | Self-host Metamorphous Google font (weight 400) | TTF → woff2 at `velvet-ui/assets/fonts/metamorphous-400.ttf`; `--font-sans` updated | S | DONE |
+| S5-11 | Fix critical lazy-load violation in `about_aggregated_panel.rs` | `loading: "lazy"` → `"eager"` per product rule (no lazy loading, hero assets preloaded) | S | DONE |
 
 ## Sprint S6 — Security & compliance (P0)
 Feature file: `docs/features/security-compliance.feature` · Matrix: `docs/SECURITY-COMPLIANCE.md`

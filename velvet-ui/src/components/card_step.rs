@@ -49,9 +49,9 @@ pub fn CardStep(
     photo: Option<String>,
 ) -> Element {
     let base_class = if class_extra.is_empty() {
-        "v-process__step v-reveal v-card-immersive".to_string()
+        "v-process__step v-reveal v-card-immersive glass-card".to_string()
     } else {
-        format!("v-process__step v-reveal v-card-immersive {class_extra}")
+        format!("v-process__step v-reveal v-card-immersive glass-card {class_extra}")
     };
 
     let delay_style = if delay_ms > 0 {
@@ -81,7 +81,7 @@ pub fn CardStep(
             // Light sweep overlay for immersive effect
             div { class: "v-card-lightsweep", "aria-hidden": "true" }
             // Brand mark badge — top-left corner branding per design system.
-            img { class: "v-experience-badge", src: "{logo}", alt: "Velvt" }
+            img { class: "v-experience-badge", src: "/assets/images/velvt-stamp-sm.png", alt: "Velvt", loading: "eager", decoding: "async" }
             // Step number (ProcessPanel) — renders inside a circle.
             if let Some(n) = &num {
                 div { class: "v-process__num", "{n}" }
@@ -179,7 +179,10 @@ mod tests {
         let html = render(WithNum);
         assert!(html.contains("v-sparkle-border"), "sparkle border missing");
         assert!(html.contains("v-experience-badge"), "logo badge missing");
-        assert!(html.contains("velvet-mark.webp"), "logo src missing");
+        assert!(
+            html.contains("velvt-stamp-sm.png"),
+            "badge stamp image missing"
+        );
     }
 
     #[test]

@@ -1,0 +1,644 @@
+/* ----- Reset (minimal) -------------------------------------------------- */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { 
+  -webkit-text-size-adjust: 100%; 
+  scroll-behavior: auto;
+}
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font: 400 16px/1.6 var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+  overflow-y: auto;
+  min-height: 100vh;
+  width: 100%;
+  transition: background var(--d-med) var(--ease), color var(--d-med) var(--ease);
+}
+/* Home page: enable scroll-snap when the .v-panels layout is present */
+html:has(.v-panels) {
+  scroll-snap-type: y mandatory;
+  scroll-behavior: smooth;
+}
+/* Case-study (and any other) vertical-flow page lifts the home page's
+   100vh / overflow:hidden window so the article body can scroll, and
+   clears the floating topbar badge so the hero starts below it. */
+body:has(.v-case-page) {
+  overflow: auto;
+  height: auto;
+  width: auto;
+  min-height: 100vh;
+  padding-top: clamp(72px, 8vw, 104px);
+  /* Disable scroll-snap: case study pages are normal vertical flow. */
+  scroll-snap-type: none;
+}
+/* Also disable snap on html when viewing case study pages */
+html:has(.v-case-page) {
+  scroll-snap-type: none !important;
+  scroll-behavior: auto;
+}
+img, picture { display: block; max-width: 100%; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; background: none; border: 0; color: inherit; cursor: pointer; }
+h1, h2 {
+  font-family: "Kalnia Glaze", var(--font-display);
+  font-weight: 400;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  line-height: 1.1;
+  margin: 0;
+}
+h3, h4, h5, h6 {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+  margin: 0;
+}
+ul { list-style: none; }
+
+/* ----- Scrollbar (thin, themed) ----------------------------------------- */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent-hover); }
+
+
+/* ----- Scroll Progress Bar ---------------------------------------------- */
+.v-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 2px;
+  background: var(--crimson);
+  z-index: 10001;
+  width: calc(var(--scroll-progress) * 1%);
+  transition: width 80ms linear;
+}
+
+/* ----- Layout: Vertical Panels ---------------------------------------- */
+.v-panels {
+  display: block;
+  width: 100%;
+  /* Lift panels above the fixed ambient aurora (body::before, z-index:0)
+     so the glow reads as atmosphere behind content, never over it. */
+  position: relative;
+  z-index: 1;
+}
+
+.v-panel {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 100vh;
+  position: relative;
+  /* Left gutter clears the spindle (~10rem wide + 1.5rem gap) */
+  padding-left: clamp(7rem, 10vw, 12rem);
+  padding-right: clamp(1rem, 3vw, 2.5rem);
+  display: flex;
+  align-items: stretch;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+
+/* ----- Stacked Right Navigation ----------------------------------------- */
+.v-stack-nav {
+  position: fixed;
+  right: 0;
+  top: 0;
+  height: 100vh;
+  width: var(--nav-width);
+  z-index: 9998;
+  background: var(--bg-nav);
+  backdrop-filter: blur(20px) saturate(140%);
+  border-left: var(--border);
+  display: flex;
+  flex-direction: column;
+  padding: var(--s5) 0;
+  transform: translateX(100%);
+  transition: transform var(--d-med) var(--ease-out);
+  overflow-y: auto;
+}
+.v-stack-nav.open { transform: translateX(0); }
+
+.v-stack-nav__brand {
+  padding: 0 var(--s4) var(--s4);
+  border-bottom: var(--border);
+  margin-bottom: var(--s3);
+}
+.v-stack-nav__brand .v-logo-svg {
+  width: 148px;
+  height: auto;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.22));
+}
+
+.v-stack-nav__item {
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  padding: var(--s2) var(--s4);
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--d-fast) var(--ease);
+  border-right: 2px solid transparent;
+  text-transform: uppercase;
+}
+.v-stack-nav__item:hover {
+  color: var(--text-primary);
+  background: var(--accent-soft);
+}
+.v-stack-nav__item.active {
+  color: var(--accent);
+  border-right-color: var(--accent);
+  font-weight: 600;
+}
+.v-stack-nav__num {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  min-width: 1.5rem;
+}
+
+/* ----- Top Bar (fixed) -------------------------------------------------- */
+.v-topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  min-height: 56px;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--s3);
+  padding: 0 clamp(var(--s3), 4vw, var(--s5));
+  padding-left: calc(clamp(10px, 1.4vw, 20px) + clamp(64px, 7vw, 104px) + var(--s3));
+  background: var(--bg-nav);
+  backdrop-filter: blur(14px) saturate(140%);
+  border-bottom: var(--border);
+  transition: transform var(--d-med) var(--ease);
+}
+.v-topbar.hidden { transform: translateY(-100%); }
+
+/* The brand slot now holds the full lockup (emblem + wordmark), so it is
+   width-driven off the lockup's intrinsic 874:344 ratio and vertically
+   centred on the topbar strip instead of being a fixed square badge. */
+.v-topbar__brand {
+  position: absolute;
+  top: 50%;
+  left: clamp(10px, 1.4vw, 20px);
+  translate: 0 -50%;
+  display: block;
+  width: clamp(100px, 9.5vw, 136px);
+  z-index: 10000;
+  border-radius: 0;
+  transition: width var(--d-med) var(--ease);
+}
+/* Inline SVG lockup: width-driven, height from the intrinsic ratio so the
+   wordmark never distorts. `currentColor` on the text picks up --wordmark. */
+.v-logo-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: var(--logo-svg-ratio);
+  color: var(--wordmark);
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.28));
+}
+.v-logo-svg--nav { width: clamp(104px, 100%, 150px); }
+/* Text inside the lockup is vector and inherits; keep it selectable-free so
+   the sheen overlay can rake across cleanly. */
+.v-logo-svg text { user-select: none; }
+
+.v-topbar__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  flex-shrink: 0;
+}
+
+.v-topbar__menu-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border: var(--border);
+  border-radius: 4px;
+  padding: 8px;
+  transition: border-color var(--d-fast) var(--ease);
+}
+.v-topbar__menu-btn:hover { border-color: var(--accent); }
+.v-topbar__menu-btn span {
+  display: block;
+  width: 18px;
+  height: 1.5px;
+  background: var(--text-primary);
+  transition: all var(--d-fast) var(--ease);
+}
+.v-topbar__menu-btn.active span:nth-child(1) { transform: rotate(45deg) translate(4px, 4px); }
+.v-topbar__menu-btn.active span:nth-child(2) { opacity: 0; }
+.v-topbar__menu-btn.active span:nth-child(3) { transform: rotate(-45deg) translate(4px, -4px); }
+
+.v-theme-toggle {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: var(--border);
+  border-radius: 4px;
+  font-size: 1rem;
+  transition: border-color var(--d-fast) var(--ease);
+}
+.v-theme-toggle:hover { border-color: var(--accent); }
+
+/* ----- Spindle Navigation (Flat list) ------------ */
+.v-spindle {
+  position: fixed;
+  left: var(--s4);
+  top: 50%;
+  translate: 0 -50%;
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  width: clamp(10rem, 14vw, 15rem);
+  pointer-events: none;
+  padding: 12px 0 12px 12px;
+}
+
+.v-spindle-item {
+  pointer-events: auto;
+  position: relative;
+  padding: 6px 12px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-sans);
+  font-size: 0.78rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  line-height: 1.2;
+  border: none;
+  border-left: 2px solid transparent;
+  transition:
+    color var(--d-fast) var(--ease),
+    border-color var(--d-fast) var(--ease);
+  width: 100%;
+  text-align: left;
+}
+
+.v-spindle-item:hover:not(.active) {
+  color: var(--text-primary);
+  border-left-color: color-mix(in srgb, var(--text-primary) 20%, transparent);
+}
+
+.v-spindle-item.active {
+  color: var(--text-primary);
+  font-weight: 700;
+  border-left-color: var(--accent);
+}
+
+.v-spindle-item__label {
+  display: flex;
+  gap: var(--s2);
+  align-items: center;
+}
+
+.v-spindle-item__num {
+  font-size: 0.7rem;
+  opacity: 0.6;
+  font-weight: 500;
+  min-width: 22px;
+  font-family: var(--font-mono);
+  color: inherit;
+}
+
+.v-spindle-item.active .v-spindle-item__num { 
+  opacity: 1; 
+  color: var(--accent); 
+}
+
+.v-spindle-item:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .v-spindle-item { transition: none; }
+  .v-loader__swarm { display: none; }
+  .v-loader { transition: none; }
+  .v-loader__logo { animation: none; filter: none; opacity: 1; }
+  .v-loader__fill { animation: none; width: 100%; }
+  .v-loader__phrase { animation: none; opacity: 1; }
+}
+@media (max-width: 768px) {
+  .v-spindle { display: none; }
+}
+
+.v-tag--green {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  border: 1px solid rgba(139, 26, 31, 0.2);
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-family: var(--font-sans);
+}
+.v-tag--green::before {
+  content: '';
+  display: block;
+  width: 6px;
+  height: 6px;
+  background-color: var(--accent);
+  border-radius: 50%;
+  box-shadow: 0 0 6px var(--accent);
+}
+
+[data-theme="dark"] .v-tag--green {
+  background: rgba(248, 239, 224, 0.1);
+  color: var(--off-white);
+  border: 1px solid rgba(248, 239, 224, 0.3);
+}
+[data-theme="dark"] .v-tag--green::before {
+  background-color: var(--off-white);
+  box-shadow: 0 0 6px var(--off-white);
+}
+
+/* ----- Container & Grid ------------------------------------------------- */
+.v-container {
+  width: 100%;
+  max-width: 90rem;
+  padding-inline: var(--s5);
+  margin-inline: auto;
+  /* Block-axis auto margin centers short content same as the parent's
+     center alignment would, but degrades to flex-start (not a negative,
+     unreachable scroll offset) once content is taller than the panel. */
+  margin-block: auto;
+  /* Clears the fixed Previous/Next hint strip so panel content never
+     renders underneath it. */
+  padding-bottom: var(--s6);
+}
+.v-grid {
+  display: grid;
+  gap: var(--s4);
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+}
+.v-col-12 { grid-column: span 12; }
+.v-col-8  { grid-column: span 12; }
+.v-col-6  { grid-column: span 12; }
+.v-col-4  { grid-column: span 12; }
+@media (min-width: 720px) {
+  .v-col-8 { grid-column: span 8; }
+  .v-col-6 { grid-column: span 6; }
+  .v-col-4 { grid-column: span 4; }
+}
+
+
+/* ----- Section Frame ---------------------------------------------------- */
+.v-section {
+  width: 100%;
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: var(--s5) 0;
+  position: relative;
+}
+
+
+/* --- Case study pages (standalone, vertical-flow — not part of the
+   Home horizontal-panel scroller, so no .v-panel/.v-section here) ------- */
+.v-case-page {
+  min-height: 100vh;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  position: relative;
+  z-index: 1;
+}
+/* The case-page header reuses the home page's .v-topbar shell so the
+   floating-badge logo, icon cluster, and bottom hairline all match.
+   The --standalone variant just marks that this topbar isn't tied to
+   Home's scroll-hide behavior (no .hidden transitions wired here). */
+.v-topbar--standalone .v-case-page__back {
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+}
+.v-case-page__back {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  transition: color var(--d-fast) var(--ease);
+}
+.v-case-page__back:hover { color: var(--accent); }
+.v-case-hero {
+  padding: var(--s6) 0 var(--s4);
+}
+.v-case-hero__meta {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s3);
+  margin: var(--s2) 0;
+}
+.v-case-hero__metric {
+  font-family: var(--font-sans);
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+.v-case-hero__date {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+.v-case-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  padding: var(--s3) 0;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+.v-case-breadcrumb a { color: var(--text-secondary); }
+.v-case-breadcrumb a:hover { color: var(--accent); }
+.v-case-breadcrumb__sep { color: var(--text-muted); }
+.v-case-breadcrumb__current { color: var(--text-primary); font-weight: 600; }
+
+/* Two-column layout: left sticky sidebar + right main content, matching
+   the reference app's blog structure (collapses to a single stacked
+   column under 1024px, the same breakpoint the reference uses). */
+.v-case-layout {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: var(--s5);
+  padding: var(--s4) 0 var(--s7);
+}
+.v-case-layout__sidebar {
+  flex-shrink: 0;
+  width: 16rem;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+  position: sticky;
+  top: var(--s4);
+}
+.v-case-layout__main {
+  flex: 1;
+  min-width: 0;
+}
+.v-case-sidebar-card {
+  background: var(--bg-card);
+  border: var(--border);
+  border-radius: 0.75rem;
+  padding: var(--s3);
+}
+.v-case-sidebar-card__label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin-bottom: var(--s1);
+}
+.v-case-sidebar-card__value {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+.v-case-tag-filter {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s1);
+}
+.v-case-tag-filter__item {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  padding: var(--s1) 0;
+  transition: color var(--d-fast) var(--ease);
+}
+.v-case-tag-filter__item:hover { color: var(--accent); }
+.v-case-tag-filter__item.active {
+  color: var(--accent);
+  font-weight: 600;
+}
+.v-case-results-count {
+  color: var(--text-secondary);
+  margin-bottom: var(--s3);
+  font-size: 0.9rem;
+}
+.v-case-article {
+  background: var(--bg-card);
+  border: var(--border);
+  border-radius: 0.75rem;
+  padding: var(--s5);
+}
+@media (max-width: 1024px) {
+  .v-case-layout {
+    flex-direction: column;
+  }
+  .v-case-layout__sidebar {
+    width: 100%;
+    position: static;
+  }
+}
+/* The footer panel is designed for Home's full-viewport horizontal-scroll
+   panels (100vw/100vh, flex gutter for the spindle nav); on the standalone
+   vertical-flow case-study pages it needs to behave like a normal block
+   section instead. */
+.v-case-page .v-panel--footer {
+  width: 100%;
+  height: auto;
+  min-width: 0;
+  max-width: 100%;
+  padding-left: 0;
+  position: static;
+}
+.v-prose { max-width: 68ch; margin: 0 auto; line-height: 1.7; }
+.v-prose h2 { font-family: var(--font-display); margin-top: var(--s5); margin-bottom: var(--s2); }
+.v-prose h3 { font-family: var(--font-display); margin-top: var(--s4); margin-bottom: var(--s2); }
+.v-prose p { margin-bottom: var(--s3); color: var(--text-secondary); }
+.v-prose ul, .v-prose ol { margin: 0 0 var(--s3) var(--s4); }
+.v-prose li { margin-bottom: var(--s1); color: var(--text-secondary); }
+.v-prose blockquote {
+  border-left: 3px solid var(--accent);
+  padding-left: var(--s3);
+  margin: var(--s3) 0;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+.v-prose table { width: 100%; border-collapse: collapse; margin: var(--s3) 0; }
+.v-prose th, .v-prose td {
+  border: var(--border);
+  padding: var(--s2);
+  text-align: left;
+}
+.v-prose strong { color: var(--text-primary); }
+.v-case-page--missing .v-container {
+  padding-top: var(--s6);
+  text-align: center;
+}
+
+
+/* --- Dynamic background (fixed, behind every route) -------------------------- */
+.v-dynamic-bg {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.v-dynamic-bg__layer {
+  position: absolute;
+  inset: -20%;
+  will-change: transform;
+}
+.v-dynamic-bg__layer--slow {
+  background:
+    radial-gradient(38% 30% at 22% 26%, var(--cinematic-radial-1) 0%, transparent 70%),
+    radial-gradient(32% 26% at 78% 74%, var(--cinematic-radial-3) 0%, transparent 70%);
+  animation: v-bg-drift-slow 34s ease-in-out infinite alternate;
+  opacity: var(--v-bg-alpha, 0.8);
+}
+.v-dynamic-bg__layer--fast {
+  background:
+    radial-gradient(26% 22% at 70% 20%, var(--cinematic-radial-3) 0%, transparent 70%),
+    radial-gradient(24% 20% at 28% 82%, var(--cinematic-radial-2) 0%, transparent 70%);
+  animation: v-bg-drift-fast 21s ease-in-out infinite alternate;
+  opacity: calc(var(--v-bg-alpha, 0.8) * 0.8);
+}
+/* Stage beam — a soft conic wash rising from below, the live-event nod. */
+.v-dynamic-bg__beam {
+  position: absolute;
+  inset: -10% -30%;
+  background: conic-gradient(from 200deg at 50% 120%, transparent 42%, var(--cinematic-radial-4) 50%, transparent 58%);
+  animation: v-bg-beam 26s ease-in-out infinite alternate;
+  opacity: var(--v-bg-alpha, 0.8);
+}
+@keyframes v-bg-drift-slow {
+  from { transform: translate3d(-2%, -1%, 0) scale(1); }
+  to   { transform: translate3d(2%, 2%, 0) scale(1.06); }
+}
+@keyframes v-bg-drift-fast {
+  from { transform: translate3d(2%, 1%, 0) scale(1.05); }
+  to   { transform: translate3d(-2%, -2%, 0) scale(1); }
+}
+@keyframes v-bg-beam {
+  from { transform: translateX(-3%) skewX(-2deg); opacity: calc(var(--v-bg-alpha, 0.8) * 0.7); }
+  to   { transform: translateX(3%) skewX(2deg); opacity: var(--v-bg-alpha, 0.8); }
+}
+

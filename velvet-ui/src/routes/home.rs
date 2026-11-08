@@ -26,8 +26,8 @@ use wasm_bindgen::JsCast;
 const PANEL_ANCHORS: &[&str] = &[
     "home",
     "about",
-    "ideology",
     "experience",
+    "ideology",
     "achivements",
     "contact",
     "footer",
@@ -274,8 +274,8 @@ pub fn Home() -> Element {
         div { class: "v-panels",
             HeroPanel { site: site.clone() }
             AboutAggregatedPanel { site: site.clone() }
-            ProcessPanel { site: site.clone() }
             StudioPanel { site: site.clone() }
+            ProcessPanel { site: site.clone() }
             CasesPanel { site: site.clone() }
             CtaPanel { site: site.clone() }
             // 7th panel — footer rolls in after the last content panel
@@ -309,7 +309,8 @@ mod tests {
     #[test]
     fn anchor_for_matches_panel_render_order() {
         assert_eq!(anchor_for(0), "home");
-        assert_eq!(anchor_for(3), "experience");
+        assert_eq!(anchor_for(2), "experience");
+        assert_eq!(anchor_for(3), "ideology");
         assert_eq!(anchor_for(6), "footer");
         assert_eq!(anchor_for(99), "home");
     }

@@ -140,7 +140,15 @@ mod tests {
     #[test]
     fn revealed_class_is_the_one_theme_css_consumes() {
         assert_eq!(REVEALED_CLASS, "is-revealed");
-        let css = include_str!("../assets/theme.css");
+        let css = concat!(
+            include_str!("../assets/theme.css"),
+            include_str!("../assets/css/tokens.css"),
+            include_str!("../assets/css/typography.css"),
+            include_str!("../assets/css/layout.css"),
+            include_str!("../assets/css/components.css"),
+            include_str!("../assets/css/animations.css"),
+            include_str!("../assets/css/responsive.css"),
+        );
         assert!(css.contains(".v-reveal.is-revealed"));
         assert!(css.contains(".v-heatmap-container.is-revealed"));
     }
@@ -159,7 +167,15 @@ mod tests {
                 ".v-heatmap-container"
             ]
         );
-        let css = include_str!("../assets/theme.css");
+        let css = concat!(
+            include_str!("../assets/theme.css"),
+            include_str!("../assets/css/tokens.css"),
+            include_str!("../assets/css/typography.css"),
+            include_str!("../assets/css/layout.css"),
+            include_str!("../assets/css/components.css"),
+            include_str!("../assets/css/animations.css"),
+            include_str!("../assets/css/responsive.css"),
+        );
         for token in &tokens {
             assert!(css.contains(token), "theme.css missing rule for {token}");
         }
